@@ -6,10 +6,11 @@
 
 
 import sys
-sys.path.append('/homes/hannah/bin/python_modules')
-sys.path.append('/homes/hannah/LiMMBo')
-sys.path.append(
-    '/nfs/gns/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
+sys.path.append('./../../')
+#sys.path.append('/homes/hannah/bin/python_modules')
+#sys.path.append('/homes/hannah/LiMMBo')
+#sys.path.append(
+   # '/nfs/gns/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
 
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import nans
@@ -329,6 +330,10 @@ class DataLimmbo(object):
         # Total number of successful bootstrapping runs
         number_of_bs = n - 1
 
+        cPickle.dump(Cg_fit, open("%s/Cg_all_bootstraps.p" % 
+            self.options.output, "wb"))
+        cPickle.dump(Cn_fit, open("%s/Cn_all_bootstraps.p" % 
+            self.options.output, "wb"))
         # Computing  mean and standard deviation of bootstrapping results at
         # each position p1, p2 in overall PxP covariance matrix
         verboseprint(("Computing mean of bootstrapping results"),

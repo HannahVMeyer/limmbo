@@ -6,10 +6,11 @@
 
 
 import sys
-sys.path.append('/homes/hannah/bin/python_modules')
-sys.path.append('/homes/hannah/LiMMBo')
-sys.path.append(
-    '/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
+sys.path.append('./../../')
+#sys.path.append('/homes/hannah/bin/python_modules')
+#sys.path.append('/homes/hannah/LiMMBo')
+#sys.path.append(
+ #   '/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
 
 
 import scipy as sp

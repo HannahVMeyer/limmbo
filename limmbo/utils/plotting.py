@@ -6,12 +6,6 @@
 
 import h5py
 
-import sys
-sys.path.append('/homes/hannah/bin/python_modules')
-sys.path.append('/homes/hannah/LiMMBo')
-sys.path.append(
-    '/nfs/gns/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
-
 # plotting
 import matplotlib as mpl
 mpl.use('Agg')
