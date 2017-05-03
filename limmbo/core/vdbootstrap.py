@@ -3,7 +3,8 @@
 ######################
 ### import modules ###
 ######################
-
+import matplotlib as mpl
+mpl.use('Agg')
 
 import sys
 sys.path.append('./../../')
