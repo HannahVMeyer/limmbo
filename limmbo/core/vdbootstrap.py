@@ -1,17 +1,10 @@
-
-# coding: utf-8
 ######################
 ### import modules ###
 ######################
-import matplotlib as mpl
-mpl.use('Agg')
+
 
 import sys
 sys.path.append('./../../')
-#sys.path.append('/homes/hannah/bin/python_modules')
-#sys.path.append('/homes/hannah/LiMMBo')
-#sys.path.append(
-   # '/nfs/gns/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
 
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import nans
@@ -26,15 +19,18 @@ import numpy as np
 import bottleneck as bn
 import time
 import cPickle
+import matplotlib as mpl
+mpl.use('Agg')
 
 import limix.deprecated as dlimix
+import mtSet
 import mtSet.pycore.modules.multiTraitSetTest as MTST
 
-from multiprocessing import Process, Queue, cpu_count
+import pp
 
 ######################
 ### core functions ###
-######################
+#####################
 
 class DataLimmbo(object):
     def __init__(self, datainput, options=None):
@@ -83,6 +79,9 @@ class DataLimmbo(object):
         return_list = []
 
         if n is not None:
+            verboseprint(("Generate bootstrap matrix with %s bootstrap samples "
+                    "(number of specified bootstraps") % n, 
+                    verbose=self.options.verbose)
             for i in xrange(n):
                 bootstrap = rand_state.choice(a=range(self.options.P),
                                               size=self.options.p,
@@ -90,6 +89,7 @@ class DataLimmbo(object):
                 return_list.append(bootstrap)
                 index = np.ix_(np.array(bootstrap), np.array(bootstrap))
                 counts[index] += 1
+            self.runs = n
         else:
             while counts.min() < minCooccurrence:
                 bootstrap = rand_state.choice(a=range(self.options.P),
@@ -98,22 +98,34 @@ class DataLimmbo(object):
                 return_list.append(bootstrap)
                 index = np.ix_(np.array(bootstrap), np.array(bootstrap))
                 counts[index] += 1
+            self.runs = len(return_list)
+            verboseprint(("Generated bootstrap matrix with %s bootstrap runs "
+                        " such that each trait-trait was sampled %s") % 
+                    (self.runs, minCooccurrence),
+                    verbose=self.options.verbose)
 
         return return_list, counts.min()
 
     def bootstrapPhenotypes(self, bs, bootstrap_matrix):
-        # Get bootstrap indeces to be sampled form phenotype
-        verboseprint("Bootstrap nr %s" % bs, verbose=self.options.verbose)
+        """ 
+        Subsample [S] phenotypes with [N] samples form total of [P] 
+        phenotypes. Indeces for subsampling provided in [bs x S] 
+        bootstrap_matrix, where bs is the bs is the total number of bootstraps
+        as determined by .generateBootstrapMatrix()
+        Input:
+            * bs: [scalar] bootstrap index
+            * bootstrap_matrix: [bs x S] [pd.Dataframe] with subsampling 
+                                indeces for self.phenotypes
+        Output:
+            * phenotypes: [N x S] [np.array] of subsampled phenotypes 
+        """
         bootstrap = bootstrap_matrix.iloc[bs, :]
-        phenotype_ID = pd.DataFrame(np.array(self.phenotype_ID)[
-                                    bootstrap.values].astype('str'),
-                                    columns=["phenotype_ID"])
         phenotypes = self.phenotypes[:, bootstrap]
         return phenotypes
 
-    def sampleCovarianceMatrices(self):
+    def sampleCovarianceMatricesMultiProcess(self):
 
-        def workerFunction(self, work_queue, done_queue, bsmat):
+        def workerFunction(self, work_queue, results, bsmat):
             self.nrtraits, self.nrsamples = self.phenotypes.shape
             outfile = "%s/mtSetresults_nrsamples%s_nrtraits%s.h5" % (
                 self.options.output, self.nrsamples, self.nrtraits)
@@ -121,9 +133,11 @@ class DataLimmbo(object):
                 pheno = self.bootstrapPhenotypes(bs, bsmat)
                 verboseprint("Start vd for bootstrap nr %s" % bs)
                 Cg, Cn, proctime = self.VarianceDecomposition(
-                    phenoSubset=pheno)
-                done_queue.put({'Cg': Cg, 'Cn': Cn, 'process_time': proctime,
-                                'bootstrap': bsmat.iloc[bs, :]})
+                    phenoSubset=pheno, bs=bs)
+                results.append({'Cg': Cg, 'Cn': Cn, 'process_time': proctime,
+                                                    'bootstrap': bsmat.iloc[bs,
+                                                        :]})
+
             return True
 
         bootstrap_matrix, minimumTraitTraitcount = \
@@ -136,33 +150,85 @@ class DataLimmbo(object):
                                 self.options.output, sep=",",
                                 index=True, header=False)
 
-        workers = cpu_count()
+        if self.options.cpus is None:
+            workers = cpu_count()
+        else:
+            workers = self.options.cpus
+
+        verboseprint("Number of CPUs available for parallelising: %s" % workers,
+                     verbose=self.options.verbose)
         work_queue = Queue()
-        done_queue = Queue()
+        results = []
+        #done_queue = Queue()
         processes = []
 
-        for bs in range(self.options.runs):
+        for bs in range(self.runs):
             work_queue.put(bs)
 
         for w in xrange(workers):
             p = Process(target=workerFunction, args=(
-                self, work_queue, done_queue, bootstrap_matrix))
+                self, work_queue, results, bootstrap_matrix))
             p.start()
             processes.append(p)
             work_queue.put('STOP')
 
         for p in processes:
-            p.join()
+            if p.is_alive():
+                p.join()
 
-        done_queue.put('STOP')
-        return done_queue
+        verboseprint("Finished variance decomposition of bootstrapped traits", 
+                verbose=self.options.verbose)
 
-    def combineBootstrap(self, resultsQ):
+        return results 
+    
+    def sampleCovarianceMatricesPP(self):
+        bootstrap_matrix, minimumTraitTraitcount = \
+                self.generateBootstrapMatrix(seed=self.options.seed,
+                        n=self.options.runs,
+                        P=self.options.P, p=self.options.p,
+                        minCooccurrence=self.options.minCooccurrence)
+        bootstrap_matrix = pd.DataFrame(bootstrap_matrix)
+        bootstrap_matrix.to_csv("%s/bootstrap_matrix.csv" %
+                                self.options.output, sep=",",
+                                index=True, header=False)
+        ppservers = ()
+        jobs = []
+        results = []
+
+        if self.options.cpus is not None:
+            job_server = pp.Server(self.options.cpus, ppservers=ppservers)
+        else:
+            job_server = pp.Server(ppservers=ppservers)
+
+        verboseprint("Number of CPUs available for parallelising: %s" % 
+                    job_server.get_ncpus(),
+                     verbose=self.options.verbose)
+        
+        self.nrtraits, self.nrsamples = self.phenotypes.shape
+        outfile = "%s/mtSetresults_nrsamples%s_nrtraits%s.h5" % (
+            self.options.output, self.nrsamples, self.nrtraits)
+        for bs in range(self.runs):
+            pheno = self.bootstrapPhenotypes(bs, bootstrap_matrix)
+            verboseprint("Start vd for bootstrap nr %s" % bs)
+            jobs.append(job_server.submit(self.VarianceDecomposition,
+                (pheno, bs),
+                (verboseprint,),
+                ("mtSet", "time")))
+        
+        for job in jobs:
+            bsresult = job()
+            bsresult['bootstrap'] = bootstrap_matrix.iloc[
+                    bsresult['bsindex'], :]
+            results.append(bsresult)
+
+        return results
+
+    def combineBootstrap(self, results):
         verboseprint("Combine bootstrapping results...",
                      verbose=self.options.verbose)
         time0 = time.clock()
-        Cg_fit, Cn_fit, Cg_average, Cn_average, process_time_bs = \
-                self.getBootstrapResults(resultsQ=resultsQ,
+        Cg_fit, Cn_fit, Cg_average, Cn_average, process_time_bs, nr_bs = \
+                self.getBootstrapResults(results=results,
                         timing=self.options.timing)
         time1 = time.clock()
 
@@ -204,8 +270,8 @@ class DataLimmbo(object):
 
         return self
 
-    def VarianceDecomposition(self, phenoSubset=None):
-        """Compute variance decompostion of phenotypes into genetic and noise 
+    def VarianceDecomposition(self, phenoSubset=None, bs=None):
+        """Compute variance decomposition of phenotypes into genetic and noise 
         covariance
         Input:
             * phenotypes: P x P np.array for which variance decomposition 
@@ -225,54 +291,50 @@ class DataLimmbo(object):
 
         outfile = None
         if self.options.cache is True and self.options.output is None:
-            sys.exit(("Output directory must be specified if caching is"
+            sys.exit(("Output directory must be specified if caching is "
             "enabled"))
         if self.options.cache is False and self.options.output is not None:
-            print ("Warning: Caching is disabled, despite having supplied an"
+            print ("Warning: Caching is disabled, despite having supplied an "
                    "output directory")
         if self.options.cache is True and self.options.output is not None:
             self.nrtraits, self.nrsamples = self.phenotypes.shape
             outfile = "%s/mtSetresults_nrsamples%s_nrtraits%s.h5" % (
                 self.options.output, self.nrsamples, self.nrtraits)
 
-        if phenoSubset is None:
-            pheno = self.phenotypes
-        else:
-            pheno = phenoSubset
         # time variance decomposition
         t0 = time.clock()
-        mtSet = MTST.MultiTraitSetTest(Y=pheno, XX=self.relatedness)
-        mtSet_null_info = mtSet.fitNull(
-            cache=self.options.cache, fname=outfile, n_times=1000,
+        #mtSet = MTST.MultiTraitSetTest(Y=phenoSubset, XX=self.relatedness)
+        mtset = mtSet.pycore.modules.multiTraitSetTest.MultiTraitSetTest(
+                Y=phenoSubset, XX=self.relatedness)
+        mtset_null_info = mtset.fitNull(
+            cache=self.options.cache, fname=outfile, 
+            n_times=self.options.iterations,
             rewrite=True, seed=self.options.seed)
         t1 = time.clock()
+        processtime = t1 - t0
 
-        if mtSet_null_info['conv']:
-            verboseprint("mtSet converged", verbose=self.options.verbose)
-            if phenoSubset is None:
-                self.Cg = mtSet_null_info['Cg']
-                self.Cn = mtSet_null_info['Cn']
-                self.processtime = t1 - t0
-            else:
-                Cg = mtSet_null_info['Cg']
-                Cn = mtSet_null_info['Cn']
-                processtime = t1 - t0
+        if mtset_null_info['conv']:
+            verboseprint("mtSet for bootstrap number %s converged" % bs, 
+                        verbose=self.options.verbose)
+            Cg = mtset_null_info['Cg']
+            Cn = mtset_null_info['Cn']
         else:
-            sys.exit("mtSet did not converge")
+            verboseprint("mtSet for bootstrap number %s did not converge" % 
+                    bs, verbose=self.options.verbose)
+            Cg = None
+            Cn = None
+        return {'Cg': Cg, 'Cn': Cn, 
+                'process_time': processtime,
+                'bsindex': bs}
 
-        if phenoSubset is None:
-            return self
-        else:
-            return Cg, Cn, processtime
-
-    def getBootstrapResults(self, resultsQ,  timing=True):
+    def getBootstrapResults(self, results,  timing=True):
         """
         Collect bootstrap results of p x p traits and combine all runs to total 
         covariance matrix PxP
         Input:
             * directory: string, path to result files; top directory, may 
               contain subdirectories
-            * resultsQ: 
+            * results: 
             * runs: numeric, number of bootstrapping runs executed for this 
               experiment, default:10,000
             * P: numeric, PxP size of overall covariance matrix, default: 100
@@ -281,13 +343,13 @@ class DataLimmbo(object):
               optimized with respect to residual sum of squares of estimate of 
               Cg and each bootstrap run, default:False
         Output:
-            * Cg_norm_before:
-            * Cn_norm_before:
-            * Cg_norm_after:
-            * Cn_norm_after:
-            * bstrap:
-            * sample_ID:
-            * C_opt_value:
+        Cg_opt, Cn_opt, Cg_norm, Cn_norm, process_time_bs, number_of_bs
+            * Cg_opt:
+            * Cn_opt:
+            * Cg_norm:
+            * Cn_norm:
+            * process_time_bs:
+            * number_of_bs:
         """
 
         # list to contain trait indeces of each bootstrap run
@@ -304,20 +366,23 @@ class DataLimmbo(object):
 
         # create np.arrays of dimension runs x P x P to store the bootstrapping
         # results for averaging
-        Cg_average = nans((self.options.runs, self.options.P, self.options.P))
-        Cn_average = nans((self.options.runs, self.options.P, self.options.P))
+        Cg_average = nans((self.runs, self.options.P, self.options.P))
+        Cn_average = nans((self.runs, self.options.P, self.options.P))
 
-        Cg_fit = nans((self.options.runs, self.options.p, self.options.p))
-        Cn_fit = nans((self.options.runs, self.options.p, self.options.p))
+        Cg_fit = nans((self.runs, self.options.p, self.options.p))
+        Cn_fit = nans((self.runs, self.options.p, self.options.p))
 
         n = 0
-        for vdresult in iter(resultsQ.get, "STOP"):
+        #for vdresult in iter(resultsQ.get, "STOP"):
+        for vdresult in results:
             bootstrap[n] = vdresult['bootstrap'].values
             if self.options.timing == True:
                 process_time_bs.append(vdresult['process_time'])
 
             # store results of each bootstrap as matrix of inflated
             # matrices: NAs for traits that were not sampled
+            if vdresult['Cg'] is None or vdresult['Cn'] is None:
+                continue
             Cg_average[n, :, :] = inflate_matrix(
                 vdresult['Cg'], bootstrap[n], P=self.options.P, zeros=False)
             Cn_average[n, :, :] = inflate_matrix(
@@ -358,7 +423,7 @@ class DataLimmbo(object):
             bootstrap_indeces=bootstrap,
             number_of_bs=number_of_bs,  name="Cn")
 
-        return Cg_opt, Cn_opt, Cg_norm, Cn_norm, process_time_bs
+        return Cg_opt, Cn_opt, Cg_norm, Cn_norm, process_time_bs, number_of_bs
 
     def fit_bootstrap_results(self, cov_init, cov_bootstrap, bootstrap_indeces,
                               number_of_bs, name):
