@@ -38,13 +38,7 @@ class DataLimmbo(object):
         nothing to initialize
         '''
         self.options = options
-
-        self.phenotypes_pred = None
         self.phenotypes = datainput.phenotypes
-        self.pheno_samples = datainput.pheno_samples
-        self.phenotype_ID = datainput.phenotype_ID
-        self.pheno_samples = datainput.pheno_samples
-
         self.relatedness = datainput.relatedness
         self.nrsamples = None
         self.nrtraits = None
@@ -57,22 +51,24 @@ class DataLimmbo(object):
     def generateBootstrapMatrix(self, seed=12321, P=100, p=10,
                                 minCooccurrence=3, n=None):
         """
-        Generate permutation.
+        Generate subsampling matrix.
         Input:
-            * seed: numeric; used as seed for pseudo-random numbers generation; 
+            * seed: seed [int] for pseudo-random numbers generation; 
               default: 12321
-            * P: numeric; total number of traits, default: 100
-            * p: numeric; how small should the permutation subset be, 
-              default: 10
-            * minCooccurrence: numeric: minimum number of times a trait pair
+            * P: total number [int] of traits
+            * p: size [int] of permutation subset
+            * minCooccurrence: minimum number [int] a trait pair
               should be sampled; once reached for all trait pairs, sampling is 
               stopped if n is None; default=3
-            * n: numeric; if not None, sets the total number of permutations, 
+            * n: if not None, sets the total number [int] of permutations, 
               otherwise n determined by minCooccurrence;  default: None
-        Output;
-            * return_list: list of length n containing np.array of length p 
-              with permutation of numbers range(P)
-            * minimum trait-trait co-occurrence in sampling matrix
+        Output:
+            * self.runs: n of n not None, or determined once all trait-trait
+              subsamplings have occurrd minCooccurence times
+            * return_list: [list] of length self.runs containing [1 x S] 
+              [np.array] with sample of numbers range(P)
+            * counts_min: minimum trait-trait co-occurrence [int] in sampling 
+              matrix
         """
         rand_state = np.random.RandomState(self.options.seed)
         counts = sp.zeros((self.options.P, self.options.P))
@@ -123,65 +119,33 @@ class DataLimmbo(object):
         phenotypes = self.phenotypes[:, bootstrap]
         return phenotypes
 
-    def sampleCovarianceMatricesMultiProcess(self):
-
-        def workerFunction(self, work_queue, results, bsmat):
-            self.nrtraits, self.nrsamples = self.phenotypes.shape
-            outfile = "%s/mtSetresults_nrsamples%s_nrtraits%s.h5" % (
-                self.options.output, self.nrsamples, self.nrtraits)
-            for bs in iter(work_queue.get, 'STOP'):
-                pheno = self.bootstrapPhenotypes(bs, bsmat)
-                verboseprint("Start vd for bootstrap nr %s" % bs)
-                Cg, Cn, proctime = self.VarianceDecomposition(
-                    phenoSubset=pheno, bs=bs)
-                results.append({'Cg': Cg, 'Cn': Cn, 'process_time': proctime,
-                                                    'bootstrap': bsmat.iloc[bs,
-                                                        :]})
-
-            return True
-
-        bootstrap_matrix, minimumTraitTraitcount = \
-                self.generateBootstrapMatrix(seed=self.options.seed,
-                        n=self.options.runs,
-                        P=self.options.P, p=self.options.p,
-                        minCooccurrence=self.options.minCooccurrence)
-        bootstrap_matrix = pd.DataFrame(bootstrap_matrix)
-        bootstrap_matrix.to_csv("%s/bootstrap_matrix.csv" %
-                                self.options.output, sep=",",
-                                index=True, header=False)
-
-        if self.options.cpus is None:
-            workers = cpu_count()
-        else:
-            workers = self.options.cpus
-
-        verboseprint("Number of CPUs available for parallelising: %s" % workers,
-                     verbose=self.options.verbose)
-        work_queue = Queue()
-        results = []
-        #done_queue = Queue()
-        processes = []
-
-        for bs in range(self.runs):
-            work_queue.put(bs)
-
-        for w in xrange(workers):
-            p = Process(target=workerFunction, args=(
-                self, work_queue, results, bootstrap_matrix))
-            p.start()
-            processes.append(p)
-            work_queue.put('STOP')
-
-        for p in processes:
-            if p.is_alive():
-                p.join()
-
-        verboseprint("Finished variance decomposition of bootstrapped traits", 
-                verbose=self.options.verbose)
-
-        return results 
     
     def sampleCovarianceMatricesPP(self):
+        """
+        Distribute variance decomposition of subset matrices via pp
+        Input:
+            * self.runs: number [int] of bootstrapping runs executed for this 
+              experiment
+            * self.options.P: number [int] of phenotypes P
+            * self.options.p:  subsampling size S [int], default: 10
+            * self.options.output: output directory [string]; needed for 
+            * self.options.seed: seed [int] to initialise random number
+              generator for bootstrapping
+            * minCooccurrence: minimum number [int] a trait pair
+              should be sampled; once reached for all trait pairs, sampling is 
+              stopped if n is None; default=3
+            * n: if not None, sets the total number [int] of permutations, 
+              otherwise n determined by minCooccurrence;  default: None
+            * self.options.output: output directory [string]; needs writing
+              permission
+           * self.options.cpus: number [int] of cpus available for covariance
+             estimation
+           * self.options.verbose: [bool] should messages be printed to stdout
+        Output:
+            * results: results [list] of .VarianceDecomposition of the 
+                       subset matrices
+        """
+
         bootstrap_matrix, minimumTraitTraitcount = \
                 self.generateBootstrapMatrix(seed=self.options.seed,
                         n=self.options.runs,
@@ -224,6 +188,20 @@ class DataLimmbo(object):
         return results
 
     def combineBootstrap(self, results):
+        """
+        Combine the [S x S] subset covariance matrices to find the overall
+        [P x P] covariance matrices Cg and Cn and write as .csv files
+        Input:
+            * results: results [list] of sampleCovarianceMatricesPP()
+            * self.options.timing: [bool] should runtime be recorded and
+              written to file
+            * self.options.output: output directory [string]; needs writing
+              permission
+            * self.options.seed: seed [int] to initialise random number
+              generator for bootstrapping
+        Return:
+            * self
+        """
         verboseprint("Combine bootstrapping results...",
                      verbose=self.options.verbose)
         time0 = time.clock()
@@ -231,21 +209,7 @@ class DataLimmbo(object):
                 self.getBootstrapResults(results=results,
                         timing=self.options.timing)
         time1 = time.clock()
-
-        Cg_average, Cg_average_ev_min = regularize(Cg_average)
-        Cn_average, Cn_average_ev_min = regularize(Cn_average)
-
-        verboseprint("Generate output files", verbose=self.options.verbose)
-
-        pd.DataFrame(Cg_average).to_csv("%s/Cg_average_seed%s.csv" %
-                                        (self.options.output,
-                                         self.options.seed),
-                                        sep=",", header=False, index=False)
-        pd.DataFrame(Cn_average).to_csv("%s/Cn_average_seed%s.csv" %
-                                        (self.options.output,
-                                         self.options.seed),
-                                        sep=",", header=False, index=False)
-
+        
         if self.options.timing is True:
             proc_time_combine_bs = time1 - time0
             proc_time_sum_ind_bs = np.array(process_time_bs).sum()
@@ -259,8 +223,21 @@ class DataLimmbo(object):
                 "%s/process_time_summary.csv" % (self.options.output),
                 sep=",", header=False, index=True)
 
+        Cg_average, Cg_average_ev_min = regularize(Cg_average)
+        Cn_average, Cn_average_ev_min = regularize(Cn_average)
         Cg_fit, Cg_fit_ev_min = regularize(Cg_fit)
         Cn_fit, Cn_fit_ev_min = regularize(Cn_fit)
+
+        verboseprint("Generate output files", verbose=self.options.verbose)
+        pd.DataFrame(Cg_average).to_csv("%s/Cg_average_seed%s.csv" %
+                                        (self.options.output,
+                                         self.options.seed),
+                                        sep=",", header=False, index=False)
+        pd.DataFrame(Cn_average).to_csv("%s/Cn_average_seed%s.csv" %
+                                        (self.options.output,
+                                         self.options.seed),
+                                        sep=",", header=False, index=False)
+
         pd.DataFrame(Cg_fit).to_csv("%s/Cg_fit_seed%s.csv" %
                                     (self.options.output, self.options.seed),
                                     sep=",", header=False, index=False)
@@ -270,23 +247,26 @@ class DataLimmbo(object):
 
         return self
 
-    def VarianceDecomposition(self, phenoSubset=None, bs=None):
+    def VarianceDecomposition(self, phenoSubset, bs=None):
         """Compute variance decomposition of phenotypes into genetic and noise 
         covariance
         Input:
-            * phenotypes: P x P np.array for which variance decomposition 
-              should be computed
-            * relatedness: np.array with kinship/genetic relatedness component 
+            * phenoSubset: [N x S] [phenotypes [np.array] for which variance
+              decomposition should be computed
+            * bs: number of subsample [int]
+            * self.phenotypes: [N x P] original phenotypes [np.array] 
+            * self.relatedness: [N x N] kinship/genetic relatedness [np.array] 
               used in estimation of genetic component
-            * outdir: string of output directory; needed for caching if 
-              method =='mtSet'
-            * seed: numeric; seed used to initialise mtSet, default=None
-            * cache: bool; should mtSet results be cached to outdir, 
-              default: True
+            * self.options.output: output directory [string]; needed for 
+              caching 
+            * self.options.cache: [bool] should mtSet results be cached to 
+            * self.options.verbose: [bool] should messages be printed to stdout
         Output:
-            * Cg: genetic variance component: P x P covariance np.array
-            * Cn: noise variance component: P x P covariance np.array
-            * processtime: cpu time of variance decomposition
+            * dictionary containing:
+                * Cg: [S x S] genetic variance component [np.array]
+                * Cn: [S x S] noise variance component [np.array]
+                * process_time: cpu time [double] of variance decomposition
+                * bsindex: number of subsample [int]
         """
 
         outfile = None
@@ -303,13 +283,12 @@ class DataLimmbo(object):
 
         # time variance decomposition
         t0 = time.clock()
-        #mtSet = MTST.MultiTraitSetTest(Y=phenoSubset, XX=self.relatedness)
         mtset = mtSet.pycore.modules.multiTraitSetTest.MultiTraitSetTest(
                 Y=phenoSubset, XX=self.relatedness)
         mtset_null_info = mtset.fitNull(
             cache=self.options.cache, fname=outfile, 
             n_times=self.options.iterations,
-            rewrite=True, seed=self.options.seed)
+            rewrite=True)
         t1 = time.clock()
         processtime = t1 - t0
 
@@ -327,29 +306,27 @@ class DataLimmbo(object):
                 'process_time': processtime,
                 'bsindex': bs}
 
-    def getBootstrapResults(self, results,  timing=True):
+    def getBootstrapResults(self, results):
         """
-        Collect bootstrap results of p x p traits and combine all runs to total 
-        covariance matrix PxP
+        Collect bootstrap results of [S x S] traits and combine all runs to 
+        total [P x P] covariance matrix
         Input:
-            * directory: string, path to result files; top directory, may 
-              contain subdirectories
-            * results: 
-            * runs: numeric, number of bootstrapping runs executed for this 
-              experiment, default:10,000
-            * P: numeric, PxP size of overall covariance matrix, default: 100
-            * p: numierc, pxp size of small covariance matrx, default: 10
-            * fit: bool, should estimate of Cg (average over all bootstraps) be 
-              optimized with respect to residual sum of squares of estimate of 
-              Cg and each bootstrap run, default:False
+            * results: results [list] of sampleCovarianceMatricesPP()
+            * self.runs: number [int] of bootstrapping runs executed for this 
+              experiment
+            * self.options.P: number [int] of phenotypes P
+            * self.options.p:  subsampling size S [int], default: 10
+            * self.options.output: output directory [string]; needed for 
+              pickling all variance decomposition runs of [S x S] Cg and Cn
+            * self.options.verbose: [bool] should messages be printed to stdout
         Output:
-        Cg_opt, Cn_opt, Cg_norm, Cn_norm, process_time_bs, number_of_bs
-            * Cg_opt:
-            * Cn_opt:
-            * Cg_norm:
-            * Cn_norm:
-            * process_time_bs:
-            * number_of_bs:
+            * Cg_opt: [P x P] genetic covariance matrix via fitting
+            * Cn_opt: [P x P] noise covariance matrix via fitting
+            * Cg_norm: [P x P] genetic covariance matrix via simple average
+            * Cn_norm: [P x P] noise covariance matrix via simple average
+            * process_time_bs: [list] of run times for all variance 
+              decomposition runs of [S x S] Cg and Cn
+            * number_of_bs: total number [int] of successful bootstrapping runs
         """
 
         # list to contain trait indeces of each bootstrap run
@@ -428,20 +405,21 @@ class DataLimmbo(object):
     def fit_bootstrap_results(self, cov_init, cov_bootstrap, bootstrap_indeces,
                               number_of_bs, name):
         """
-        Fit  bootstrap results of p x p traits and combine all runs to total 
-        covariance matrix PxP
+        Fit  bootstrap results of [S x S] traits and combine all runs to total 
+        [P x P] covariance matrix 
         Input:
-            * lp: numeric;  [P x P] is size of overall covariance matrix
-            * cov_initial: [P x P] np.array;  covariance matrix used to 
+            * lp: number [int] of phenotypes P
+            * cov_init: [P x P] covariance matrix [np. array] used to 
               initialise fitting
-            * cov_bootstrap: [number_of_bs x p x p ] np.array; matrix with 
-              bootstrap results
-            * number_of_bs: numeric; number of successful bootstrapping runs 
+            * number_of_bs: number [int] of successful bootstrapping runs 
               executed for this experiment
-            * bootstrap_indeces: [number_of_bs x p] np.array;  matrix of 
-              bootstrapping indeces
+            * cov_bootstrap: [number_of_bs x S x S] bootstrap results 
+              [np.array]
+            * bootstrap_indeces: [number_of_bs x S] matrix of 
+              bootstrapping indeces [np.array]
+            * name: name [string] of covariance matrix
         Output:
-            * C_opt_value: P x P covariance matrix after fitting if fit 
+            * C_opt_value: [P x P] covariance matrix [np.array] if fit 
               successful, else 1x1 matrix containing string: 'did not converge'
             * writes pickle output file with optimize settings and results to 
               directory
@@ -485,8 +463,10 @@ class DataLimmbo(object):
             * params: np.array of parameters used for initialising estimate C 
               (length: 1/2*P*(P+1))
             * C: intialised free-form covariance matrix, to be fitted
-            * n_bootstrap: numeric; how many bootstraps ran successfully
-            * index_bootstrap: list of n_bootstrap bootstrap indeces of traits
+            * n_bootstrap: number [int] of successful bootstrapping runs
+              executed for this experiment
+            * index_bootstrap: [number_of_bs x S] matrix of
+              bootstrapping indeces [np.array]
             * list_C: list of n_bootstrap [p x p] bootstrapped covariance 
               matrices
         Output:
@@ -501,8 +481,8 @@ class DataLimmbo(object):
         C_value = C.K()
         # number of parameters: 1/2*P*(P+1)
         n_params = params.shape[0]
-        # compute residual sum of squares between estimate of PxP Cg and
-        # bootstrapped pxp Cgs
+        # compute residual sum of squares between estimate of P x P Cg and
+        # bootstrapped S x S Cgs
         RSS_res, index = self.RSS_compute(
             n_bootstrap, C_value, list_C, index_bootstrap)
         # compute gradient (first derivative of rss at each bootstrap)
@@ -512,8 +492,6 @@ class DataLimmbo(object):
         return (RSS_res, RSS_grad_res)
 
     @staticmethod
-    # Functions to compute residual sum of squares and gradient of residual
-    # sum of squares ###
     def RSS_compute(n_bootstrap,  C_value, list_C, index_bootstrap):
         """ 
         Compute residual sum of squares (rss) for each bootstrap run
@@ -523,12 +501,13 @@ class DataLimmbo(object):
         -  matrix to be optimized initialised with average over all bootstraps 
            for each position
         Input:
-            * n_bootstrap: numeric; number of successful bootstrap runs; 
-            * C_value: [P x P] np.array;  matrix to be optimized
-            * list_C: [n_bootstrap x p x p] np.array; bootstrapped covariance 
-              matrix 
+            * n_bootstrap: number [int] of successful bootstrap runs; 
+            * C_value: [P x P] matrix [np.array] to be optimized
+            * list_C: [n_bootstrap x p x p]  bootstrapped covariance 
+              matrices [np.array] 
         Output:
-            * res: numeric;  added rss over all n_bootstrap runs
+            * res: added residual sum of squares [double] over all 
+              n_bootstrap runs
             * index: [n_bootstrap x p] list; contains trait indeces used in 
               each bootstrap run; to be passed to gradient computation
         """
@@ -549,16 +528,18 @@ class DataLimmbo(object):
         -  matrix to be optimized initialised with average over all bootstraps 
            for each position
         Input:
-            * n_bootstrap: numeric; number of successful bootstrap runs;
-            * n_params: numeric; number of parameters of the model (parameters 
-              needed to build positive, semi-definite matrix with cholenski 
+            * n_bootstrap: number of [int] successful bootstrap runs;
+            * n_params: number [int] of parameters of the model (parameters 
+              needed to build positive, semi-definite matrix with Choleski 
               decomposition
-            * C_value:[P x P] np.array;  matrix to be optimized
-            * list_C: [n_bootstrap x p x p] np.array; boostrapped covariance 
-              matrix
+            * C_value: [P x P] matrix [np.array] to be optimized
+            * list_C: [n_bootstrap x p x p]  boostrapped covariance 
+              matrices [np.array]
+            * index: [n_bootstrap x p] trait indeces [list] used in
+                          each bootstrap run
         Output:
-            * res: [n_params x 1] np.array; sum of gradient over all bootstrap 
-              runs for each parameter to be fitted  
+            * res: [n_params x 1] sum of gradient over all bootstrap 
+              runs for each parameter to be fitted [np.array]  
         """
         res = sp.zeros(n_params)
         for pi in range(n_params):
