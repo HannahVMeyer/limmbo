@@ -6,18 +6,16 @@ import h5py
 
 import sys
 sys.path.append('./../../')
-#sys.path.append('/homes/hannah/bin/python_modules')
-#sys.path.append(
-   # '/nfs/gns/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
 
 
 import scipy as sp
 import pandas as pd
 import numpy as np
+import functools as ft
 import re
 
 # import LIMIX tools
-import limix
+import limix as limix
 import limix.io.genotype_reader as gr
 
 # import mtSet tools
@@ -35,6 +33,10 @@ from limmbo.utils.utils import match
 
 class DataInput(object):
     """
+    Generate object containing all datasets relevant for variance decomposition
+    (phenotypes, relatedness estimates) and pre-processing steps (check for
+    common samples and sample order, covariates regression and phenotype 
+    transformation)
     """
 
     def __init__(self, options=None):
@@ -46,21 +48,30 @@ class DataInput(object):
         self.phenotypes = None
         self.pheno_samples = None
         self.phenotype_ID = None
-        self.snps = None
-        self.position = None
-        self.geno_samples = None
         self.covariates = None
         self.covariate_samples = None
         self.relatedness = None
         self.relatedness_samples = None
-        self.pcs = None
-        self.pc_samples = None
-        self.Cg = None
-        self.Cn = None
-        self.trainset = None
-        self.traitsarray = None
 
     def getPhenotypes(self):
+        """
+        Reading phenotype file, either as hf5 (.h5)  or comma-separated
+        values (.csv) file
+        Input: 
+            * self.file_pheno: 
+                * either .h5f file with group ['phenotype'] containing:
+                    * ['col_header']['phenotype_ID']: [P] phenotype IDs [string]
+                    * ['row_header']['sample_ID']: [N] sample IDs [string]
+                    * ['matrix']: [N x P] phenotypes [np.array]
+                * or [(N+1) x (P+1)] .csv file with: [N] sample IDs in the 
+		  first column and [P] phenotype IDs in the first row
+            * self.option.verbose: [bool] should progress messages be printed
+              to stdout
+        Output:
+            * self.phenotypes: [N x P] phenotype matrix [np.array]
+            * self.pheno_samples: [N] sample IDs [np.array]
+            * self.phenotype_ID: [P] phenotype IDs [np.array]
+        """
         verboseprint("Extracting phenotypes", verbose=self.options.verbose)
         if re.search(".h5", self.options.file_pheno) is None:
             self.phenotypes = pd.io.parsers.read_csv(
@@ -80,41 +91,23 @@ class DataInput(object):
             file.close()
         return self
 
-    def getGenotypes(self):
-        if re.search(".h5", self.options.file_geno) is None:
-            verboseprint("Extracting genotypes from .csv file",
-                         verbose=self.options.verbose)
-            genotypes = pd.io.parsers.read_csv(
-                self.options.file_geno, index_col=0, header=0)
-            snp_info = np.array(genotypes.index)
-
-            position = []
-            snp_ID = []
-            for id in range(snp_info.shape[0]):
-                split = np.array(snp_info[id].split('-'))
-                snp_ID.append(split[2])
-                position.append(split[[0, 1]])
-
-            self.geno_samples = np.array(genotypes.columns)
-            self.snps = np.array(genotypes).astype(float).T
-            self.position = pd.DataFrame(np.array(position), columns=[
-                                         'chrom', 'pos'], index=snp_ID)
-        else:
-            # read genotype information: chromosome-wise hf5 files
-            geno_reader = gr.genotype_reader_h5py(self.options.file_geno)
-            verboseprint("Extracting genotypes from hf5 file",
-                         verbose=self.options.verbose)
-            self.geno_samples = geno_reader.sample_ID
-            self.snps = geno_reader.getGenotypes().astype(float)
-            self.position = geno_reader.getPos()
-
-        if self.options.standardise:
-            verboseprint("Standardise genotypes", verbose=self.options.verbose)
-            self.standardiseGenotypes()
-        return self
-
     def getCovariates(self):
-        if self.options.file_covariates != None:
+        """
+        Reading comma-separated values (.csv) covariates file with [N]
+	samples and [K] covariates
+        Input:
+            * self.file_covariates: [N x (K + 1)] .csv file with: [N] sample 
+	     IDs in the first column 
+            * self.option.verbose: [bool] should progress messages be printed
+              to stdout
+        Output:
+            * self.covariates: [N x K] covariates matrix [np.array] or None if
+              not set
+            * self.covs_samples: [N] sample IDs [np.aray] or None of no
+              covariates are specified
+        """        
+
+	if self.options.file_covariates != None:
             verboseprint("Reading covariates file",
                          verbose=self.options.verbose)
             self.covariates = pd.io.parsers.read_csv(
@@ -122,95 +115,58 @@ class DataInput(object):
             self.covs_samples = np.ravel(self.covariates.iloc[:, :1])
             self.covariates = np.array(
                 self.covariates.iloc[:, 1:]).astype(float)
-            # Bug in LIMIX: this concatenation should be done in QTL function;
-            # adjusts for mean of covariates
+            # append column of 1's to adjust for mean of covariates
             if not self.options.regress:
                 self.covariates = sp.concatenate(
                     [self.covariates,
                         sp.ones((self.covariates.shape[0], 1))], 1)
                 self.covariates = np.array(self.covariates)
         else:
-            # When cov are not set (None), LIMIX considers an intercept
             verboseprint("No covariates set", verbose=self.options.verbose)
             self.covariates = None
             self.covs_samples = None
         return self
 
-    def getKinship(self):
-        if self.options.file_kinship != None:
-            verboseprint("Reading relationship matrix",
-                         verbose=self.options.verbose)
-            self.relatedness = pd.io.parsers.read_csv(
-                self.options.file_kinship)
-            self.relatedness_samples = np.array(self.relatedness.columns)
-            self.relatedness = np.array(self.relatedness).astype(float)
-        else:
-            self.relatedness = None
-            verboseprint("No relationship matrix set",
-                         verbose=self.options.verbose)
-            self.relatedness_samples = None
-        return self
-
-    def getPCs(self):
-        if self.options.file_pcs != None:
-            verboseprint("Reading PCs", verbose=self.options.verbose)
-            self.pcs = pd.io.parsers.read_csv(
-                self.options.file_pcs, header=None, sep=" ")
-            self.pc_samples = np.array(self.pcs.iloc[:, :1]).flatten()
-            self.pcs = np.array(self.pcs.iloc[:, 2:]).astype(float)
-            verboseprint("Extracting first %s pcs" %
-                         self.options.nrpcs, verbose=self.options.verbose)
-            self.pcs = self.pcs[:, :self.options.nrpcs]
-        else:
-            self.pcs = None
-            verboseprint("No pcs set", verbose=self.options.verbose)
-            self.pc_samples = None
-        return self
-
-    def getVD(self):
-        if self.options.mode == 'multitrait':
-            if self.options.file_Cg is None and self.options.file_Cn is None:
-                verboseprint(("No variance components supplied, run VD/limmbo"
-                              "before lmm test"), verbose=self.options.verbose)
-                self.Cg, self.Cn = None, None
-            elif self.options.file_Cg is None or self.options.file_Cn is None:
-                verboseprint(("Both variant components need to be supplied: Cg"
-                              "is %s and Cn is %s") % (self.options.file_Cg,
-                                                       self.options.file_Cn),
-                             verbose=self.options.verbose)
-                self.Cg, self.Cn = None, None
-            else:
-                self.Cg = np.array(pd.io.parsers.read_csv(
-                    self.options.file_Cg, header=None))
-                self.Cn = np.array(pd.io.parsers.read_csv(
-                    self.options.file_Cn, header=None))
-            return self
-
-    def standardiseGenotypes(self):
-        for snp in range(self.snps.shape[1]):
-            p, q = AlleleFrequencies(self.snps[:, snp])
-            var_snp = sqrt(2 * p * q)
-            for n in range(self.snps[:, snp].shape[0]):
-                self.snps[n, snp] = (self.snps[n, snp] - 2 * q) / var_snp
-        return self
-
-    def getAlleleFrequencies(self):
-        verboseprint("Get allele frequencies of %s snps from chromosome %s" % (
-            self.snps.shape[1], self.options.chromosome))
-        self.freqs = np.zeros((self.snps.shape[1], 3))
-        for snp in range(self.snps.shape[1]):
-            self.freqs[snp, 1], self.freqs[snp, 2] = AlleleFrequencies(
-                self.snps[:, snp])
-        self.freqs = self.freqs.astype('str')
-        self.freqs[:, 0] = np.array(self.position.index)
-
-        pd.DataFrame(self.freqs, columns=["SNP_ID", "A1", "A2"]).to_csv(
-            "%s/allelefrequencies_%s.csv" % (self.options.output,
-                                             self.options.chromosome),
-            index=False, header=True)
+    def getRelatedness(self):
+        """
+        Reading comma-separated values (.csv) file with relatedness estimates 
+        for [N] samples 
+        Input:
+            * self.file_relatedness: [(N + 1) x N] .csv file with: [N] sample
+              IDs in the first row
+            * self.options.verbose: [bool] should progress messages be printed
+              to stdout
+        Output:
+            * self.relatedness: [N x N] relatedness matrix [np.array]
+            * self.relatedness_samples: [N] sample IDs of relatedness matrix 
+              [np.array]
+        """
+        verboseprint("Reading relationship matrix",
+                     verbose=self.options.verbose)
+        self.relatedness = pd.io.parsers.read_csv(
+            self.options.file_relatedness)
+        self.relatedness_samples = np.array(self.relatedness.columns)
+        self.relatedness = np.array(self.relatedness).astype(float)
         return self
 
     def subsetTraits(self):
+        """
+        Limit analysis to specific subset of traits
+        Input:
+            * self.phenotypes: [N x P] phenotype matrix [np.array]
+            * self.phenotype_ID: [P] phenotype IDs [np.array]
+            * self.options.traitstring: comma-separated trait numbers (for 
+              single traits) or hyphen-separated trait numbers 
+              (for trait ranges) or combination of both [string] for trait
+              selection (1-based) 
+            * self.options.verbose: [bool] should progress messages be printed
+              to stdout
+        Output:
+            * self.traitsarray: [list] of [t] trait numbers [int] to choose for 
+              analysis
+            * self.phenotypes: reduced set of [N x t] phenotypes [np.array]
+            * self.phenotype.ID: reduced set of [t] phenotype IDs [np.array]
+        """
         if self.options.traitstring is not None:
             verboseprint("Chose subset of %s traits" %
                          self.options.traitstring,
@@ -227,105 +183,86 @@ class DataInput(object):
 
             self.phenotypes = self.phenotypes[:, self.traitsarray]
             self.phenotype_ID = self.phenotype_ID[self.traitsarray]
-            if self.Cg is not None:
-                self.Cg = self.Cg[self.traitsarray, :][:, self.traitsarray]
-                self.Cn = self.Cn[self.traitsarray, :][:, self.traitsarray]
         return self
 
     def commonSamples(self):
-        if self.options.file_geno is not None:
-            if self.options.file_samplelist is not None:
-                verboseprint(("Read sample list to be extracted from"
-                              "phenotypes (samples:%s) and genotypes (samples:"
-                              "%s)") % (
-                    len(self.pheno_samples), len(self.geno_samples)),
-                    verbose=self.options.verbose)
-                # read sample list
-                subset = np.array(pd.io.parsers.read_csv(
-                    self.options.file_samplelist, header=None))
-                verboseprint("Number of samples in sample list: %s" %
-                             len(subset))
-            else:
-                verboseprint(("Get common samples between phenotypes"
-                              "(samples:%s) and genotypes (samples: %s)") % (
-                    len(self.pheno_samples), len(self.geno_samples)),
-                    verbose=self.options.verbose)
-                # get common samples between genotypes and phenotypes
-                subset = np.intersect1d(self.pheno_samples, self.geno_samples)
-                verboseprint(("Number of common samples between phenotypes and"
-                              "genotypes: %s") % len(
-                    subset), verbose=self.options.verbose)
-
-            # subsample arrays and match order of phenotypes/covariates/kinship
-            # and respective samples to genotypes
-            verboseprint(("Match order of pheno_samples to geno_samples and"
-                          "extract corresponding samples in right order from"
-                          "additional optional files (kinship, covariates,"
-                          "pcs)"),
-                         verbose=self.options.verbose)
-            subset_geno_samples = np.in1d(self.geno_samples, subset)
-            self.geno_samples = self.geno_samples[subset_geno_samples]
-            self.snps = self.snps[subset_geno_samples, :]
-            self.samples = self.geno_samples
-            if self.options.permute is True:
-                verboseprint("Permuting genotype samples (seed %s)" %
-                             self.options.seed, verbose=self.options.verbose)
-                self.snps = self.snps[np.random.RandomState(
-                    self.options.seed).choice(self.snps.shape[0],
-                                              self.snps.shape[0],
-                                              replace=False), :]
-
-            subset_pheno_samples = np.in1d(self.pheno_samples, subset)
-            self.pheno_samples = self.pheno_samples[subset_pheno_samples]
-            self.phenotypes = self.phenotypes[subset_pheno_samples, :]
-            self.phenotypes, self.pheno_samples, samples_before,
-            samples_after = match(
-                self.geno_samples, self.pheno_samples, self.phenotypes,
-                squarematrix=False)
+        """
+        Get [M] common samples out of phenotype, relatedness and optional 
+        covariates with [N] samples (if all the same [M] = [N])
+        and ensure that samples are in same order
+        Input:
+            * self.phenotypes: [N x P] phenotype matrix [np.array]
+            * self.pheno_samples: [N] sample IDs [np.array]
+            * self.relatedness: [N x N] relatedness matrix [np.array]
+            * self.relatedness_samples: [N] sample IDs of relatedness matrix 
+              [np.array]
+            * self.covariates: [N x K] covariates matrix [np.array]
+            * self.covs_samples: [N] sample IDs [np.aray]
+        Output:
+            * self.phenotypes: [M x P] phenotype matrix [np.array]
+            * self.pheno_samples: [M] sample IDs [np.array]
+            * self.relatedness: [M x M] relatedness matrix [np.array]
+            * self.relatedness_samples: [M] sample IDs of relatedness matrix 
+              [np.array]
+            * self.covariates: [M x K] covariates matrix [np.array]
+            * self.covs_samples: [M] sample IDs [np.aray]
+        """
+        if self.covariates is not None:
+            self.samples = ft.reduce(np.intersect, (self.pheno_samples,
+                    self.relatedness_samples, self.covs_samples))
         else:
-            subset = self.pheno_samples
-            self.samples = self.pheno_samples
+            self.samples = np.intersect(self.pheno_samples,
+                    self.relatedness_samples)
+        
+        subset_pheno_samples = np.in1d(
+            self.pheno_samples, self.samples)
+        self.pheno_samples = self.pheno_samples[
+            subset_pheno_samples]
+        self.phenotypes = self.phenotypes[subset_pheno_samples, :]
+        (self.phenotypes, self.pheno_samples, samples_before,
+         samples_after) = match(
+            self.samples, self.pheno_samples, self.phenotypes,
+            squarematrix=True)
 
-        if self.relatedness is not None:
-            subset_relatedness_samples = np.in1d(
-                self.relatedness_samples, subset)
-            self.relatedness_samples = self.relatedness_samples[
-                subset_relatedness_samples]
-            self.relatedness = self.relatedness[subset_relatedness_samples, :]
-            (self.relatedness, self.relatedness_samples, samples_before,
-             samples_after) = match(
-                self.samples, self.relatedness_samples, self.relatedness,
-                squarematrix=True)
+        subset_relatedness_samples = np.in1d(
+            self.relatedness_samples, self.samples)
+        self.relatedness_samples = self.relatedness_samples[
+            subset_relatedness_samples]
+        self.relatedness = self.relatedness[subset_relatedness_samples,:]\
+                [:, subset_relatedness_samples]
+        (self.relatedness, self.relatedness_samples, samples_before,
+         samples_after) = match(
+            self.samples, self.relatedness, self.relatedness_samples,
+            squarematrix=True)
 
         if self.covariates is not None:
-            subset_covs_samples = np.in1d(self.covs_samples, subset)
+            subset_covs_samples = np.in1d(self.covs_samples, self.samples)
             self.covs_samples = self.covs_samples[subset_covs_samples]
-            self.covariatess = self.covariates[subset_covs_samples, :]
+            self.covariates = self.covariates[subset_covs_samples, :]
             self.covariates, self.covs_samples, samples_before,
             samples_after = match(
-                self.samples, self.covs_samples, self.covariates,
+                self.samples, self.covariates, self.covs_samples,
                 squarematrix=False)
-
-        if self.pcs is not None:
-            subset_pc_samples = np.in1d(self.pc_samples, subset)
-            self.pc_samples = self.pc_samples[subset_pc_samples]
-            self.pcs = self.pcs[subset_pc_samples, :]
-            self.pcs, self.pc_samples, samples_before, samples_after = match(
-                self.samples, self.pc_samples, self.pcs, squarematrix=False)
+        return self
 
     def regress_and_transform(self):
+        """
+        Regress out covariates (optional) and transform phenotypes (optional)
+        Input:
+            * self.options.regress: [bool], if True, covariates are explanatory
+              variables in linear model with phenotypes as response
+            * self.phenotypes: [N x P] phenotype matrix [np.array]
+            * self.covariates: [N x K] covariates matrix [np.array]
+            * self.options.verbose: [bool] should progress messages be printed
+              to stdout
+        Output: 
+            * self.options.phenotypes: [N x P] phenotype matrix of residuals of
+              linear model [np.array]
+            * self.covariates: None 
+        """
+
         if self.options.regress:
             type = "covariates"
-            if self.pcs is not None:
-                if self.covariates is not None:
-                    verboseprint("Append Pcs to covariates",
-                                 verbose=self.options.verbose)
-                    self.covariates = sp.concatenate(
-                        [self.covariates, self.pcs], axis=1)
-                    type = "covariates and PCs"
-                else:
-                    self.covariates = self.pcs
-                    type = "PCs"
             verboseprint("Regress out %s" %
                          type,  verbose=self.options.verbose)
             self.phenotypes = regressOut(self.phenotypes, self.covariates)
@@ -334,6 +271,20 @@ class DataInput(object):
         return self
 
     def transform(self):
+        """
+        Transform phenotypes
+        Input:
+            * self.options.tranform: type of transformation for phenotype data:
+                ** scale: mean center, divide by sd
+                ** gaussian: inverse normalisation
+                ** None: no transformation
+            * self.phenotypes: [N x P] phenotype matrix [np.array]
+            * self.options.verbose: [bool] should progress messages be printed
+              to stdout
+        Output:
+            * self.phenotypes: [N x P] (transformed) phenotype matrix 
+              [np.array] 
+        """
         if self.options.transform == "scale":
             verboseprint("Use %s as transformation" %
                          self.options.transform, verbose=self.options.verbose)
