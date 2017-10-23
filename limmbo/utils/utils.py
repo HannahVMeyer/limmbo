@@ -1,17 +1,9 @@
-
-# coding: utf-8
 ######################
 ### import modules ###
 ######################
 
-
 import sys
 sys.path.append('./../../')
-#sys.path.append('/homes/hannah/bin/python_modules')
-#sys.path.append('/homes/hannah/LiMMBo')
-#sys.path.append(
- #   '/homes/hannah/software/python2.7.8/lib/python2.7/site-packages')
-
 
 import scipy as sp
 import scipy.linalg as la
@@ -25,26 +17,54 @@ from mtSet.pycore.utils.normalization import gaussianize
 ### functions: data manipulation ###
 ####################################
 def boolanize(string):
-    """ Convert command line parameter "True"/"False" into bool"""
+    """ 
+    Convert command line parameter "True"/"False" into bool
+    Input:
+        * string: "False" or "True" [string]
+    Output:
+        * False/True [bool]
+    """
     return bool(strtobool(string))
 
 
-def nans(shape, dtype=float):
-    """ Create [shape] np.array of nans"""
-    a = np.empty(shape, dtype)
+def nans(shape):
+    """ 
+    Create np.array of nans
+    Input:
+        * shape: [int] or [tuple] of [int] with shape of the empty array
+    Output:
+        * np.array of NaNs
+    """
+    a = np.empty(shape, dtype=float)
     a.fill(np.nan)
     return a
 
 
 def scale(x):
-    """ Mean center and unit variance input array"""
+    """ 
+    Mean center and unit variance input array
+    Input:
+        * x: np.array
+    Output:
+        mean-centered, unit-variance np.array of x
+    """
     x -= x.mean(axis=0)
     x /= x.std(axis=0)
     return x
 
 
 def transform(x, type="scale"):
-    """ Transform input array: scale/gaussianize/None """
+    """ 
+    Transform input array:
+        * scale: mean-center, unit variance
+        * gaussian: inverse normalise
+        * None: No transformation
+    Input: 
+        * x: np.array of data to transform
+        * scale: name [string] of transformation method (scale,gaussian,None)
+    Output:
+        * transformed np.array of x
+    """
     if type is "scale":
         x = scale(x)
     if type is "gaussian":
@@ -69,7 +89,9 @@ def getVariance(eigenvalue):
     Based on input eigenvalue computes cumulative sum and normalizes to overall 
     sum to obtain variance explained
     Input:
-        * np.array of eigenvalues
+        * eigenvalue: np.array of eigenvalues
+    Output:
+        * v: variance explained [float]
     """
     v = eigenvalue.cumsum()
     v /= v.max()
@@ -77,18 +99,30 @@ def getVariance(eigenvalue):
 
 
 def regularize(covMatrix, verbose=True):
-    """ Regularize covMatrix if minimum eigenvalue less than 1e-4:
-        * add absolute value of minimum eigenvalue and 1e-4 to diagonal of 
-        matrix
+    """
+    Make matrix positive-semi definite by ensuring minimum eigenvalue >= 0:
+    add absolute value of minimum eigenvalue and 1e-4 (for numerical stability 
+    of abs(min(eigenvalue) < 1e-4 to diagonal of matrix
+    Input: 
+        * covMatrix: square matrix [np.array]
+    Output:
+        * covMatrix: positive, semi-definite matrix from input covMatrix
+          [np.array]
+        * S.min: minimum eigenvalue of input covMatrix
     """
     S, U = la.eigh(covMatrix)
-    if S.min() < 1e-4:
+    minS = S.min()
+    if minS < 0:
         verboseprint("Regularizing: minimum Eigenvalue %6.4f" % S.min(),
                      verbose=verbose)
         covMatrix += (abs(S.min()) + 1e-4) * sp.eye(covMatrix.shape[0])
+    elif minS < 1e-4:
+        verboseprint("Make numerically stable: minimum Eigenvalue %6.4f" % \
+                S.min(), verbose=verbose)
+        covMatrix +=  1e-4 * sp.eye(covMatrix.shape[0])
     else:
         print "No regularizing: minimum Eigenvalue %6.4f" % S.min()
-    return(covMatrix, S.min())
+    return(covMatrix, minS)
 
 
 def generate_permutation(seed=12321, n=1000, P=100, p=10,
@@ -98,12 +132,13 @@ def generate_permutation(seed=12321, n=1000, P=100, p=10,
     Input:
         * seed: numeric; used as seed for pseudo-random numbers generation; 
           default: 12321
-        * n: numeric; many permutation should be generated, default: 1000
-        * P: numeric; total number of traits, default: 100
-        * p: numeric; how small should the permutation subset be, default: 10
+        * n: number [int] of permutations to generated, default: 1000
+        * P: total number [int] of traits, default: 100
+        * p: subsampling size [int], default: 10
+        * exclude_zero: [bool] should zero be in set to draw from
     Output;
-        * list of length n containing np.array of length p with permutation of 
-          numbers range(P)
+        * return_list: list of length n containing [np.arrays] of length [p] 
+          with subsets/permutations (if P=p) of numbers range(P)
     """
     rand_state = np.random.RandomState(seed)
     return_list = [None] * n
@@ -121,11 +156,11 @@ def inflate_matrix(bootstrap_traits, bootstrap, P=100, zeros=True):
     """ 
     Project small matrix into large matrix using indeces provided:
     Input:
-        * bootstrap_traits: [p x p] np.array; small matrix to be projected
-        * bootstrap: list/[p x 1] np.array; indices to project small matrix 
+        * bootstrap_traits: [S x S] covariance matrix estimates [np.array]
+        * bootstrap: [S x 1] np.array; indices to project [S x S] matrix 
           values into large matrix
-        * P: numeric; dimensions of large square matrix; default: 100
-        * zeros: bool; fill void spaces in large matrix with zeros (True, 
+        * P: total number [int] of dimensions default: 100
+        * zeros: [bool] fill void spaces in large matrix with zeros (True, 
           default) or nans (False)
     Output:
         * all_traits: large matrix containing small matrix values at indeces 
@@ -139,19 +174,35 @@ def inflate_matrix(bootstrap_traits, bootstrap, P=100, zeros=True):
     all_traits[index] = bootstrap_traits
     return(all_traits)
 
-
-def ttcooccurence((nrtraits, nrtraitssampled)):
-    ttc = 1. / nrtraits * 1. / (nrtraits - 1) * \
-        nrtraitssampled * (nrtraitssampled - 1)
-    return ttc
-
-
 def verboseprint(message, verbose=True):
+    """
+    Print message if verbose option is chosen
+    Input:
+        * message: text [string} to print
+        * verbose: [bool] flag whether to print message (True) or not (False)
+    """
     if verbose is True:
         print message
 
-
-def match(samples_ref, samples_compare, data_compare, squarematrix=False):
+def match(samples_ref, data_compare, samples_compare, squarematrix=False):
+    """
+    Match the order of data and ID matrices to a reference sample order
+    Input:
+        * samples_ref: [M] sammple Ids [np.array] used as reference
+        * data_compare: [N x L] data matrix with [N] samples and [L] columns 
+          [np.array]
+        * samples_compare: [N] sample IDs [np.array] to be matched to
+         samples_ref
+        * squarematrix: [bool] is data_compare a square matrix i.e. samples in 
+          cols and rows
+    Output:
+        * data_compare: [M x L] data matrix of input data_compare [np.array]
+        * samples_compare: [M] sample IDs of input samples_compare [np.array]
+        * samples_before: numer [int] of samples in data_compare/samples_compare
+          before matching to samples_ref
+        * samples_after: numer [int] of samples in data_compare/samples_compare
+          after matching to samples_ref
+    """
     samples_before = samples_compare.shape[0]
     subset = pd.match(samples_ref, samples_compare)
 
