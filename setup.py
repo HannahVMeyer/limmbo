@@ -75,7 +75,8 @@ if __name__ == '__main__':
         long_description = read('README.md'),
         license = 'MIT',
         keywords = 'linear mixed models, covariance estimation',
-        scripts = ['limmbo/bin/runLiMMBo'],
+        scripts = ['limmbo/bin/runLiMMBo',
+                    'limmbo/bin/runSimpleVD'],
         packages = find_packages(),
         install_requires=['scipy>=0.13', 'numpy>=1.6', 'matplotlib>=1.2', \
 			'nose', 'pandas'],
