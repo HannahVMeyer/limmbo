@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import functools as ft
 import re
+import pdb
 
 # import LIMIX tools
 import limix as limix
@@ -31,6 +32,20 @@ from limmbo.utils.utils import match
 ### functions: input ###
 ########################
 
+class MissingInput(Exception):
+    """Raised when no appropriate input is given"""
+    pass
+
+class FormatError(Exception):
+    """Raised when no appropriate input is given"""
+    pass
+
+class DataMismatch(Exception):
+    """Raised when dimensions of sample/ID names do not match dimension of 
+     corresponding data"""
+    pass
+
+
 class DataInput(object):
     """
     Generate object containing all datasets relevant for variance decomposition
@@ -40,9 +55,6 @@ class DataInput(object):
     """
 
     def __init__(self, options=None):
-        '''
-        nothing to initialize
-        '''
         self.options = options
         self.samples = None
         self.phenotypes = None
@@ -53,13 +65,21 @@ class DataInput(object):
         self.relatedness = None
         self.relatedness_samples = None
 
-    def getPhenotypes(self):
+    def getPhenotypes(self, phenotypes=None, pheno_samples=None,
+            phenotype_ID=None):
         """
-        Reading phenotype file, either as hf5 (.h5)  or comma-separated
-        values (.csv) file
+        Add phenotype data to DataInput object. 
+        In interactive/scripting: takes an np.ndarray of the phenotypes, their
+            phenotype ID and their sample ID.
+        In use with command-line scripts (via DataParse()): reads phenotype 
+            file, either as hf5 (.h5)  or comma-separated values (.csv) file;
+	    file ending must be either .h5 or .csv
         Input: 
+            * phenotypes: [N x P] phenotype matrix [np.array]
+            * pheno_samples: [N] sample IDs [np.array]
+            * phenotype_ID: [P] phenotype IDs [np.array]
             * self.file_pheno: 
-                * either .h5f file with group ['phenotype'] containing:
+                * either .h5 file with group ['phenotype'] containing:
                     * ['col_header']['phenotype_ID']: [P] phenotype IDs [string]
                     * ['row_header']['sample_ID']: [N] sample IDs [string]
                     * ['matrix']: [N x P] phenotypes [np.array]
@@ -72,23 +92,53 @@ class DataInput(object):
             * self.pheno_samples: [N] sample IDs [np.array]
             * self.phenotype_ID: [P] phenotype IDs [np.array]
         """
-        verboseprint("Extracting phenotypes", verbose=self.options.verbose)
-        if re.search(".h5", self.options.file_pheno) is None:
-            self.phenotypes = pd.io.parsers.read_csv(
-                self.options.file_pheno, index_col=0)
-            self.phenotype_ID = np.array(self.phenotypes.columns)
-            self.pheno_samples = np.array(self.phenotypes.index)
-            self.phenotypes = np.array(self.phenotypes)
-        else:
-            file = h5py.File(self.options.file_pheno, 'r')
-            self.phenotypes = file['phenotype']['matrix'][:]
-            self.phenotype_ID = np.array(
-                file['phenotype']['col_header']['phenotype_ID'][:].astype(
-                    'str'))
-            self.pheno_samples = np.array(
-                file['phenotype']['row_header']['sample_ID'][:].astype('str'))
-            self.phenotypes = np.array(self.phenotypes)
-            file.close()
+        if self.options is None and phenotypes is None:
+                raise MissingInput('No phenotypes specified')
+        if phenotypes is not None:
+            if pheno_samples is None:
+                raise MissingInput('Phenotype sample names have to be specified via pheno_samples')
+            if phenotype_ID is None:
+                raise MissingInput('Phenotype IDs have to be specified via phenotype_ID')
+            if isinstance(phenotypes, np.ndarray) is False:
+                raise TypeError('Phenotypes have to be of type np.ndarray but <%s> given' % type(phenotypes).__name__)
+            if isinstance(pheno_samples, np.ndarray) is False:
+                raise TypeError('pheno_samples has to be of type np.ndarray but <%s> given' % type(pheno_samples).__name__)
+            if isinstance(phenotype_ID, np.ndarray) is False:
+                raise TypeError('phenotype_ID has to be of type np.ndarray but <%s> given' % type(phenotype_ID).__name__)
+	    if phenotypes.shape[0] != pheno_samples.shape[0]:
+		raise DataMismatch("Number of samples in phenotypes (%s) does not match number of sample IDs (%s) provided" % (phenotypes.shape[0], pheno_samples.shape[0]))
+	    if phenotypes.shape[1] != phenotype_ID.shape[0]:
+		raise DataMismatch("Number phenotypes (%s) does not match number of phenotype IDs (%s) provided" % (phenotypes.shape[1], pheno_samples.shape[0]))
+            self.phenotypes = phenotypes
+            self.pheno_samples = pheno_samples
+            self.phenotype_ID = phenotype_ID
+	else :
+	    if re.search(".h5", self.options.file_pheno) is None and re.search(".csv", self.options.file_pheno) is None:
+		raise FormatError("Supplied phenotype file is neither .h5 or .csv")
+	    verboseprint("Reading phenotypes from %s" % self.options.file_pheno, 
+			verbose=self.options.verbose)
+            if re.search(".h5", self.options.file_pheno) is None:
+		try:
+		    self.phenotypes = pd.io.parsers.read_csv(
+		    	self.options.file_pheno, index_col=0)
+		except:
+		    raise IOError("%s could not be opened" % file.options.file_pheno)
+		self.phenotype_ID = np.array(self.phenotypes.columns)
+		self.pheno_samples = np.array(self.phenotypes.index)
+		self.phenotypes = np.array(self.phenotypes)
+	    else:
+		try:
+		    file = h5py.File(self.options.file_pheno, 'r')
+		except:
+		    raise IOError("%s could not be opened" % self.options.file_pheno)
+		self.phenotypes = file['phenotype']['matrix'][:]
+		self.phenotype_ID = np.array(
+		    file['phenotype']['col_header']['phenotype_ID'][:].astype(
+			'str'))
+		self.pheno_samples = np.array(
+		    file['phenotype']['row_header']['sample_ID'][:].astype('str'))
+		self.phenotypes = np.array(self.phenotypes)
+		file.close()
         return self
 
     def getCovariates(self):
