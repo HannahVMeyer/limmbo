@@ -217,3 +217,4 @@ def match(samples_ref, data_compare, samples_compare, squarematrix=False):
                                   % (np.array_str(np.setdiff1d(samples_ref, 
                                       samples_compare))))
     return (data_compare, samples_compare, samples_before, samples_after)
+

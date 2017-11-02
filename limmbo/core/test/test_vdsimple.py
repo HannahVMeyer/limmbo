@@ -25,16 +25,9 @@ from limmbo.core.vdbootstrap import DataLimmbo
 #################
 
 class Options(object):
-    def __init__(self, file_pheno = "test", file_covariates = "test", 
-            file_relatedness = "test", traitstring =None, transform = None,
-            regress = False):
-        self.file_pheno = file_pheno
-        self.file_covariates = file_covariates
-        self.file_relatedness = file_relatedness
-        self.traitstring = traitstring
-        self.transform = transform
-        self.regress = regress
-        self.verbose = False
+    def __init__(self, verbose=False, output="test"):
+        self.verbose = verbose
+        self.output = output
 
 class Input(unittest.TestCase):
 

@@ -32,13 +32,13 @@ class DataVD(object):
 
     def simpleVD(self):
 	"""
-	Wrapper for .VarianceDecomposition(), copmuting variance decomposition
+	Wrapper for .VarianceDecomposition(), computing variance decomposition
  	and writing output files
 	Input:
             * self.options.output: output directory [string] to write output 
 	      of variance decomposition: Cg, Cn and processtime; user needs
 	      writing permission 
-	Outout: 
+	Output: 
             * self.Cg: [P x P] genetic variance component [np.array] 
 	      (numerically stable via regularize))
             * self.Cn: [P x P] noise variance component [np.array]
@@ -52,15 +52,18 @@ class DataVD(object):
         self.Cg, Cg_ev_min = regularize(self.Cg)
         self.Cn, Cn_ev_min  = regularize(self.Cn)
         # save predicted covariance matrics
-        pd.DataFrame(self.Cg).to_csv("%s/Cg_mtSet.csv" % self.options.output,
-                                    sep=",", header=False, index=False)
-        pd.DataFrame(self.Cn).to_csv("%s/Cn_mtSet.csv" % self.options.output, 
-                                    sep=",", header=False, index=False)
+        try:
+            pd.DataFrame(self.Cg).to_csv('{}/Cg_mtSet.csv'.format(
+                self.options.output), sep=",", header=False, index=False)
+            pd.DataFrame(self.Cn).to_csv('{}/Cn_mtSet.csv'.format(
+                self.options.output), sep=",", header=False, index=False)
 
-        pd.DataFrame([self.processtime]).to_csv("%s/process_time_mtSet.csv" %
-                                                 (self.options.output),
-                                                 sep=",", header=False,
-                                                 index=False)
+            pd.DataFrame([self.processtime]).to_csv('{}/process_time_mtSet.',
+                '.csv'.format(self.options.output), sep=",", header=False,
+                index=False)
+        except:
+            raise IOError('Cannot write to {}: check writing permissions',
+                '{}'.format(self.options.output)
         return self
 
 
