@@ -5,8 +5,6 @@
 import h5py
 
 import sys
-sys.path.append('./../../')
-
 
 import scipy as sp
 import pandas as pd
@@ -17,11 +15,10 @@ import pdb
 
 # import LIMIX tools
 import limix as limix
-import limix.io.genotype_reader as gr
 
 # import mtSet tools
-from mtSet.pycore.utils.normalization import gaussianize
-from mtSet.pycore.utils.normalization import regressOut
+from scipy_sugar.stats import quantile_gaussianize
+from limix.util.preprocess import regressOut
 
 # other requirements
 from math import sqrt
@@ -33,16 +30,19 @@ from limmbo.utils.utils import isNumericArray
 ### functions: input ###
 ########################
 
+
 class MissingInput(Exception):
     """Raised when no appropriate input is given"""
     pass
+
 
 class FormatError(Exception):
     """Raised when no appropriate input is given"""
     pass
 
+
 class DataMismatch(Exception):
-    """Raised when dimensions of sample/ID names do not match dimension of 
+    """Raised when dimensions of sample/ID names do not match dimension of
      corresponding data"""
     pass
 
@@ -51,7 +51,7 @@ class DataInput(object):
     """
     Generate object containing all datasets relevant for variance decomposition
     (phenotypes, relatedness estimates) and pre-processing steps (check for
-    common samples and sample order, covariates regression and phenotype 
+    common samples and sample order, covariates regression and phenotype
     transformation)
     """
 
@@ -66,38 +66,37 @@ class DataInput(object):
         self.relatedness = None
         self.relatedness_samples = None
 
-    def getPhenotypes(self, phenotypes=None, pheno_samples=None,
-            phenotype_ID=None, verbose=False):
+    def getPhenotypes(self,
+                      phenotypes=None,
+                      pheno_samples=None,
+                      phenotype_ID=None):
         """
-        Add [N x P] phenotype data with [N] samples and [P] traits and their
-        samples and phenotypes IDs to the DataInput object. 
-        Input: 
-            * In interactive/scripting: takes an np.ndarray of the phenotypes, 
-              their phenotype ID and their sample ID.
-                ** phenotypes: [N x P] phenotype matrix [np.array]
-                ** pheno_samples: [N] sample IDs [np.array]
-                ** phenotype_ID: [P] phenotype IDs [np.array]
-                ** verbose: [bool] should progress messages be printed
-            * In use with command-line scripts (via DataParse()): reads 
-              phenotype file, either as hf5 (.h5)  or comma-separated values 
-              (.csv) file; file ending must be either .h5 or .csv
-                ** self.file_pheno: 
-                    *** either .h5 file with group ['phenotype'] containing:
-                        * ['col_header']['phenotype_ID']: [P] phenotype IDs 
-                                                        [string]
-                        * ['row_header']['sample_ID']: [N] sample IDs [string]
-                        * ['matrix']: [N x P] phenotypes [np.array]
-                    *** or [(N+1) x (P+1)] .csv file with: [N] sample IDs in 
-                       the first column and [P] phenotype IDs in the first row
-                ** self.option.verbose: [bool] should progress messages be 
-                    printed to stdout
+        Add phenotype data to DataInput object.
+        In interactive/scripting: takes an np.ndarray of the phenotypes, their
+            phenotype ID and their sample ID.
+        In use with command-line scripts (via DataParse()): reads phenotype
+            file, either as hf5 (.h5)  or comma-separated values (.csv) file;
+	    file ending must be either .h5 or .csv
+        Input:
+            * phenotypes: [N x P] phenotype matrix [np.array]
+            * pheno_samples: [N] sample IDs [np.array]
+            * phenotype_ID: [P] phenotype IDs [np.array]
+            * self.file_pheno:
+                * either .h5 file with group ['phenotype'] containing:
+                    * ['col_header']['phenotype_ID']: [P] phenotype IDs [string]
+                    * ['row_header']['sample_ID']: [N] sample IDs [string]
+                    * ['matrix']: [N x P] phenotypes [np.array]
+                * or [(N+1) x (P+1)] .csv file with: [N] sample IDs in the
+		  first column and [P] phenotype IDs in the first row
+            * self.option.verbose: [bool] should progress messages be printed
+              to stdout
         Output:
             * self.phenotypes: [N x P] phenotype matrix [np.array]
             * self.pheno_samples: [N] sample IDs [np.array]
             * self.phenotype_ID: [P] phenotype IDs [np.array]
         """
         if self.options is None and phenotypes is None:
-                raise MissingInput('No phenotypes specified')
+            raise MissingInput('No phenotypes specified')
         if phenotypes is not None:
             if pheno_samples is None:
                 raise MissingInput('Phenotype sample names have to be',
@@ -180,7 +179,7 @@ class DataInput(object):
               not set
             * self.covs_samples: [N] sample IDs [np.aray] or None of no
               covariates are specified
-        """        
+        """
 
         if covariates is not None:
             if covs_samples is None:
@@ -242,7 +241,7 @@ class DataInput(object):
                     printed to stdout
         Output:
             * self.relatedness: [N x N] relatedness matrix [np.array]
-            * self.relatedness_samples: [N] sample IDs of relatedness matrix 
+            * self.relatedness_samples: [N] sample IDs of relatedness matrix
               [np.array]
         """
         if self.options is None and relatedness is None:
@@ -290,14 +289,14 @@ class DataInput(object):
         Input:
             * self.phenotypes: [N x P] phenotype matrix [np.array]
             * self.phenotype_ID: [P] phenotype IDs [np.array]
-            * self.options.traitstring: comma-separated trait numbers (for 
-              single traits) or hyphen-separated trait numbers 
+            * self.options.traitstring: comma-separated trait numbers (for
+              single traits) or hyphen-separated trait numbers
               (for trait ranges) or combination of both [string] for trait
-              selection (1-based) 
+              selection (1-based)
             * self.options.verbose: [bool] should progress messages be printed
               to stdout
         Output:
-            * self.traitsarray: [list] of [t] trait numbers [int] to choose for 
+            * self.traitsarray: [list] of [t] trait numbers [int] to choose for
               analysis
             * self.phenotypes: reduced set of [N x t] phenotypes [np.array]
             * self.phenotype.ID: reduced set of [t] phenotype IDs [np.array]
@@ -326,18 +325,20 @@ class DataInput(object):
                 raise DataMismatch('Selected trait number {} is greater', 
                         'than number of phenotypes provided {}'.format(
                         max(self.traitsarray) + 1, self.phenotypes.shape[1]))
+            self.phenotypes = self.phenotypes[:, self.traitsarray]
+            self.phenotype_ID = self.phenotype_ID[self.traitsarray]
         return self
 
     def commonSamples(self):
         """
-        Get [M] common samples out of phenotype, relatedness and optional 
+        Get [M] common samples out of phenotype, relatedness and optional
         covariates with [N] samples (if all the same [M] = [N])
         and ensure that samples are in same order
         Input:
             * self.phenotypes: [N x P] phenotype matrix [np.array]
             * self.pheno_samples: [N] sample IDs [np.array]
             * self.relatedness: [N x N] relatedness matrix [np.array]
-            * self.relatedness_samples: [N] sample IDs of relatedness matrix 
+            * self.relatedness_samples: [N] sample IDs of relatedness matrix
               [np.array]
             * self.covariates: [N x K] covariates matrix [np.array]
             * self.covs_samples: [N] sample IDs [np.aray]
@@ -345,7 +346,7 @@ class DataInput(object):
             * self.phenotypes: [M x P] phenotype matrix [np.array]
             * self.pheno_samples: [M] sample IDs [np.array]
             * self.relatedness: [M x M] relatedness matrix [np.array]
-            * self.relatedness_samples: [M] sample IDs of relatedness matrix 
+            * self.relatedness_samples: [M] sample IDs of relatedness matrix
               [np.array]
             * self.covariates: [M x K] covariates matrix [np.array]
             * self.covs_samples: [M] sample IDs [np.aray]
@@ -368,19 +369,23 @@ class DataInput(object):
         self.phenotypes = self.phenotypes[subset_pheno_samples, :]
         (self.phenotypes, self.pheno_samples, samples_before,
          samples_after) = match(
-            self.samples, self.pheno_samples, self.phenotypes,
-            squarematrix=True)
+             self.samples,
+             self.pheno_samples,
+             self.phenotypes,
+             squarematrix=True)
 
-        subset_relatedness_samples = np.in1d(
-            self.relatedness_samples, self.samples)
+        subset_relatedness_samples = np.in1d(self.relatedness_samples,
+                                             self.samples)
         self.relatedness_samples = self.relatedness_samples[
             subset_relatedness_samples]
         self.relatedness = self.relatedness[subset_relatedness_samples,:]\
                 [:, subset_relatedness_samples]
         (self.relatedness, self.relatedness_samples, samples_before,
          samples_after) = match(
-            self.samples, self.relatedness, self.relatedness_samples,
-            squarematrix=True)
+             self.samples,
+             self.relatedness,
+             self.relatedness_samples,
+             squarematrix=True)
 
         if self.covariates is not None:
             subset_covs_samples = np.in1d(self.covs_samples, self.samples)
@@ -388,7 +393,9 @@ class DataInput(object):
             self.covariates = self.covariates[subset_covs_samples, :]
             self.covariates, self.covs_samples, samples_before,
             samples_after = match(
-                self.samples, self.covariates, self.covs_samples,
+                self.samples,
+                self.covariates,
+                self.covs_samples,
                 squarematrix=False)
         return self
 
@@ -402,10 +409,10 @@ class DataInput(object):
             * self.covariates: [N x K] covariates matrix [np.array]
             * self.options.verbose: [bool] should progress messages be printed
               to stdout
-        Output: 
+        Output:
             * self.options.phenotypes: [N x P] phenotype matrix of residuals of
               linear model [np.array]
-            * self.covariates: None 
+            * self.covariates: None
         """
 
         if self.options.regress:
@@ -431,13 +438,14 @@ class DataInput(object):
             * self.options.verbose: [bool] should progress messages be printed
               to stdout
         Output:
-            * self.phenotypes: [N x P] (transformed) phenotype matrix 
-              [np.array] 
+            * self.phenotypes: [N x P] (transformed) phenotype matrix
+              [np.array]
         """
 
         if self.options.transform == "scale":
-            verboseprint("Use %s as transformation" %
-                         self.options.transform, verbose=self.options.verbose)
+            verboseprint(
+                "Use %s as transformation" % self.options.transform,
+                verbose=self.options.verbose)
             self.phenotypes = scale(self.phenotypes)
         elif self.options.transform == "gaussian":
             verboseprint("Use %s as transformation" %
@@ -448,6 +456,6 @@ class DataInput(object):
                     'gaussian or None but {} provided'.format(
                     self.options.transform))
         else:
-            verboseprint("Data is not transformed",
-                         verbose=self.options.verbose)
+            verboseprint(
+                "Data is not transformed", verbose=self.options.verbose)
         return self

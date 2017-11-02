@@ -1,5 +1,3 @@
-#! /homes/hannah/software/anaconda2/envs/limix/bin python
-# coding: utf-8
 ######################
 ### import modules ###
 ######################
@@ -8,10 +6,6 @@ import h5py
 
 import sys
 import os
-sys.path = [''] + sys.path
-path_abs = os.path.dirname(os.path.abspath(sys.argv[0]))
-path_limmbo = os.path.join(path_abs,'../..')
-sys.path.append(path_limmbo)
 
 from limmbo.io.parser import DataParse
 from limmbo.io.input import DataInput
@@ -21,7 +15,8 @@ from limmbo.core.vdbootstrap import DataLimmbo
 ### functions ###
 #################
 
-def main():
+
+def entry_point():
 
     # initiate DataParse object
     dataparse = DataParse()
@@ -40,6 +35,7 @@ def main():
     datalimmbo = DataLimmbo(datainput=datainput, options=dataparse.options)
     resultsQ = datalimmbo.sampleCovarianceMatricesPP()
     datalimmbo.combineBootstrap(resultsQ)
+
 
 #############
 ### main  ###

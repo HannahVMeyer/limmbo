@@ -10,7 +10,8 @@ import scipy.linalg as la
 import numpy as np
 import pandas as pd
 from distutils.util import strtobool
-from mtSet.pycore.utils.normalization import gaussianize
+#from mtSet.pycore.utils.normalization import gaussianize
+from scipy_sugar.stats import quantile_gaussianize
 
 
 ####################################
@@ -68,7 +69,7 @@ def transform(x, type="scale"):
     if type is "scale":
         x = scale(x)
     if type is "gaussian":
-        x = gaussianize(x)
+        x = quantile_gaussianize(x)
     return(x)
 
 
