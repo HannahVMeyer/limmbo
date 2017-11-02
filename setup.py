@@ -70,18 +70,22 @@ if __name__ == '__main__':
     check_versions(min_versions)
 
     setup(
-        name = 'limmbo',
-        version = '0.1',
-        author = "Hannah Meyer, Francesco Paolo Casale",
-        author_email = "hannah@ebi.ac.uk, casale@ebi.ac.u",
-        description = ('Linear mixed model bootstrapping'),
-        url = "https://github.com/HannahVMeyer/LiMMBo/limmbo",
-        long_description = read('README.md'),
-        license = 'MIT',
-        keywords = 'linear mixed models, covariance estimation',
-        scripts = ['limmbo/bin/runLiMMBo',
-                    'limmbo/bin/runSimpleVD'],
-        packages = find_packages(),
-        install_requires=['scipy>=0.13', 'numpy>=1.6', 'matplotlib>=1.2', \
-   'nose', 'pandas', 'limix>=1.0.12', 'scipy-sugar'],
-        )
+        name='limmbo',
+        version='0.1',
+        author="Hannah Meyer, Francesco Paolo Casale",
+        author_email="hannah@ebi.ac.uk, casale@ebi.ac.u",
+        description=('Linear mixed model bootstrapping'),
+        url="https://github.com/HannahVMeyer/LiMMBo/limmbo",
+        long_description=read('README.md'),
+        license='MIT',
+        keywords='linear mixed models, covariance estimation',
+        entry_points={
+            'console_scripts': 'runLiMMBo=limmbo.bin.runLiMMBo:entry_point'
+        },
+        scripts=['limmbo/bin/runSimpleVD'],
+        packages=find_packages(),
+        install_requires=[
+            'scipy>=0.13', 'numpy>=1.6', 'matplotlib>=1.2', 'nose', 'pandas',
+            'limix>=1.0.12', 'scipy-sugar', 'bottleneck', 'pp'
+        ],
+    )

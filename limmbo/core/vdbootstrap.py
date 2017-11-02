@@ -20,7 +20,7 @@ import cPickle
 import matplotlib as mpl
 mpl.use('Agg')
 
-import limix.deprecated as dlimix
+import limix_legacy as dlimix
 #import mtSet
 #import mtSet.pycore.modules.multiTraitSetTest as MTST
 from limix.mtset import MTSet as MTST
