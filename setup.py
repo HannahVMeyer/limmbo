@@ -9,11 +9,14 @@ import sys
 import os
 import re
 
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
 def strip_rc(version):
     return re.sub(r"rc\d+$", "", version)
+
 
 def check_versions(min_versions):
     """
@@ -32,7 +35,7 @@ def check_versions(min_versions):
         npversion = numpy.__version__
     except ImportError:
         raise ImportError("mtSet requires numpy")
- 
+
     try:
         import pandas
         pandasversion = pandas.__version__
@@ -44,25 +47,26 @@ def check_versions(min_versions):
         assert StrictVersion(strip_rc(npversion)) >= min_versions['numpy']
     except AssertionError:
         raise ImportError("Numpy version is %s. Requires >= %s" %
-                (npversion, min_versions['numpy']))
+                          (npversion, min_versions['numpy']))
     try:
         assert StrictVersion(strip_rc(spversion)) >= min_versions['scipy']
     except AssertionError:
         raise ImportError("Scipy version is %s. Requires >= %s" %
-                (spversion, min_versions['scipy']))
+                          (spversion, min_versions['scipy']))
     try:
         assert StrictVersion(strip_rc(pandasversion)) >= min_versions['pandas']
     except AssertionError:
         raise ImportError("pandas version is %s. Requires >= %s" %
-                (pandasversion, min_versions['pandas']))
+                          (pandasversion, min_versions['pandas']))
+
 
 if __name__ == '__main__':
     min_versions = {
-        'numpy' : '1.6.0',
-        'scipy' : '0.9.0',
-        'pandas' : '0.12.0',
-        'scons' : '2.1.0',
-                   }
+        'numpy': '1.6.0',
+        'scipy': '0.9.0',
+        'pandas': '0.12.0',
+        'scons': '2.1.0',
+    }
     check_versions(min_versions)
 
     setup(
@@ -79,6 +83,5 @@ if __name__ == '__main__':
                     'limmbo/bin/runSimpleVD'],
         packages = find_packages(),
         install_requires=['scipy>=0.13', 'numpy>=1.6', 'matplotlib>=1.2', \
-			'nose', 'pandas'],
+   'nose', 'pandas', 'limix>=1.0.12', 'scipy-sugar'],
         )
-

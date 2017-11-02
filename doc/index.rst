@@ -12,3 +12,4 @@ Introduction bla bla.
   :maxdepth: 3
 
   install
+  vdsimple
