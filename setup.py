@@ -80,9 +80,9 @@ if __name__ == '__main__':
         license='MIT',
         keywords='linear mixed models, covariance estimation',
         entry_points={
-            'console_scripts': 'runLiMMBo=limmbo.bin.runLiMMBo:entry_point'
+            'console_scripts': 'runLiMMBo=limmbo.bin.runLiMMBo:entry_point',
+            'console_scripts': 'runSimpleVD=limmbo.bin.runSimpleVD:entry_point'
         },
-        scripts=['limmbo/bin/runSimpleVD'],
         packages=find_packages(),
         install_requires=[
             'scipy>=0.13', 'numpy>=1.6', 'matplotlib>=1.2', 'nose', 'pandas',
