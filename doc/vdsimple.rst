@@ -1,5 +1,4 @@
-**************
-VDSimple title
-**************
+Variance decomposition with standard REML
+*****************************************
 
-.. automodule:: limmbo.core.vdsimple
+.. autofunction:: limmbo.core.vdsimple.vd_reml

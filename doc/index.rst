@@ -12,4 +12,6 @@ Introduction bla bla.
   :maxdepth: 3
 
   install
+  input
   vdsimple
+  vdbootstrap
