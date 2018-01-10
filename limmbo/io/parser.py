@@ -9,7 +9,7 @@ import argparse
 ########################
 
 
-class DataParse(object):
+class ParseData(object):
 
     def __init__(self):
         self.options = None
@@ -111,4 +111,3 @@ class DataParse(object):
                                 'be printed default: False'))
 
         self.options = parser.parse_args()
-        return self
