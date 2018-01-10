@@ -2,15 +2,11 @@
 ### import modules ###
 ######################
 
-import sys
-sys.path.append('./../../')
-
 import scipy as sp
 import scipy.linalg as la
 import numpy as np
 import pandas as pd
 from distutils.util import strtobool
-#from mtSet.pycore.utils.normalization import gaussianize
 from scipy_sugar.stats import quantile_gaussianize
 
 
@@ -62,7 +58,7 @@ def transform(x, type="scale"):
         * None: No transformation
     Input: 
         * x: np.array of data to transform
-        * scale: name [string] of transformation method (scale,gaussian,None)
+        * scale: name [string] of transformation method (scale, gaussian,None)
     Output:
         * transformed np.array of x
     """
@@ -122,7 +118,9 @@ def regularize(covMatrix, verbose=True):
                 S.min(), verbose=verbose)
         covMatrix +=  1e-4 * sp.eye(covMatrix.shape[0])
     else:
-        print "No regularizing: minimum Eigenvalue %6.4f" % S.min()
+        verboseprint("No regularizing: minimum Eigenvalue %6.4f" % S.min(),
+                     verbose=verbose)
+
     return(covMatrix, minS)
 
 
