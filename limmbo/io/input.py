@@ -71,6 +71,14 @@ class InputData(object):
         self.covariate_samples = None
         self.relatedness = None
         self.relatedness_samples = None
+        self.pcs = None
+        self.pc_samples = None
+        self.snps = None
+	self.genotypes = None
+        self.geno_samples = None
+        self.position = None
+        self.Cg = None
+        self.Cn = None
 
     def addPhenotypes(self, phenotypes, pheno_samples, phenotype_ID,
             verbose=True):
@@ -194,13 +202,10 @@ class InputData(object):
                         np.array(covariates).shape[0], 
                         np.array(covs_samples).shape[0]))
             self.covariates = np.array(covariates)
-            self.covs_samples = np.array(covs_samples)
-	
+            self.covs_samples = np.array(covs_samples)	
         else:
             verboseprint("No covariates set", verbose=verbose)
-            self.covariates = None
-            self.covs_samples = None
-
+            
     def addRelatedness(self, relatedness, relatedness_samples=None,
             verbose=True):
         """
@@ -265,6 +270,239 @@ class InputData(object):
                 'not match number of sample IDs ({}) provided'.format(
                     self.relatedness.shape[0], 
                     self.relatedness_samples.shape[0]))
+
+    def addGenotypes(self, genotypes=None, geno_samples=None, 
+		      genotypes_info=None, verbose=True):
+        """
+        Add [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
+	genotypes, [`N`] array of sample IDs and [`NrSNP` x 2] dataframe of
+	genotype description to InputData instance.
+
+        Arguments:
+            genotypes (array-like):
+                [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
+        	genotypes
+            geno_samples (array-like):
+                [`N`] vector of `N` sample IDs 
+            genotypes_info (dataframe):
+                  [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
+                  rsIDs as index
+            verbose (bool):
+                should progress messages be printed to stdout
+
+        Returns:
+            None:
+                updated the following attributes of the InputData instance:
+                
+		- **self.genotypes** (np.array):
+                  [`N` x `NrSNPs`] genotype matrix
+                - **self.geno_samples** (np.array):
+                  [`N`] sample IDs
+                - **self.genotypes_info** (pd.dataframe):
+                  [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
+                  rsIDs as index
+
+        Examples:
+
+            .. doctest::
+                
+		>>> from pkg_resources import resource_filename
+                >>> from limmbo.io import reader
+                >>> from limmbo.io import input
+                >>> data = reader.ReadData()
+                >>> file_geno = resource_filename('limmbo',
+                ...                                'io/test/data/genotypes.csv')
+                >>> data.getGenotypes(file_geno=file_geno,
+                ...                   verbose=False)
+                >>> indata = input.InputData()
+                >>> indata.addGenotypes(genotypes=data.genotypes, 
+		...			genotypes_info=data.genotypes_info,
+		...			geno_samples=data.geno_samples)
+                >>> indata.geno_samples[:5]
+                array(['ID_1', 'ID_2', 'ID_3', 'ID_4', 'ID_5'], dtype=object)
+                >>> indata.genotypes.shape
+                (1000, 20)
+                >>> indata.genotypes[:5,:5]
+                array([[ 0.,  1.,  1.,  0.,  1.],
+                       [ 0.,  1.,  0.,  1.,  1.],
+                       [ 0.,  0.,  0.,  0.,  0.],
+                       [ 0.,  1.,  0.,  0.,  1.],
+                       [ 0.,  0.,  1.,  0.,  0.]])
+                >>> indata.genotypes_info[:5]
+                            chrom       pos
+                rs111647458    15  49385160
+                rs67918533     15  92151569
+                rs12903533     15  98887790
+                rs34937778     19  18495997
+                rs150270350    19  47869060
+	"""
+        if geno_samples is None:
+            raise MissingInput('Genotype sample names have to be',
+                'specified via geno_samples')
+        if genotypes_info is None:
+            raise MissingInput('Genotype info has to be specified via',
+                ' genotypes_info')
+        self.genotypes = np.array(genotypes)
+        self.genotypes_info = pd.DataFrame(genotypes_info)
+	self.geno_samples = np.array(geno_samples)
+        
+	if self.genotypes.shape[0] != self.geno_samples.shape[0]:
+            raise DataMismatch('Number of samples in genotypes ({}) does',
+                'not match number of sample IDs ({}) provided'.format(
+                    self.genotypes.shape[0], self.geno_samples.shape[0]))
+	
+	if self.genotypes.shape[1] != self.genotypes_info.shape[0]:
+            raise DataMismatch('Number of genotypes in genotypes ({}) does',
+                'not match number of genotypes in genotypes_info ({})'.format(
+                    self.genotypes.shape[1], self.genotypes_info.shape[0]))
+
+
+    def addVarianceComponents(self, Cg=None, Cn=None, verbose=True):
+        """
+        Add [`P` x `P`] matrices of [`P`] trait covariance estimates 
+	of the genetic trait variance component (Cg) and the non-genetic (noise)
+	variance component (Cn) to InputData instance
+
+        Arguments:
+            Cg (array-like):
+                [`P x `P`] matrix of `P` trait covariance estimates of the 
+		genetic trait covaraince component
+            Cn (array-like):
+                [`P x `P`] matrix of `P` trait covariance estimates of the 
+		non-genetic (noise) trait covaraince component
+            verbose (bool):
+                should progress messages be printed to stdout
+
+        Returns:
+            None:
+                updated the following attributes of the InputData instance:
+
+                - **self.Cg** (np.array):
+                  [`P x `P`] matrix of `P` trait covariance estimates of the 
+		  genetic trait covaraince component
+                - **self.Cn** (np.array):
+                  [`P x `P`] matrix of `P` trait covariance estimates of the 
+		  non-genetic trait covaraince component
+
+        Examples:
+
+            .. doctest::
+                
+                >>> from pkg_resources import resource_filename
+                >>> from limmbo.io import reader
+                >>> from limmbo.io import input
+                >>> import numpy as np
+                >>> from numpy.random import RandomState
+                >>> from numpy.linalg import cholesky as chol
+                >>> data = reader.ReadData()
+                >>> file_pheno = resource_filename('limmbo',
+                ...                     'io/test/data/pheno.csv')
+                >>> data.getPhenotypes(file_pheno=file_pheno,
+                ...                            verbose=False)
+                >>> file_Cg = resource_filename('limmbo',
+                ...                     'io/test/data/Cg.csv')
+                >>> file_Cn = resource_filename('limmbo',
+                ...                     'io/test/data/Cn.csv')
+                >>> data.getVarianceComponents(file_Cg=file_Cg,
+                ...                            file_Cn=file_Cn,
+                ...                            verbose=False)
+                >>> indata = input.InputData()
+                >>> indata.addPhenotypes(phenotypes = data.phenotypes, 
+	  	...			 pheno_samples = data.pheno_samples,
+		...			 phenotype_ID = data.phenotype_ID)
+                >>> indata.addVarianceComponents(Cg = data.Cg, Cn=data.Cn)
+                >>> print indata.Cg.shape
+                (10, 10)
+                >>> print indata.Cg.shape
+                (10, 10)
+	"""
+	if self.phenotypes is None:
+	    raise FormatError('Phenotypes have to be added before Cg/Cn', 
+			      'can be added')
+        self.Cg= np.array(Cg)
+        self.Cn= np.array(Cn)
+
+        if self.Cg.shape[0] != self.Cg.shape[1]:
+            raise FormatError('Cg has to be a square matrix, but',
+                'number of rows {} is not equal to number of columns',
+                '{}'.format(self.Cg.shape[0],
+                    self.Cg.shape[1]))
+        if self.Cg.shape[0] != self.phenotypes.shape[1]:
+            raise DataMismatch('Number of traits in Cg ({}) does',
+                'not match number of traits ({}) in phenotypes'.format(
+                    self.Cg.shape[0],
+                    self.phenotypes.shape[1]))
+
+        if self.Cn.shape[0] != self.Cn.shape[1]:
+            raise FormatError('Cn has to be a square matrix, but',
+                'number of rows {} is not equal to number of columns',
+                '{}'.format(self.Cn.shape[0],
+                    self.Cn.shape[1]))
+        if self.Cn.shape[0] != self.phenotypes.shape[1]:
+            raise DataMismatch('Number of traits in Cn ({}) does',
+                'not match number of traits ({}) in phenotypes'.format(
+                    self.Cn.shape[0],
+                    self.phenotypes.shape[1]))
+    
+    def addPCs(self, pcs=None, pc_samples=None, verbose=True):
+        r"""
+	Add [`N` x `PC`] matrix of [`PC`] principal components from the 
+	genotypes of [`N`] samples to InputData instance.
+        
+        Arguments:
+            pcs (array-like):
+                [`N x `PCs`] principal component matrix of `N` individuals and 
+		`PCs` principal components
+            pc_samples (array-like):
+                [`N`] sample IDs
+            verbose (bool): 
+                should progress messages be printed to stdout
+        
+	Returns:
+            None:
+                updated the following attributes of the InputData instance:
+
+                - **self.pcs** (np.array):
+                  [`N` x `PCs`] principal component matrix
+                - **self.pc_samples** (np.array):
+                  [`N`] sample IDs
+
+        Examples:
+
+            .. doctest::
+
+                >>> from pkg_resources import resource_filename
+                >>> from limmbo.io import reader
+                >>> from limmbo.io import input
+                >>> data = reader.ReadData()
+                >>> file_pcs = resource_filename('limmbo',
+                ...                     'io/test/data/pcs.csv')
+                >>> data.getPCs(file_pcs=file_pcs, nrpcs=10,
+                ...                     verbose=False)
+                >>> indata = input.InputData()
+                >>> indata.addPCs(pcs = data.pcs,
+                ...               pc_samples = data.pc_samples)
+                >>> print indata.pcs.shape
+                (1000, 10)
+                >>> print indata.pc_samples.shape
+                (1000,)
+
+        """
+
+        if pcs is not None:
+            if pc_samples is None:
+                raise MissingInput('PC sample names have to be',
+                    'specified via pcs_samples')
+	    if np.array(pcs).shape[0] != np.array(pc_samples).shape[0]:
+		raise DataMismatch('Number of samples in pcs ({}) does',
+                    'not match number of sample IDs ({}) provided'.format(
+                        np.array(pcs).shape[0], 
+                        np.array(pc_samples).shape[0]))
+            self.pcs = np.array(pcs)
+            self.pc_samples = np.array(pc_samples)
+	
+        else:
+            verboseprint("No principal components set", verbose=verbose)
 
     def subsetTraits(self, traitstring=None, traitsarray=None, verbose=True):
        	r"""
@@ -354,30 +592,37 @@ class InputData(object):
 		    max(self.traitsarray) + 1, self.phenotypes.shape[1]))
 
     def commonSamples(self):
-        """
+        r"""
         Get [`M]` common samples out of phenotype, relatedness and optional
         covariates with [`N`] samples (if all samples present in all datasets
         [`M`] = [`N`]) and ensure that samples are in same order.
         
-        Arguments:
-            
+	Arguments:
             None
 
 	Returns:
             None:
                 updated the following attributes of the InputData instance:
             
-                - **self.phenotypes (np.array): 
+                - **self.phenotypes** (np.array): 
                   [`M` x `P`] phenotype matrix 
-                - **self.pheno_samples (np.array): 
+                - **self.pheno_samples** (np.array): 
                   [`M`] sample IDs 
-                - **self.relatedness (np.array): 
+                - **self.relatedness** (np.array): 
                   [`M x M`] relatedness matrix 
-                - **self.relatedness_samples (np.array): 
+                - **self.relatedness_samples** (np.array): 
                   [`M`] sample IDs of relatedness matrix
-                - **self.covariates (np.array): 
+                - **self.covariates** (np.array): 
                   [`M` x `K`] covariates matrix 
-                - **self.covs_samples (np.array): 
+                - **self.covs_samples** (np.array): 
+                  [`M`] sample IDs 
+                - **self.genotypes** (np.array): 
+                  [`M` x `NrSNPs`] genotypes matrix 
+                - **self.geno_samples** (np.array): 
+                  [`M`] sample IDs 
+                - **self.pcs** (np.array): 
+                  [`M` x `PCs`] principal component matrix 
+                - **self.pc_samples** (np.array): 
                   [`M`] sample IDs 
 
 	Examples:
@@ -394,7 +639,7 @@ class InputData(object):
 		>>> N = 10
 		>>> SNP = 1000
 		>>> pheno = random.normal(0,1, (N, P)) 
-                >>> pheno_samples = np.array(['S{}'.format(x+1) for x in range(N)])
+                >>> pheno_samples = np.array(['S{}'.format(x+4) for x in range(N)])
                 >>> phenotype_ID = np.array(['ID{}'.format(x+1) for x in range(P)])
 		>>> X = (random.rand(N, SNP) < 0.3).astype(float)
                 >>> relatedness = np.dot(X, X.T)/float(SNP)
@@ -417,23 +662,45 @@ class InputData(object):
                 (10, 10)
                 >>> indata.commonSamples()
                 >>> indata.covariates.shape
-                (5, 4)
+                (2, 4)
                 >>> indata.phenotypes.shape
-                (5, 2)
+                (2, 2)
                 >>> indata.relatedness.shape
-                (5, 5)
+                (2, 2)
         """
-        self.samples = np.intersect1d(self.pheno_samples,
-                self.relatedness_samples)
-        if len(self.samples) == 0:
-            raise DataMismatch('No common samples between phenotypes and',
-                        'relatedness estimates')
-        if self.covariates is not None:
-            self.samples = np.intersect1d(self.samples, self.covs_samples)
-            if len(self.samples) == 0:
+        self.samples = self.pheno_samples
+        if self.relatedness is not None:
+            test_pheno_relatedness = np.intersect1d(self.pheno_samples,
+                                                    self.relatedness_samples)
+            if len(test_pheno_relatedness) == 0:
+                raise DataMismatch('No common samples between phenotypes and',
+                                   'relatedness estimates')
+            self.samples = test_pheno_relatedness
+
+        if self.genotypes is not None:
+            test_pheno_geno = np.intersect1d(self.pheno_samples,
+                                             self.geno_samples)
+            if len(test_pheno_geno) == 0:
                 raise DataMismatch('No common samples between phenotypes,',
-                            'relatedness estimates and covariates')
+                                   'and genotypes')
+            self.samples = np.intersect1d(self.samples, test_pheno_geno)
+
+        if self.covariates is not None:
+            test_pheno_covs = np.intersect1d(self.pheno_samples, 
+                                             self.covs_samples)
+            if len(test_pheno_covs) == 0:
+                raise DataMismatch('No common samples between phenotypes,',
+                                   'and covariates')
+            self.samples = np.intersect1d(self.samples, test_pheno_covs)
         
+        if self.pcs is not None:
+            test_pheno_pcs = np.intersect1d(self.pheno_samples,
+                                             self.pcs_samples)
+            if len(test_pheno_pcs) == 0:
+                raise DataMismatch('No common samples between phenotypes,',
+                                   'and pcs')
+            self.samples = np.intersect1d(self.samples, test_pheno_pcs)
+
         subset_pheno_samples = np.in1d(
             self.pheno_samples, self.samples)
         self.pheno_samples = self.pheno_samples[
@@ -446,18 +713,32 @@ class InputData(object):
              data_compare=self.phenotypes,
              squarematrix=False)
 
-        subset_relatedness_samples = np.in1d(self.relatedness_samples,
-                                             self.samples)
-        self.relatedness_samples = self.relatedness_samples[
-            subset_relatedness_samples]
-        self.relatedness = self.relatedness[subset_relatedness_samples,:]\
-                [:, subset_relatedness_samples]
-        (self.relatedness, self.relatedness_samples, samples_before,
-         samples_after) = match(
-             samples_ref=self.samples,
-             samples_compare=self.relatedness_samples,
-             data_compare=self.relatedness,
-             squarematrix=True)
+	if self.genotypes is not None:
+	    subset_geno_samples = np.in1d(
+		self.geno_samples, self.samples)
+	    self.geno_samples = self.geno_samples[
+		subset_geno_samples]
+	    self.genotypes = self.genotypes[subset_geno_samples, :]
+	    (self.genotypes, self.geno_samples, samples_before,
+	     samples_after) = match(
+		 samples_ref=self.samples,
+		 samples_compare=self.geno_samples,
+		 data_compare=self.genotypes,
+		 squarematrix=False)
+
+        if self.relatedness is not None:
+	    subset_relatedness_samples = np.in1d(self.relatedness_samples,
+						 self.samples)
+	    self.relatedness_samples = self.relatedness_samples[
+		subset_relatedness_samples]
+	    self.relatedness = self.relatedness[subset_relatedness_samples,:]\
+		    [:, subset_relatedness_samples]
+	    (self.relatedness, self.relatedness_samples, samples_before,
+	     samples_after) = match(
+		 samples_ref=self.samples,
+		 samples_compare=self.relatedness_samples,
+		 data_compare=self.relatedness,
+		 squarematrix=True)
 
         if self.covariates is not None:
             subset_covs_samples = np.in1d(self.covs_samples, self.samples)
@@ -468,6 +749,17 @@ class InputData(object):
                 samples_ref=self.samples,
                 samples_compare=self.covs_samples,
                 data_compare=self.covariates,
+                squarematrix=False)
+        
+	if self.pcs is not None:
+            subset_pc_samples = np.in1d(self.pc_samples, self.samples)
+            self.pc_samples = self.pc_samples[subset_pc_samples]
+            self.pcs = self.pcs[subset_pc_samples, :]
+            self.pcs, self.pc_samples, samples_before,
+            samples_after = match(
+                samples_ref=self.samples,
+                samples_compare=self.pc_samples,
+                data_compare=self.pcs,
                 squarematrix=False)
 
     def regress(self, regress=False, verbose=True):
