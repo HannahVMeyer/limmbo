@@ -4,6 +4,7 @@
 
 import scipy as sp
 import scipy.linalg as la
+import scipy.stats as stats
 import numpy as np
 import pandas as pd
 from distutils.util import strtobool
@@ -14,23 +15,32 @@ from scipy_sugar.stats import quantile_gaussianize
 ### functions: data manipulation ###
 ####################################
 def boolanize(string):
-    """ 
-    Convert command line parameter "True"/"False" into bool
-    Input:
-        * string: "False" or "True" [string]
-    Output:
-        * False/True [bool]
+    r""" 
+    Convert command line parameter "True"/"False" into boolean
+    
+    Arguments:
+        string (string): 
+        "False" or "True" 
+        
+    Returns:
+        (bool):
+
+            False/True
     """
     return bool(strtobool(string))
 
 
 def nans(shape):
-    """ 
-    Create np.array of nans
-    Input:
-        * shape: [int] or [tuple] of [int] with shape of the empty array
-    Output:
-        * np.array of NaNs
+    r""" 
+    Create numpy array of NaNs
+
+    Arguments:
+        shape (tuple): 
+            shape of the empty array
+
+    Returns:
+        (numpy array):
+            numpy array of NaNs
     """
     a = np.empty(shape, dtype=float)
     a.fill(np.nan)
@@ -38,30 +48,42 @@ def nans(shape):
 
 
 def scale(x):
-    """ 
+    r""" 
     Mean center and unit variance input array
-    Input:
-        * x: np.array
-    Output:
-        mean-centered, unit-variance np.array of x
+
+    Arguments:
+        x (array-like):
+            array to be scaled by column
+    Returns:
+        (numpy array):
+            mean-centered, unit-variance array of x
     """
+
+    x = np.array(x)
     x -= x.mean(axis=0)
     x /= x.std(axis=0)
     return x
 
 
 def transform(x, type="scale"):
-    """ 
-    Transform input array:
+    r""" 
+    Transform input array by either scaling or gaussianising
+
         * scale: mean-center, unit variance
         * gaussian: inverse normalise
         * None: No transformation
-    Input: 
-        * x: np.array of data to transform
-        * scale: name [string] of transformation method (scale, gaussian,None)
-    Output:
-        * transformed np.array of x
+
+    Arguments: 
+        x (array-like):
+            array to be transformed
+        scale (string): 
+            name of transformation method (scale, gaussian, None)
+
+    Returns:
+        (numpy array):
+            transformed x
     """
+    x = np.array(x)
     if type is "scale":
         x = scale(x)
     if type is "gaussian":
@@ -70,10 +92,24 @@ def transform(x, type="scale"):
 
 
 def getEigen(covMatrix, reverse=True):
-    """ Get eigenvectors and values of hermitian covMatrix:
-        * reverse: if True (default): order eigenvalues (and vectors) in 
-        decreasing order
+    r""" Get eigenvectors and values of hermitian matrix:
+
+    Arguments:
+        covMatrix (array-like):
+            hermitian matrix
+        reverse (bool):
+            if True (default): order eigenvalues (and vectors) in 
+            decreasing order
+
+    Returns:
+        (tuple):
+            tuple containing:
+
+            - eigenvectors
+            - eigenvalues
     """
+    covMatrix = np.array(covMatrix)
+
     S, U = la.eigh(covMatrix)
     if reverse == True:
         S = S[::-1]
@@ -82,62 +118,77 @@ def getEigen(covMatrix, reverse=True):
 
 
 def getVariance(eigenvalue):
-    """
+    r"""
     Based on input eigenvalue computes cumulative sum and normalizes to overall 
     sum to obtain variance explained
-    Input:
-        * eigenvalue: np.array of eigenvalues
-    Output:
-        * v: variance explained [float]
+
+    Arguments:
+        eigenvalue (array-like): 
+            eigenvalues
+    Returns:
+        (float):  
+            variance explained
     """
-    v = eigenvalue.cumsum()
+
+    v = np.array(eigenvalue).cumsum()
     v /= v.max()
     return(v)
 
 
-def regularize(covMatrix, verbose=True):
-    """
+def regularize(m, verbose=True):
+    r"""
     Make matrix positive-semi definite by ensuring minimum eigenvalue >= 0:
     add absolute value of minimum eigenvalue and 1e-4 (for numerical stability 
     of abs(min(eigenvalue) < 1e-4 to diagonal of matrix
-    Input: 
-        * covMatrix: square matrix [np.array]
-    Output:
-        * covMatrix: positive, semi-definite matrix from input covMatrix
-          [np.array]
-        * S.min: minimum eigenvalue of input covMatrix
+
+    Arguments: 
+        m (array-like): 
+            symmetric matrix
+
+    Returns:
+       (tuple):
+            Returns tuple containing:
+            
+            - positive, semi-definite matrix from input m (numpy array)
+            - minimum eigenvalue of input m
     """
-    S, U = la.eigh(covMatrix)
+    S, U = la.eigh(m)
     minS = S.min()
     if minS < 0:
         verboseprint("Regularizing: minimum Eigenvalue %6.4f" % S.min(),
                      verbose=verbose)
-        covMatrix += (abs(S.min()) + 1e-4) * sp.eye(covMatrix.shape[0])
+        m += (abs(S.min()) + 1e-4) * sp.eye(m.shape[0])
     elif minS < 1e-4:
         verboseprint("Make numerically stable: minimum Eigenvalue %6.4f" % \
                 S.min(), verbose=verbose)
-        covMatrix +=  1e-4 * sp.eye(covMatrix.shape[0])
+        m +=  1e-4 * sp.eye(m.shape[0])
     else:
-        verboseprint("No regularizing: minimum Eigenvalue %6.4f" % S.min(),
+        verboseprint("Minimum Eigenvalue %6.4f" % S.min(),
                      verbose=verbose)
 
-    return(covMatrix, minS)
+    return(m, minS)
 
 
-def generate_permutation(seed=12321, n=1000, P=100, p=10,
-                         exclude_zero=False):
-    """
+def generate_permutation(P, S, n, seed=12321, exclude_zero=False):
+    r"""
     Generate permutation.
-    Input:
-        * seed: numeric; used as seed for pseudo-random numbers generation; 
-          default: 12321
-        * n: number [int] of permutations to generated, default: 1000
-        * P: total number [int] of traits, default: 100
-        * p: subsampling size [int], default: 10
-        * exclude_zero: [bool] should zero be in set to draw from
-    Output;
-        * return_list: list of length n containing [np.arrays] of length [p] 
-          with subsets/permutations (if P=p) of numbers range(P)
+
+    Arguments:
+        seed (int):
+            used as seed for pseudo-random numbers generation; default: 12321
+        n (int): 
+            number of permutations to generated
+        P (int): 
+            total number of traits
+        S (int): 
+            subsampling size
+        exclude_zero (bool):
+            should zero be in set to draw from
+    
+    Returns:
+        (list):
+            Returns list of length n containing [np.arrays] of length [`S`] 
+            with subsets/permutations of numbers range(P)
     """
     rand_state = np.random.RandomState(seed)
     return_list = [None] * n
@@ -151,19 +202,26 @@ def generate_permutation(seed=12321, n=1000, P=100, p=10,
     return return_list
 
 
-def inflate_matrix(bootstrap_traits, bootstrap, P=100, zeros=True):
-    """ 
+def inflate_matrix(bootstrap_traits, bootstrap, P, zeros=True):
+    r""" 
     Project small matrix into large matrix using indeces provided:
-    Input:
-        * bootstrap_traits: [S x S] covariance matrix estimates [np.array]
-        * bootstrap: [S x 1] np.array; indices to project [S x S] matrix 
-          values into large matrix
-        * P: total number [int] of dimensions default: 100
-        * zeros: [bool] fill void spaces in large matrix with zeros (True, 
-          default) or nans (False)
-    Output:
-        * all_traits: large matrix containing small matrix values at indeces 
-          and zeros/nans elswhere
+
+    Arguments:
+        bootstrap_traits (array-like): 
+            [`S` x `S`] covariance matrix estimates
+        bootstrap (array-like): 
+            [`S` x 1] array with indices to project [`S` x `S`] matrix values
+            into [`P` x `P`] matrix
+        P (int): 
+            total number of dimensions
+        zeros (bool):
+            fill void spaces in large matrix with zeros (True, 
+            default) or nans (False)
+
+    Returns:
+        (numpy array):
+            Returns [`P` x `P`] matrix containing [`S` x `S`] matrix values at 
+            bootstrap indeces and zeros/nans elswhere
     """
     index = np.ix_(np.array(bootstrap), np.array(bootstrap))
     if zeros is True:
@@ -174,33 +232,46 @@ def inflate_matrix(bootstrap_traits, bootstrap, P=100, zeros=True):
     return(all_traits)
 
 def verboseprint(message, verbose=True):
-    """
-    Print message if verbose option is chosen
-    Input:
-        * message: text [string} to print
-        * verbose: [bool] flag whether to print message (True) or not (False)
+    r"""
+    Print message if verbose option is True.
+
+    Arguments:
+        message (string): 
+            text to print
+        verbose (bool): 
+            flag whether to print message (True) or not (False)
     """
     if verbose is True:
         print message
 
 def match(samples_ref, data_compare, samples_compare, squarematrix=False):
-    """
-    Match the order of data and ID matrices to a reference sample order
-    Input:
-        * samples_ref: [M] sammple Ids [np.array] used as reference
-        * data_compare: [N x L] data matrix with [N] samples and [L] columns 
-          [np.array]
-        * samples_compare: [N] sample IDs [np.array] to be matched to
-         samples_ref
-        * squarematrix: [bool] is data_compare a square matrix i.e. samples in 
-          cols and rows
-    Output:
-        * data_compare: [M x L] data matrix of input data_compare [np.array]
-        * samples_compare: [M] sample IDs of input samples_compare [np.array]
-        * samples_before: numer [int] of samples in data_compare/samples_compare
-          before matching to samples_ref
-        * samples_after: numer [int] of samples in data_compare/samples_compare
-          after matching to samples_ref
+    r"""
+    Match the order of data and ID matrices to a reference sample order,
+
+    Arguments:
+        samples_ref (array-like): 
+            [`M`] sammple Ids used as reference
+        data_compare (array-like):
+            [`N` x `L`] data matrix with [`N`] samples and [`L`] columns 
+        samples_compare (array-like): 
+            [`N`] sample IDs to be matched to samples_ref
+        squarematrix (bool):
+            is data_compare a square matrix i.e. samples in cols and rows
+
+    Returns:
+        (tuple):
+            tuple containing:
+
+            - data_compare (numpy array): 
+              [`M` x `L`] data matrix of input data_compare
+            - samples_compare (numpy array): 
+              [`M`] sample IDs of input samples_compare
+            - samples_before (int):
+              number of samples in data_compare/samples_compare before matching 
+              to samples_ref
+            - samples_after (int):
+              number of samples in data_compare/samples_compare after matching 
+              to samples_ref
     """
     samples_before = samples_compare.shape[0]
     subset = pd.match(samples_ref, samples_compare)
@@ -216,4 +287,29 @@ def match(samples_ref, data_compare, samples_compare, squarematrix=False):
                                   % (np.array_str(np.setdiff1d(samples_ref, 
                                       samples_compare))))
     return (data_compare, samples_compare, samples_before, samples_after)
+
+def AlleleFrequencies(snp):
+        hc_snps = np.array([makeHardCalledGenotypes(s) for s in snp])
+        counts = np.array(np.unique(hc_snps, return_counts=True))
+        frequencies = counts[1,:]/float(len(hc_snps))
+        major_a = sqrt(frequencies.max())
+        minor_a = 1 - major_a
+        return minor_a, major_a
+
+def makeHardCalledGenotypes(snp):
+    if snp <= 0.5:
+        return 0
+    elif snp > 1.5:
+        return 2
+    else:
+        return 1
+
+def effectiveTests(test):
+    # 1. get correlation matrix
+    corr_matrix = stats.spearmanr(test).correlation
+    # 2. Get eigenvalues of correlation matrix:
+    eigenval, eigenvec = la.eigh(corr_matrix)
+    # 3. Determine effective number of tests:
+    t = np.sqrt(eigenval).sum()**2/eigenval.sum()
+    return t
 

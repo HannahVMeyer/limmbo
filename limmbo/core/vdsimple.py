@@ -15,35 +15,37 @@ import time
 ### core functions ###
 ######################
 
-def vd_reml(datainput, cache=False, output=None, iterations=10, 
-        verbose=True ):
+def vd_reml(datainput, iterations=10, verbose=True ):
     r"""
     Compute variance decomposition of phenotypes into genetic and noise
-    covariance via standard REM: approach implemented in LIMIX
+    covariance via standard REML: approach implemented in LIMIX
 
-    Parameters:
-        datainput : (:class:`DataInput`)
-            object with ID-matched [N x P] phenotypes with [N] 
-            individuals and [P] phenotypes and [N x N] relatedness 
+    Arguments:
+        datainput (:class:`InputData`):
+            object with ID-matched [`N` x `P`] phenotypes with [`N`] 
+            individuals and [`P`] phenotypes and [`N` x `N`] relatedness 
             estimates 
-        output : (string, optional)
+        output (string, optional):
             output directory with user-writing permissions; needed if 
             caching is True
-        cache : (bool, optional)
+        cache (bool, optional):
             should results be cached
-        verbose : (bool, optional) 
+        verbose (bool, optional):
             should messages be printed to stdout
-
+    
     Returns:
-        (tuple): tuple containing:
-            - Cg (numpy.array):
-                [P x P] genetic variance component
-            - Cn (numpy.array):
-                [P x P] noise variance component 
-            - process_time (double):
-                cpu time of variance decomposition
+        (tuple): 
+            tuple containing:
+
+            - **Cg** (numpy.array):
+              [`P` x `P`] genetic variance component
+            - **Cn** (numpy.array):
+              [`P` x `P`] noise variance component 
+            - **process_time** (double):
+              cpu time of variance decomposition
     
     Examples:
+
         .. doctest::
             
             >>> import numpy
@@ -80,25 +82,10 @@ def vd_reml(datainput, cache=False, output=None, iterations=10,
         "Estimate covariance matrices based on standard REML",
         verbose=verbose)
 
-    if cache is True and output is None:
-        raise TypeError(('Output directory must be specified if caching',
-            'is enabled'))
-    if cache is False and output is not None:
-        print('Warning: Caching is disabled, despite having supplied an '
-              'output directory')
-    if cache is True and output is not None:
-        self.nrtraits, self.nrsamples = self.phenotypes.shape
-        outfile = '{}/mtSetresults_nrsamples{}s_nrtraits{}s.h5'.format(
-            output, self.nrsamples, self.nrtraits)
-    else:
-        outfile = None
-
     # time variance decomposition
     t0 = time.clock()
     vd = MTST(Y=datainput.phenotypes, R=datainput.relatedness)
     vd_result = vd.fitNull(
-        cache=cache,
-        fname=outfile,
         n_times=iterations,
         rewrite=True)
     t1 = time.clock()

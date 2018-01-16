@@ -62,7 +62,7 @@ class InputData(object):
     transformation)
     """
 
-    def __init__(self):
+    def __init__(self, verbose=True):
         self.samples = None
         self.phenotypes = None
         self.pheno_samples = None
@@ -242,7 +242,8 @@ class InputData(object):
 		>>> SNP = 1000
 		>>> X = (random.rand(N, SNP) < 0.3).astype(float)
                 >>> relatedness = numpy.dot(X, X.T)/float(SNP)
-                >>> relatedness_samples = numpy.array(['S{}'.format(x+1) for x in range(N)])
+                >>> relatedness_samples = numpy.array(
+                ...     ['S{}'.format(x+1) for x in range(N)])
                 >>> indata = input.InputData()
                 >>> indata.addRelatedness(relatedness = relatedness,
                 ...                  relatedness_samples = relatedness_samples)
@@ -540,8 +541,10 @@ class InputData(object):
 		>>> N = 100
 		>>> P = 10
 		>>> pheno = random.normal(0,1, (N, P)) 
-                >>> pheno_samples = np.array(['S{}'.format(x+1) for x in range(N)])
-                >>> phenotype_ID = np.array(['ID{}'.format(x+1) for x in range(P)])
+                >>> pheno_samples = np.array(
+                ...     ['S{}'.format(x+1) for x in range(N)])
+                >>> phenotype_ID = np.array(
+                ...     ['ID{}'.format(x+1) for x in range(P)])
                 >>> indata = input.InputData()
                 >>> indata.addPhenotypes(phenotypes = pheno,
                 ...                      pheno_samples = pheno_samples,
@@ -558,38 +561,39 @@ class InputData(object):
         """
  	if traitstring is None and traitsarray is None:
 	    verboseprint('No trait subset chosen', verbose=verbose)
-	if traitstring is not None and traitsarray is not None:
-	    verboseprint('Both traitsarray and traitstring are provided', 
-			 'traitstring chosen for subset selection', 
-			  verbose=verbose)
+        else:
+	    if traitstring is not None and traitsarray is not None:
+	        verboseprint('Both traitsarray and traitstring are provided', 
+			     'traitstring chosen for subset selection', 
+			     verbose=verbose)
 			
-        if traitstring is not None:
-            verboseprint('Chose subset of {} traits'.format(
-                traitstring), verbose=verbose)
-            search=re.compile(r'[^0-9,-]').search
-            if bool(search(traitstring)):
-                raise FormatError('Traitstring can only contain integers',
-                        '(0-9), comma (,) and hyphen (-), but {}',
-                        'provided'.format(self.options.traitstring))
-            traitslist = [x.split('-')
-                          for x in traitstring.split(',')]
-            self.traitsarray = []
-            for t in traitslist:
-                if len(t) == 1:
-                    self.traitsarray.append(int(t[0]) - 1)
-                else:
-                    [self.traitsarray.append(x) for x in range(
-                        int(t[0]) - 1, int(t[1]))]
-	else:
-	    self.traitsarray = np.array(traitsarray)
+            elif traitstring is not None:
+                verboseprint('Chose subset of {} traits'.format(
+                    traitstring), verbose=verbose)
+                search=re.compile(r'[^0-9,-]').search
+                if bool(search(traitstring)):
+                    raise FormatError('Traitstring can only contain integers',
+                            '(0-9), comma (,) and hyphen (-), but {}',
+                            'provided'.format(self.options.traitstring))
+                traitslist = [x.split('-')
+                              for x in traitstring.split(',')]
+                self.traitsarray = []
+                for t in traitslist:
+                    if len(t) == 1:
+                        self.traitsarray.append(int(t[0]) - 1)
+                    else:
+                        [self.traitsarray.append(x) for x in range(
+                            int(t[0]) - 1, int(t[1]))]
+            else:
+                self.traitsarray = np.array(traitsarray)
 	
-	try:
-	    self.phenotypes = self.phenotypes[:, self.traitsarray]
-	    self.phenotype_ID = self.phenotype_ID[self.traitsarray]
-	except:
-	    raise DataMismatch('Selected trait number {} is greater', 
-		    'than number of phenotypes provided {}'.format(
-		    max(self.traitsarray) + 1, self.phenotypes.shape[1]))
+            try:
+                self.phenotypes = self.phenotypes[:, self.traitsarray]
+                self.phenotype_ID = self.phenotype_ID[self.traitsarray]
+            except:
+                raise DataMismatch('Selected trait number {} is greater', 
+                        'than number of phenotypes provided {}'.format(
+                        max(self.traitsarray) + 1, self.phenotypes.shape[1]))
 
     def commonSamples(self):
         r"""
@@ -639,13 +643,17 @@ class InputData(object):
 		>>> N = 10
 		>>> SNP = 1000
 		>>> pheno = random.normal(0,1, (N, P)) 
-                >>> pheno_samples = np.array(['S{}'.format(x+4) for x in range(N)])
-                >>> phenotype_ID = np.array(['ID{}'.format(x+1) for x in range(P)])
+                >>> pheno_samples = np.array(['S{}'.format(x+4) 
+                ...     for x in range(N)])
+                >>> phenotype_ID = np.array(['ID{}'.format(x+1) 
+                ...     for x in range(P)])
 		>>> X = (random.rand(N, SNP) < 0.3).astype(float)
                 >>> relatedness = np.dot(X, X.T)/float(SNP)
-                >>> relatedness_samples = np.array(['S{}'.format(x+1) for x in range(N)])
+                >>> relatedness_samples = np.array(['S{}'.format(x+1) 
+                ...     for x in range(N)])
 		>>> covariates = random.normal(0,1, (N-5, K)) 
-                >>> covs_samples = np.array(['S{}'.format(x+1) for x in range(N-5)])
+                >>> covs_samples = np.array(['S{}'.format(x+1) 
+                ...     for x in range(N-5)])
                 >>> indata = input.InputData()
                 >>> indata.addPhenotypes(phenotypes = pheno,
                 ...                      pheno_samples = pheno_samples,
@@ -796,10 +804,13 @@ class InputData(object):
                 >>> K = 4
 		>>> N = 100
 		>>> pheno = random.normal(0,1, (N, P)) 
-                >>> pheno_samples = np.array(['S{}'.format(x+1) for x in range(N)])
-                >>> phenotype_ID = np.array(['ID{}'.format(x+1) for x in range(P)])
+                >>> pheno_samples = np.array(['S{}'.format(x+1) 
+                ...     for x in range(N)])
+                >>> phenotype_ID = np.array(['ID{}'.format(x+1) 
+                ...     for x in range(P)])
 		>>> covariates = random.normal(0,1, (N, K)) 
-                >>> covs_samples = np.array(['S{}'.format(x+1) for x in range(N)])
+                >>> covs_samples = np.array(['S{}'.format(x+1) 
+                ...     for x in range(N)])
                 >>> indata = input.InputData()
                 >>> indata.addPhenotypes(phenotypes = pheno,
                 ...                      pheno_samples = pheno_samples,
@@ -863,12 +874,15 @@ class InputData(object):
                 >>> K = 4
 		>>> N = 100
 		>>> pheno = random.normal(0,1, (N, P)) 
-                >>> pheno_samples = np.array(['S{}'.format(x+1) for x in range(N)])
-                >>> phenotype_ID = np.array(['ID{}'.format(x+1) for x in range(P)])
+                >>> pheno_samples = np.array(['S{}'.format(x+1) 
+                ...     for x in range(N)])
+                >>> phenotype_ID = np.array(['ID{}'.format(x+1) 
+                ...     for x in range(P)])
 		>>> SNP = 1000
 		>>> X = (random.rand(N, SNP) < 0.3).astype(float)
                 >>> relatedness = np.dot(X, X.T)/float(SNP)
-                >>> relatedness_samples = np.array(['S{}'.format(x+1) for x in range(N)])
+                >>> relatedness_samples = np.array(['S{}'.format(x+1) 
+                ...     for x in range(N)])
                 >>> indata = input.InputData()
                 >>> indata.addPhenotypes(phenotypes = pheno,
                 ...                      pheno_samples = pheno_samples,

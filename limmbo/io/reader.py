@@ -43,7 +43,7 @@ class ReadData(object):
     and genotypes need to be read.
     """
 
-    def __init__(self):
+    def __init__(self, verbose=True):
         self.samples = None
         self.phenotypes = None
         self.pheno_samples = None
@@ -319,7 +319,7 @@ class ReadData(object):
             self.pcs=None
             self.pc_samples = None
 
-    def getGenotypes(self, file_geno=None, verbose=False):
+    def getGenotypes(self, file_geno=None, verbose=True):
         r"""
         Reads genotype file, either as hf5 (.h5) or comma-separated values
         (.csv) file; file ending must be either .h5 or .csv
@@ -353,11 +353,11 @@ class ReadData(object):
             None:
                 updated the following attributes of the ReadData instance:
 
-                - **self.snps** (np.array):
+                - **self.genotypes** (np.array):
                   [`N` x `NrSNPs`] genotype matrix
                 - **self.geno_samples** (np.array):
                   [`N`] sample IDs
-                - **self.position** (pd.dataframe):
+                - **self.genotypes_info** (pd.dataframe):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
 		  rsIDs as index
 
@@ -374,15 +374,15 @@ class ReadData(object):
                 ...                   verbose=False)
                 >>> data.geno_samples[:5]
                 array(['ID_1', 'ID_2', 'ID_3', 'ID_4', 'ID_5'], dtype=object)
-		>>> data.snps.shape
+		>>> data.genotypes.shape
 		(1000, 20)
-                >>> data.snps[:5,:5]
+                >>> data.genotypes[:5,:5]
 		array([[ 0.,  1.,  1.,  0.,  1.],
 		       [ 0.,  1.,  0.,  1.,  1.],
 		       [ 0.,  0.,  0.,  0.,  0.],
 		       [ 0.,  1.,  0.,  0.,  1.],
 		       [ 0.,  0.,  1.,  0.,  0.]])
-		>>> data.position[:5]
+		>>> data.genotypes_info[:5]
 			    chrom       pos
 		rs111647458    15  49385160
 		rs67918533     15  92151569
@@ -406,27 +406,27 @@ class ReadData(object):
 		raise IOError('{} could not be opened'.format(
 		    file_geno))
 
-            snp_info = np.array(genotypes.index)
+            info = np.array(genotypes.index)
 
-            position = []
+            genotypes_info = []
             snp_ID = []
-            for id in range(snp_info.shape[0]):
-                split = np.array(snp_info[id].split('-'))
+            for id in range(info.shape[0]):
+                split = np.array(info[id].split('-'))
                 snp_ID.append(split[2])
-                position.append(split[[0,1]])
+                genotypes_info.append(split[[0,1]])
 
             self.geno_samples = np.array(genotypes.columns)
-            self.snps = np.array(genotypes).astype(float).T
-            self.position = pd.DataFrame(np.array(position),
+            self.genotypes = np.array(genotypes).astype(float).T
+            self.genotypes_info = pd.DataFrame(np.array(genotypes_info),
                     columns=['chrom', 'pos'], index=snp_ID)
         else:
-            # read genotype information: chromosome-wise hf5 files
+            # read genotype information: chromosome-wise .h5 files
             geno_reader  = gr.genotype_reader_h5py(file_geno)
-            verboseprint("Extracting genotypes from hf5 file",
-                    verbose=self.verbose)
+            verboseprint("Extracting genotypes from .h5 file",
+                    verbose=verbose)
             self.geno_samples = geno_reader.sample_ID
-            self.snps = geno_reader.getGenotypes().astype(float)
-            self.position = geno_reader.getPos()
+            self.genotypes = geno_reader.getGenotypes().astype(float)
+            self.genotypes_info= geno_reader.getPos()
 
 
 

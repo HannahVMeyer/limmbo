@@ -43,25 +43,20 @@ class ParseData(object):
                             help=('Path [string] to file with samplelist for',
                             'sample selection'))
 
+        ### LiMMBo settings
         parser.add_argument('-seed', '--seed', action="store", dest="seed",
                             default=234, required=False, 
                             help=('seed [int] used to generate bootstrap matrix'
                             ), type=int)
 
-        parser.add_argument('-sp', '--smallp', action="store", dest="p",
-                            default=5, required=False,
+        parser.add_argument('-sp', '--smallp', action="store", dest="S",
+                            default=None, required=False,
                             help=('Size [int] of phenotype subsamples used',
                             'for variance decomposition'),  type=int)
-        parser.add_argument('-lp', '--largeP', action="store", dest="P",
-                            default=10, required=False,
-                            help='Total number [int] of phenotypes', type=int)
         parser.add_argument('-r', '--runs', action="store", dest="runs",
                             default=None, required=False,
                             help='Total number [int] of bootstrap runs', 
                             type=int)
-        parser.add_argument('-cache', '--cache', action="store_true",
-                            dest="cache", default=False,  required=False,
-                            help='[bool]: should mtSet computations be cached')
         parser.add_argument('-t', '--timing', action="store_true",
                             dest="timing", default=False,  required=False,
                             help=('[bool]: should variance decomposition be' 
@@ -81,6 +76,23 @@ class ParseData(object):
                             type=int,
                             help=('Number [int] of available CPUs for',
                             'parallelisation of variance decomposition steps'))
+        ### GWAS settings:
+        parser.add_argument('-adjustP', '--adjustP', action="store",
+                            dest="adjustP", default=None,  required=False,
+                            type=string,
+                            help=('Method to adjust single-trait p-values for' 
+                                 'multiple hypotheis testing when running'
+                                 'multiple single-trait GWAS'))
+        parser.add_argument('-nrpermutations', '--nrpermutations', 
+                            action="store", dest="nrpermutations", default=None,  
+                            required=False, type=int,
+                            help=('Number of permutations for computing'
+                                  'empirical p-values; 1/nrpermutations is'
+                                  'maximumn level of testing for significance')
+                            )
+        parser.add_argument('-fdr', '--fdr', action="store", dest="fdr",
+            required=False, default=None, type=float, help=('FDR threshold for'
+	    'computing empirical FDR'))
 
         # settings: data transform options
         parser.add_argument('-tr', '--transform_method', action="store",
@@ -105,6 +117,11 @@ class ParseData(object):
         parser.add_argument('-of', '--output', action="store", dest="output",
                             required=True, help=('Path [string] of output', 
                             'directory; user needs writing permission'))
+        parser.add_argument('-dontSaveIntermediate', '--dontSaveIntermediate', 
+                            action="store_false", dest="intermediate",
+                            default=True,
+                            required=False, help=('Set to suppress saving', 
+                            'intermediate variance components'))
         parser.add_argument('-v', '--verbose', action="store_true",
                             dest="verbose", required=False, default=False,
                             help=('[bool]: should analysis step description',
