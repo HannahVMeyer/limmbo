@@ -107,7 +107,7 @@ class GWAS(object):
 
         Examples:
             .. doctest::
-
+            
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
                 >>> from limmbo.io.input import InputData
@@ -151,6 +151,10 @@ class GWAS(object):
 		>>> indata.commonSamples()
                 >>> indata.regress(regress=True, verbose=False)
 		>>> gwas = GWAS(datainput=indata, seed=10, verbose=False)
+                >>>
+                >>>
+                >>> # Example of multi-trait single-variant association testing 
+                >>> # using a linear mixed model.
                 >>> resultsAssociation = gwas.runAssociationAnalysis(
                 ...     setup="lmm", mode="multitrait")
                 >>> resultsAssociation.keys()
@@ -161,6 +165,15 @@ class GWAS(object):
                 9.0554605400078198e-09
                 >>> resultsAssociation['betas'].shape
                 (10, 20)
+                >>>
+                >>>
+                >>> # Example of single-trait single-variant association testing 
+                >>> # using a linear mixed model.
+                >>> resultsAssociation = gwas.runAssociationAnalysis(
+                ...     setup="lmm", mode="singletrait",
+                ...     adjustSingleTrait = "effective")
+                >>> resultsAssociation.keys()
+                ['lm', 'pvalues_adjust', 'betas', 'pvalues']
         """
 
 	# set parameters for the analysis

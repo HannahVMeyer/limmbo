@@ -14,4 +14,5 @@ Introduction bla bla.
   install
   input
   vd
+  gwas
   utils
