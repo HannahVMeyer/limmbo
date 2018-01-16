@@ -13,5 +13,5 @@ Introduction bla bla.
 
   install
   input
-  vdsimple
-  vdbootstrap
+  vd
+  utils
