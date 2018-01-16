@@ -1,5 +1,10 @@
 Variance decomposition
 **********************
-.. automodule:: limmbo.core
-    :members: vdsimple, vdbootstrap
-    :noindex: gwas
+LiMMBo
+^^^^^^
+.. autoclass:: limmbo.core.vdbootstrap.LiMMBo
+  :members:
+
+Standard REML
+^^^^^^^^^^^^^
+.. autofunction:: limmbo.core.vdsimple.vd_reml
