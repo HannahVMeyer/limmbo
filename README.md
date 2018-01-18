@@ -9,8 +9,10 @@ The recommended way of installing it is via (will be updated soon)
 
 ## Problems
 
-If you encounter any issue, please, [submit them](https://github.com/limmbo/limmbo/issues).
+If you encounter any issue, please, [submit them](https://github.com/HannahVMeyer/limmbo/issues).
 
 
 ## License
-(will be updated soon)
+
+This project is licensed under the Apache License (Version 2.0, January 2004) -
+see the [LICENSE](LICENSE) file for details
