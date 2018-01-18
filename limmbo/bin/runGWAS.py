@@ -63,12 +63,22 @@ def entry_point():
     if dataparse.options.nrpermutations is not None:
         resultsEmpiricalP = gwas.computeEmpiricalP(nrpermutations =
             dataparse.options.nrpermutations)
-            if not self.options.noPlot:
-                self.manhattanQQ(model=model, P=P, empiricalP=True)
+    
     if dataparse.options.fdr is not None:
        resultsFDR = gwas.__computeFDR(fdr = dataparse.options.fdr)
 
+    if plot:
+        if gwas.fdr_empirical is not None:
+            thr = gwas.fdr.empirical
+        else:
+            thr = dataparse.options.thr
 
+        output = '{}/{}_{}.png' % (output, chromosome, model)
+        manhattanQQ(pvalues=resultsAssociation['pvalues'], 
+            colorS=dataparse.options.colorS, 
+            colorNS=dataparse.options.colorNS,
+            alphaNS=dataparse.options.alphaNS, 
+            thr_plotting=thr, savePlot = output)
 
 
 #############

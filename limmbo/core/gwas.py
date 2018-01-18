@@ -86,11 +86,19 @@ class GWAS(object):
 
         Arguments:
             mode (string):
-                sdfsdf
+                specifies the type of linear model: either 'multitrait' for
+                multivariate analysis or 'singletrait' for univariate analysis.
             setup (string):
-                zdffds
+                specifies the linear model setup: either 'lmm' for linear mixed
+                model or 'lm' for a simple linear model.
             adjustSingleTrait (string):
-                sdfdf
+                Method to adjust single-trait association p-values for testing
+                multiple traits; If None (default) no adjusting. Options are
+                'bonferroni' (for bonferroni correction') or 'effective' (for
+                correcting for the effective number of tests as described in 
+                `(Galwey,2009)
+                <http://onlinelibrary.wiley.com/doi/10.1002/gepi.20408/abstract>`_.
+                
 
         Returns:
             (dictionary):
@@ -100,14 +108,14 @@ class GWAS(object):
                   LIMIX LMM object
                 - **pvalues** (numpy array):
                   [`NrSNP` x `P`] (when mode is singletrait) or [1 x`NrSNP`]
-                  array of p-values
+                  array of p-values.
                 - **betas** (numpy array):
                   [`NrSNP` x `P`] array of effect size estimates per SNP across
-                  all traits
+                  all traits.
                 - **pvalues_adjust** (numpy array):
                   only returned if mode is 'singletrait' and 'adjustSingleTrait'
                   is not None; contains single-trait p-values adjusted for the
-                  number of single-trait analyses conducted
+                  number of single-trait analyses conducted.
 
         Examples:
 
@@ -217,9 +225,15 @@ class GWAS(object):
         `qtl.qtl_test_lmm_kronecker`.
 
         Arguments:
-            genotypes ():
+            genotypes (array-like):
+                [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
+                genotypes
             empiricalP (bool):
+                set to True if association test is part of estimating empirical
+                pvalues
             computeFDR (bool):
+                set to True if association test is part of estimating empirical
+                FDR
 
         Returns:
             (dictionary):
@@ -284,33 +298,41 @@ class GWAS(object):
     def __singleTraitAssociation(self, genotypes, adjustSingleTrait=None,
             empiricalP=False, computeFDR=False):
         r"""
-        Single-trait association test. Wraps around `qtl.test_lmm`.
+        Single-trait association test. Wraps around `qtl.qtl_test_lmm`.
 
         Arguments:
             genotypes (array-like):
-            [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
-                    genotypes
-
+                [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
+                genotypes
             empiricalP (bool):
+                set to True if association test is part of estimating empirical
+                pvalues
             computeFDR (bool):
-                adjustSingleTrait (string):
-                    bonferroni or effective
+                set to True if association test is part of estimating empirical
+                FDR
+            adjustSingleTrait (string):
+                Method to adjust single-trait association p-values for testing
+                multiple traits; If None (default) no adjusting. Options are
+                'bonferroni' (for bonferroni correction') or 'effective' (for
+                correcting for the effective number of tests as described in 
+                `(Galwey,2009)
+                <http://onlinelibrary.wiley.com/doi/10.1002/gepi.20408/abstract>`_
 
         Returns:
             (dictionary):
                 dictionary containing:
 
-                - **lm**(:class:`limix.qtl.LMM`):
-                  LIMIX LMM object
-                - **pvalues** (numpy array):
-                  [`NrSNP` x `P`] array of p-values
-                - **betas** (numpy array):
-                  [`P` x `NrSNP`] array of effect size estimates per SNP across
-                  all traits
-                - **pvalues_adjust** (numpy array):
-                  only returned if 'adjustSingleTrait' is not None; contains
-                  single-trait p-values adjusted for the number of single-trait
-                  analyses conducted
+                    - **lm**(:class:`limix.qtl.LMM`):
+                      LIMIX LMM object
+                    - **pvalues** (numpy array):
+                      [`P` x `NrSNP`] array of p-values
+                    - **betas** (numpy array):
+                      [`P` x `NrSNP`] array of effect size estimates per SNP 
+                      across all traits
+                    - **pvalues_adjust** (numpy array):
+                      only returned if 'adjustSingleTrait' is not None; contains
+                      single-trait p-values adjusted for the number of 
+                      single-trait analyses conducted
 
         """
 
@@ -351,36 +373,87 @@ class GWAS(object):
         else:
             pvalues_adjust = None
 
+        self.adjustSingleTrait = adjustSingleTrait
+
         return {"lm":lm, "pvalues": pvalues, "pvalues_adjust": pvalues_adjust,
                 "betas": betas}
 
 
-    def saveAssociationResults(self, results):
-        # from runAssociationAnalysis
-        if self.options.permute:
-            model = "%s_permute%s" % (model, self.seed)
+    def saveAssociationResults(self, model, output, chromosome, columns=None,
+            plotResults=False):
+        r"""
 
-        pvalues_out = self.writeResult(model=model, CHR=CHR, SNP=SNP, POS=POS)
-        if self.options.noPlot is False:
+        """
+
+        outstring = (output, model, chromosome)
+        
+        self.genotypes_info['SNP'] = self.genotype_info.index
+
+        beta_df = pd.DataFrame(results['betas'].T,
+            index=gwas.genotypes_info.index, columns = columns)
+        beta_df = pd.concat([self.genotypes_info, beta_df], axis=1)
+        
+        if self.mode is 'singletrait':
+            pvalues_df = pd.DataFrame(results['pvalues'].T,  
+                index=gwas.genotypes_info.index, columns = columns)
+
+            if results['pvalues_adjust'] is not None:
+                pvalues_adjust_df = pd.DataFrame(results['pvalues_adjust'].T,  
+                    index=gwas.genotypes_info.index, columns = columns)
+                
+                pvalues_adjust_df.to_csv("%s/%s_padjust_%s.csv" % outstring,
+                    index=False)
+            
+            if results['pvalues_empirical'] is not None:
+                
+                pempirical_df = pd.DataFrame(results['pvalues_empirical'].T,
+                    index=gwas.genotypes_info.index, columns = columns)
+                    #index=SNP, columns=['Pempirical'])
+                
+                pempirical_raw_df = pd.DataFrame(self.pvalues_empirical_raw.T,
+                    index=gwas.genotypes_info.index, columns = columns)
+                pempirical_raw_df.to_csv("%s/%s_pempirical_raw%s%s.csv" %
+                    (outstring + (self.fdr,)), index=False)
+            
+        if self.mode is 'multitrait':
+            pvalues_df = pd.DataFrame(results['pvalues'],
+                index=gwas.genotypes_info.index, columns = "P")
+            
+            if self.pvalues_empirical is not None:
+                pvalue_df = pd.DataFrame(results['pvalues_empirical'],
+                    index=gwas.genotypes_info.index, columns = "P")
+
+            
+        pvalues_df.to_csv("%s/%s_pvalue_%s.csv" % outstring, index=False)
+        beta_df.to_csv("%s/%s_betavalue_%s.csv" % outstring, index=False)
+
+        if results['pvalues_empirical'] is not None:
+            pempirical_df.to_csv("%s/%s_pempirical_%s%s.csv" %
+                (outstring + (self.fdr,)), index=False)
+
+
+        if plotResults:
             self.manhattanQQ(model=model, P=P)
-            # from varianceDecomposition
-        pd.DataFrame([time]).to_csv("%s/timeVarianceDecomposition_%s.csv" % 
-                    (self.options.output, method), index=False, header=False)
-        pd.DataFrame(Cg).to_csv("%s/Cg_%s.csv" % (self.options.output, method),
-                    index=False, header=False)
-        pd.DataFrame(Cn).to_csv("%s/Cn_%s.csv" % (self.options.output, method),
+        
+        if self.estimate_vd:
+            if self.timeVD is not None:
+                pd.DataFrame(self.timeVD).to_csv(
+                    "%s/timeVarianceDecomposition_REML.csv" % output,
                     index=False, header=False)
 
-        # from cpomute FDR
-        outstring = (self.output, model, self.chromosome, self.fileend)
-        pd.DataFrame(self.ppermute).to_csv("%s/%s_ppermute_%s%s.csv" %
-                outstring, index=False)
-        pd.DataFrame(['FDR', str(self.FDR)]).T.to_csv(
-                "%s/%s_empiricalFDR_%s%s.csv" % outstring,
-                header=False, index=False)
-        return(Cg, Cn)
+            pd.DataFrame(self.Cg).to_csv("%s/Cg_REML.csv" % (output),
+                index=False, header=False)
+            pd.DataFrame(self.Cn).to_csv("%s/Cn_REML.csv" % (output),
+                index=False, header=False)
 
-    def computeEmpiricalP(self, nrpermutations = 1000):
+            if self.fdr is not None:
+                pd.DataFrame(self.ppermute).to_csv("%s/%s_ppermute_%s.csv" %
+                    outstring, index=False)
+                pd.DataFrame(['FDR', str(self.FDR)]).T.to_csv(
+                    "%s/%s_empiricalFDR_%s.csv" % outstring, header=False, 
+                    index=False)
+
+    def computeEmpiricalP(self, pvalues, nrpermutations = 1000):
         r"""
         Compute empirical p-values: permute the genotypes, do the 
         association test, record if permuted p-value of SNP is smaller than
@@ -388,24 +461,31 @@ class GWAS(object):
         permutation.
 
         Arguments:
+            pvalues (array-like):
+                [`P` x `NrSNP`] (single-trait) or [1 x `NrSNP`] (multi-trait) 
+                array of p-values
             nrpermutations (int):
-            number of permutations; 1/nrpermutations is the maximum level 
-            of significance (alpha)to test for, 
-            e.g nrpermuations=100 -> alpha=0.01 
+                number of permutations; 1/nrpermutations is the maximum level
+                of significance (alpha)to test for, e.g. 
+                nrpermuations=100 -> alpha=0.01 
 
         Returns:
+            (numpy array): 
+                [`P` x `NrSNP`] (single-trait) or [1 x `NrSNP`] (multi-trait) 
+                array of emprirical p-values
         """
 
         verboseprint("Computing empirical p-values", verbose=self.verbose)
+       
         np.random.seed(seed=self.seed)
 
-        if self.mode is "multitrait":
-            self.count = np.zeros((nrpermutations, self.S))
-        else:
-            self.count_raw = np.zeros((nrpermutations, self.P, self.S))
+        self.nrpermutations = nrpermutations
+        pvalues = np.array(pvalues)
 
-            self.pvalues_adjust_min = self.pvalues_adjust.min(axis=0)
-            self.count = np.zeros((nrpermutations, self.S))
+        if self.mode is "multitrait":
+            count = np.zeros((nrpermutations, self.S))
+        else:
+            count = np.zeros((nrpermutations, self.P, self.S))
 
         for ps in range (nrpermutations):
             verboseprint("Permutation %s" % ps)
@@ -414,21 +494,40 @@ class GWAS(object):
             if self.mode is "multitrait":
                 resultsPermute = self.__multiTraitAssociation_anyeffect( 
                     genotypes = genotypes_permute, empiricalP=True)
-                self.count[ps, :] = pvalues_permute <= self.pvalues
+                count[ps, :] = resultsPermute['pvalues'] <= pvalues
             if self.mode is "singletrait":
                 resultsPermute = self.__singletraitAssociation(
                     genotypes = genotypes_permute, empiricalP=True)
-                self.count_raw[ps,:, :] = pvalues_permute <= self.pvalues
-                self.count[ps, :] = pvalues_permute_adjust.min(axis=0) <= \
-                    self.pvalues_adjust_min
+                count[ps,:, :] = resultsPermute['pvalues'] <= pvalues
 
-        self.pvalues_empirical = np.sum(self.count, axis=0)/nrpermutations
-        if self.mode is "singletrait":
-            self.pvalues_empirical_raw = np.sum(self.count_raw,
-                    axis=0)/nrpermutations
 
-    def __computeFDR(self):
+        pvalues_empirical = np.sum(count, axis=0)/nrpermutations
+        
+        return pvalues_empirical
+
+    def computeFDR(self, fdr):
+        r"""
+        Create an empirical p-values distribution by permuting the genotypes
+        and running the association test on these (10 random permuations). 
+        Recored the observed pvalues, order by rank and find the rank of the 
+        desired FDR to determine the empirical FDR.
+
+        Arguments:
+            fdr (float):
+                desired fdr threshold
+
+        Returns:
+            (dictionary):
+                dictionary containing:
+
+                    - **fdr** (float):
+                      empirical FDR
+                    - **empirical_pvalue_distribution** (numpy array):
+                      array of empirical p-values for 10 permutations tests
+        """
+
         verboseprint("Computing empirical FDR", verbose = self.verbose)
+        
         np.random.seed(seed=self.seed)
         #tests = int(1/self.options.fdr)
         tests = 10
@@ -441,19 +540,22 @@ class GWAS(object):
             if self.mode == "multitrait":
                 resultsFDR = self.__multiTraitAssociation_anyeffect(
                         genotypes = genotypes_permute, computeFDR=True)
-                self.ppermute[ps, :] = resultsFDR['pvalues_permute']
+                ppermute[ps, :] = resultsFDR['pvalues_permute']
             if self.mode == "singletrait":
                 resultsFDR = self.__singleTraitAssociation(
-                    genotypes = genotypes_permute, computeFDR=True)
-                pvalues_adjust_min = resulsFDR['pvalues_permute_adjust'].min(
+                    genotypes = genotypes_permute, computeFDR=True,
+                    adjustSingleTrait=adjustSingleTrait)
+                pvalues_adjust_min = resultsFDR['pvalues_permute_adjust'].min(
                     axis=0)
-                self.ppermute[ps, :] = pvalues_adjust_min
+                ppermute[ps, :] = pvalues_adjust_min
 
-        SNPsPassingFDR = int(self.fdr*self.S*tests)
-        allppermute = self.ppermute.flatten()
-        allppermute.sort()
-        self.FDR = allppermute[SNPsPassingFDR]
+        SNPsPassingFDR = int(fdr* self.S* tests)
+        self.allppermute = ppermute.flatten()
+        self.allppermute.sort()
+        self.fdr_empirical = self.allppermute[SNPsPassingFDR]
 
+        return {"fdr": self.fdr_empirical,
+                "empirical_pvalue_dist": self.allppermute}
 
     def __adjust(self, pv):
         pvadjust = np.array([min(pveff, 1) for pveff in (pv * self.adjustBy)])
@@ -474,19 +576,36 @@ class GWAS(object):
     ### output ###
     ##############
 
-    def manhattanQQ(self, model, colorS='DarkBLue', colorNS='Orange',
-            alphaNS=0.05, thr_plotting=0.05):
+    def manhattanQQ(self, pvalues, colorS='DarkBLue', colorNS='Orange',
+            alphaNS=0.05, thr_plotting=0.05, savePlot=None):
+        r"""
+
+        Arguments:
+            pvalues (array-like):
+                [`P` x `NrSNP`] (single-trait) or [1 x `NrSNP`] (multi-trait) 
+                array of p-values
+            colorS (string):
+                color of significant points
+            colorNS (string):
+                color of non-significant points
+            alphaNS (float):
+                plotting transparency of non-significant points
+            thr_plotting (float):
+                y-intercept for horizontal line as a marker for significance
+
+        Returns:
+            (None)
+        """
         self.position, chromBounds = self.__getCumSum(self.genotypes_info)
         fig = plt.figure(figsize=[12,4])
         ax1 = fig.add_subplot(2,1,1)
 
-        if self.options.computeFDR:
-            thr_plotting = self.FDR
-            self.fileend = "%s_%s%s" % (self.fileend, "FDR", self.fdr)
+        if self.fdr_empirical is not None:
+            thr_plotting = self.fdr_empirical
         if self.mode is 'singletrait':
-            pv = self.pvalues_adjust.T.min(axis=1).ravel()
+            pv = np.array(pvalues).min(axis=0).ravel()
         if self.mode is 'multitrait':
-            pv = self.pvalues.ravel() 
+            pv = np.array(pvalues).ravel() 
 
         plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(int),
                 pv=pv, colorS=colorS, colorNS=colorNS, alphaNS=alphaNS,
@@ -496,19 +615,17 @@ class GWAS(object):
         ax2 = fig.add_subplot(2,1,2)
         plot.qqplot(self.pvalues.ravel())
         fig.tight_layout()
-        fig.savefig('%s/%s_%s%s.png' % (self.output, self.chromosome, model,
-            self.fileend))
+
+        if saveTo is not None:
+            fig.savefig('{}.png'.format(savePlot))
 
     def __getCumSum (self, offset=100000, chrom_len=None):
         RV = self.position.copy()
-            # sp.unique is always sorted
         chromvals = sp.unique(self.genotypes_info['chrom'])
-            #get the starting position of each Chrom
         chrom_pos_cum = sp.zeros_like(chromvals)
         pos_cum = sp.zeros_like(self.genotypes_info.shape[0])
         offset = 100000
         if not 'pos_cum' in self.genotypes_info:
-            #get the cum_pos of each variant.
             RV["pos_cum"] = sp.zeros_like(self.genotypes_info['pos'])
             pos_cum = RV['pos_cum'].values
             maxpos_cum = 0
@@ -524,145 +641,3 @@ class GWAS(object):
                         self.position.loc[i_chr,'pos'].values.astype(int)
                 maxpos_cum += maxpos
         return (RV, chrom_pos_cum)
-
-    def __writeResult(self, model, CHR, SNP, POS, columns=None, thr=5e-8):
-        outstring = (self.options.output, model, self.options.chromosome, 
-                self.options.fileend)
-
-        # getting SNP info
-        verboseprint("extracting SNP info")
-        SNP = np.array(self.genotypes_info.index)
-        CHR = np.array(self.genotypes_info.iloc[:,:1])
-        POS = np.array(self.genotypes_info.iloc[:,1:])
-        if self.mode is 'singletrait':
-            beta_df = pd.DataFrame(self.betas.T, index=SNP, columns=columns)
-            stats_df = pd.DataFrame(self.stats.T, index=SNP, columns=columns)
-            pvalue_df = pd.DataFrame(self.pvalues.T, index=SNP, 
-                        columns=columns)
-            pvalues_adjust_df = pd.DataFrame(self.pvalues_adjust.T, index=SNP, 
-                        columns=columns)
-            z_df = pd.DataFrame(self.z.T, index=SNP, columns=columns)
-            pmin_df = pd.DataFrame(self.pvalues.T.min(axis=1), index=SNP, 
-                        columns=['Pmin'])
-            padjust_min_df = pd.DataFrame(self.pvalues_adjust.T.min(axis=1), 
-                        index=SNP, columns=['Pmin'])
-            
-
-            pvalue_df['CHR'] = CHR
-            pvalue_df['POS'] = POS
-            pvalue_df['SNP'] = SNP
-            
-            pvalues_adjust_df['CHR'] = CHR
-            pvalues_adjust_df['POS'] = POS
-            pvalues_adjust_df['SNP'] = SNP
-
-            pmin_df['CHR'] = CHR
-            pmin_df['POS'] = POS
-            pmin_df['SNP'] = SNP
-                
-            padjust_min_df['CHR'] = CHR
-            padjust_min_df['POS'] = POS
-            padjust_min_df['SNP'] = SNP
-            
-            beta_df['CHR'] = CHR
-            beta_df['POS'] = POS
-            beta_df['SNP'] = SNP
-
-            stats_df['CHR'] = CHR
-            stats_df['POS'] = POS
-            stats_df['SNP'] = SNP
-
-            z_df['CHR'] = CHR
-            z_df['POS'] = POS
-            z_df['SNP'] = SNP
-            
-            cols = pvalue_df.columns.tolist()
-            cols = cols[len(cols)-3:len(cols)] + cols[:-3]
-
-            beta_df = beta_df[cols]
-            pvalue_df = pvalue_df[cols]
-            pvalues_adjust_df = pvalues_adjust_df[cols]
-            stats_df = stats_df[cols]
-            z_df = z_df[cols]
-
-            if self.pvalues_empirical is not None:
-                cols_emp = cols[0:3]
-                cols_emp.extend(['Pempirical'])
-                
-                pempirical_df = pd.DataFrame(self.pvalues_empirical.T,
-                    index=SNP, columns=['Pempirical'])
-                pempirical_df['CHR'] = CHR
-                pempirical_df['POS'] = POS
-                pempirical_df['SNP'] = SNP
-                pempirical_df = pempirical_df[cols_emp]
-                
-                pempirical_raw_df = pd.DataFrame(self.pvalues_empirical_raw.T,
-                    index=SNP, columns=columns)
-                pempirical_raw_df['CHR'] = CHR
-                pempirical_raw_df['POS'] = POS
-                pempirical_raw_df['SNP'] = SNP
-                pempirical_raw_df = pempirical_raw_df[cols]
-            
-                cols=cols[0:3]
-                cols.extend(['Pmin'])
-                pmin_df = pmin_df[cols]
-                padjust_min_df = padjust_min_df[cols]
-                psig_df = pmin_df.loc[pmin_df['Pmin'] < 5e-8]
-
-            if pvalue_df.shape[1] !=4:
-                pmin_df.to_csv("%s/%s_pminvalue_%s%s.csv" % outstring,
-                    index=False)
-                padjust_min_df.to_csv("%s/%s_padjust_minvalue_%s%s.csv" %
-                    outstring, index=False)
-                pvalues_adjust_df.to_csv("%s/%s_padjust_%s%s.csv" % outstring,
-                    index=False)
-                psig_df.to_csv("%s/%s_psigvalue_%s%s.csv" % outstring, index=False)
-                stats_df.to_csv("%s/%s_statsvalue_%s%s.csv" % outstring,
-                    index=False)
-                z_df.to_csv("%s/%s_zvalue_%s%s.csv" % outstring, index=False)
-
-        else:
-            beta_df = pd.DataFrame(self.betas.T, index=SNP, columns=columns)
-            pvalue_df = pd.DataFrame(SNP, index=SNP, columns=['SNP'])
-
-            beta_df['SNP'] = SNP
-            beta_df['CHR'] = CHR
-            beta_df['POS'] = POS
-
-            cols = beta_df.columns.tolist()
-            cols = cols[len(cols)-3:len(cols)] + cols[:-3]
-
-            beta_df = beta_df[cols]
-            pvalue_df['CHR'] = CHR
-            pvalue_df['POS'] = POS
-            pvalue_df['P'] = self.pvalues.flatten()
-
-        if self.pvalues_empirical is not None:
-            pempirical_df = pd.DataFrame(SNP, index=SNP, columns=['SNP'])
-            pempirical_df['CHR'] = CHR
-            pempirical_df['POS'] = POS
-            pempirical_df['P'] = self.pvalues_empirical
-
-        if self.options.likelihoods:
-            maNLL0_df = pd.DataFrame(SNP, index=SNP, columns=['SNP'])
-            NLL0_df['CHR'] = CHR
-            NLL0_df['POS'] = POS
-            NLL0_df['NLL'] = self.NLL0.T
-            NLLAlt_df = pd.DataFrame(SNP, index=SNP, columns=['SNP'])
-            NLLAlt_df['CHR'] = CHR
-            NLLAlt_df['POS'] = POS
-            NLLAlt_df['NLL'] = self.NLLAlt.T
-            
-        pvalue_df.to_csv("%s/%s_pvalue_%s%s.csv" % outstring, index=False)
-        beta_df.to_csv("%s/%s_betavalue_%s%s.csv" % outstring, index=False)
-
-        if self.pvalues_empirical is not None:
-            pempirical_df.to_csv("%s/%s_pempirical_%s%s%s.csv" %
-                (outstring + (self.fdr,)), index=False)
-            
-        if self.pvalues_empirical_raw is not None:
-            pempirical_raw_df.to_csv("%s/%s_pempirical_raw%s%s%s.csv" %
-                (outstring + (self.fdr,)), index=False)
-        if self.likelihoods:
-            NLL0_df.to_csv("%s/%s_NLL0_%s%s.csv" % outstring, index=False)
-            NLLAlt_df.to_csv("%s/%s_NLLAlt_%s%s.csv" % outstring, index=False)

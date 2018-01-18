@@ -70,12 +70,8 @@ def vd_reml(datainput, iterations=10, verbose=True ):
 	    >>> datainput.addRelatedness(relatedness = kinship,
 	    ...                          relatedness_samples = samples)
 	    >>> Cg, Cn, ptime = vd_reml(datainput, verbose=False)
-        >>> print Cg
-        [[ 0.76299912  0.01954019 -0.06514461  0.06477603  0.26853824]
-         [ 0.01954019  0.37880556  0.03773645 -0.47340185  0.09923925]
-         [-0.06514461  0.03773645  1.05012584 -0.15264039 -0.0663084 ]
-         [ 0.06477603 -0.47340185 -0.15264039  0.61147963 -0.08824043]
-         [ 0.26853824  0.09923925 -0.0663084  -0.08824043  0.11988023]]
+            >>> Cg.shape
+            (5, 5)
     """
 
     verboseprint(
