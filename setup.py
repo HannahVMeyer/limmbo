@@ -1,91 +1,70 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from __future__ import unicode_literals
 
-import distutils.cmd
-from setuptools import find_packages
-import sys
 import os
-import re
+import sys
+
+from setuptools import find_packages, setup
+
+try:
+    import pypandoc
+    long_description = pypandoc.convert_file('README.md', 'rst')
+except (OSError, IOError, ImportError):
+    long_description = open('README.md').read()
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+def setup_package():
+    src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    old_path = os.getcwd()
+    os.chdir(src_path)
+    sys.path.insert(0, src_path)
 
-def strip_rc(version):
-    return re.sub(r"rc\d+$", "", version)
+    needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+    pytest_runner = ['pytest-runner>=2.9'] if needs_pytest else []
 
+    setup_requires = ["cython", "numpy"] + pytest_runner
+    install_requires = [
+        'scikit-learn', 'limix-core>=1.0.1',
+        'dask[array,bag,dataframe,delayed]>=0.14', 'h5py',
+        'pandas-plink>=1.2.1', 'limix-legacy>=0.8.12', 'glimix-core>=1.2.19',
+        'joblib>=0.11', 'tqdm>=4.10', 'scipy>=0.19', 'distributed',
+        'numpy-sugar>=1.0.47', 'ncephes>=1.0.40', 'asciitree>=0.3.3',
 
-def check_versions(min_versions):
-    """
-    Check versions of dependency packages
-    """
-    from distutils.version import StrictVersion
+            'scipy>=0.13', 'numpy>=1.6', 'matplotlib>=1.2', 'nose', 'pandas',
+            'limix>=1.0.12', 'scipy-sugar', 'bottleneck', 'pp'
+    ]
+    
+    tests_require = ['pytest', 'pytest-console-scripts', 'pytest-pep8']
 
-    try:
-        import scipy
-        spversion = scipy.__version__
-    except ImportError:
-        raise ImportError("mtSet requires scipy")
+    console_scripts = [
+	'runLiMMBo=limmbo.bin.runLiMMBo:entry_point',
+        'runSimpleVD=limmbo.bin.runSimpleVD:entry_point'
+    ]
 
-    try:
-        import numpy
-        npversion = numpy.__version__
-    except ImportError:
-        raise ImportError("mtSet requires numpy")
-
-    try:
-        import pandas
-        pandasversion = pandas.__version__
-    except ImportError:
-        raise ImportError("mtSet requires pandas")
-
-    #match version numbers
-    try:
-        assert StrictVersion(strip_rc(npversion)) >= min_versions['numpy']
-    except AssertionError:
-        raise ImportError("Numpy version is %s. Requires >= %s" %
-                          (npversion, min_versions['numpy']))
-    try:
-        assert StrictVersion(strip_rc(spversion)) >= min_versions['scipy']
-    except AssertionError:
-        raise ImportError("Scipy version is %s. Requires >= %s" %
-                          (spversion, min_versions['scipy']))
-    try:
-        assert StrictVersion(strip_rc(pandasversion)) >= min_versions['pandas']
-    except AssertionError:
-        raise ImportError("pandas version is %s. Requires >= %s" %
-                          (pandasversion, min_versions['pandas']))
-
-
-if __name__ == '__main__':
-    min_versions = {
-        'numpy': '1.6.0',
-        'scipy': '0.9.0',
-        'pandas': '0.12.0',
-        'scons': '2.1.0',
-    }
-    check_versions(min_versions)
-
-    setup(
+    metadata = dict(
         name='limmbo',
         version='0.1',
+	maintainer="Hannah Meyer",
+	maintainer_email="hannah@ebi.ac.uk", 
         author="Hannah Meyer, Francesco Paolo Casale",
         author_email="hannah@ebi.ac.uk, casale@ebi.ac.u",
         description=('Linear mixed model bootstrapping'),
-        url="https://github.com/HannahVMeyer/LiMMBo/limmbo",
-        long_description=read('README.md'),
-        license='MIT',
+        url="https://github.com/HannahVMeyer/limmbo",
+        long_description=long_description,
+        license="Apache License 2.0",
         keywords='linear mixed models, covariance estimation',
-        entry_points={
-            'console_scripts': 'runLiMMBo=limmbo.bin.runLiMMBo:entry_point',
-            'console_scripts': 'runSimpleVD=limmbo.bin.runSimpleVD:entry_point'
-        },
         packages=find_packages(),
-        install_requires=[
-            'scipy>=0.13', 'numpy>=1.6', 'matplotlib>=1.2', 'nose', 'pandas',
-            'limix>=1.0.12', 'scipy-sugar', 'bottleneck', 'pp'
-        ],
-    )
+        install_requires=install_requires, 
+	setup_requires=setup_requires,
+	tests_require=tests_require,
+	include_package_data=True,
+	entry_points={'console_scripts': console_scripts})
+	
+    try:
+	setup(**metadata)
+    finally:
+	del sys.path[0]
+        os.chdir(old_path)
+
+if __name__ == '__main__':
+    setup_package()
