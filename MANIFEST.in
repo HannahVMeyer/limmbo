@@ -1,2 +1,10 @@
 include LICENSE
 include README.md
+include limmbo/io/test/data/Cg.csv
+include limmbo/io/test/data/Cn.csv
+include limmbo/io/test/data/covs.csv
+include limmbo/io/test/data/genotypes.csv
+include limmbo/io/test/data/pcs.csv
+include limmbo/io/test/data/pheno.csv
+include limmbo/io/test/data/relatedness.csv
+
