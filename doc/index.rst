@@ -15,4 +15,5 @@ Introduction bla bla.
   input
   vd
   gwas
+  cmd
   utils
