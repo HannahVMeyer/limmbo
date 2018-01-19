@@ -22,13 +22,13 @@ import os
 ###########################
 
 
-def plot_heatmaps(Cg_init, Cn_init, Cg_predicted, Cn_predicted, seed, outdir, 
+def plot_heatmaps(Cg_init, Cn_init, Cg_predicted, Cn_predicted, seed, outdir,
         nr_plots=5, cb_labsize=12, ax_labsize=12):
-    limit_cg = np.fabs([Cg_init.min(), Cg_init.max(), 
-        np.array(Cg_predicted[:(nr_plots - 2)]).min(), 
+    limit_cg = np.fabs([Cg_init.min(), Cg_init.max(),
+        np.array(Cg_predicted[:(nr_plots - 2)]).min(),
         np.array(Cg_predicted[:(nr_plots - 2)]).max()]).max()
-    limit_cn = np.fabs([Cn_init.min(), Cn_init.max(), 
-        np.array(Cn_predicted[:(nr_plots - 2)]).min(), 
+    limit_cn = np.fabs([Cn_init.min(), Cn_init.max(),
+        np.array(Cn_predicted[:(nr_plots - 2)]).min(),
         np.array(Cn_predicted[:(nr_plots - 2)]).max()]).max()
 
     cmap = cm.PRGn
