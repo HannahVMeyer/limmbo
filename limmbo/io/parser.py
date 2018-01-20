@@ -1,13 +1,4 @@
-######################
-### import modules ###
-######################
-
 import argparse
-
-########################
-### functions: input ###
-########################
-
 
 class ParseData(object):
     def __init__(self):
