@@ -1,15 +1,8 @@
-######################
-### import modules ###
-######################
-
-import sys
-
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import nans
 from limmbo.utils.utils import regularize
 from limmbo.utils.utils import inflate_matrix
 
-#
 import scipy as sp
 from scipy.optimize import fmin_l_bfgs_b as opt
 import pandas as pd
@@ -23,10 +16,6 @@ import limix.mtset
 
 from limix_core.covar import FreeFormCov
 import pp
-
-######################
-### core functions ###
-#####################
 
 
 class LiMMBo(object):

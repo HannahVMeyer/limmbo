@@ -1,23 +1,7 @@
-######################
-### import modules ###
-######################
-
-import h5py
-
-import sys
-import os
-
 from limmbo.io.parser import ParseData
 from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.vdbootstrap import LiMMBo
-
-import pdb
-
-#################
-### functions ###
-#################
-
 
 def entry_point():
 

@@ -1,18 +1,10 @@
-######################
-### import modules ###
-######################
-
-import h5py
-
 from limmbo.io.parser import ParseData
 from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.vdsimple import vd_reml
 
 import pandas as pd
-#################
-### functions ###
-#################
+
 def entry_point():
 
     # initiate DataParse object

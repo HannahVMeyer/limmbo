@@ -1,46 +1,23 @@
-###############
-### modules ###
-###############
-
 import sys
 
-# plotting
-import argparse
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib import colors, cm
-from matplotlib.backends.backend_pdf import PdfPages
 
-# stats module
+import copy
+
 import scipy as sp
 import pandas as pd
 import numpy as np
-import pylab as pl
-from scipy_sugar.stats import quantile_gaussianize
 
-# import LIMIX tools
-import limix as limix
-
-from limix.util.preprocess import regressOut
+import limix as limi
 import limix.qtl as qtl
 import limix.plot as plot
-#from limix.stats.geno_summary import *
-
 import limix.mtset
 
-# import limmbo tools
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import effectiveTests
 
-# other requirements
-from math import sqrt
-import copy
-import pdb
-
-#######################
-### input functions ###
-#######################
 
 class GWAS(object):
     """
