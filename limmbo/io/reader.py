@@ -1,7 +1,3 @@
-###############
-### modules ###
-###############
-
 import h5py
 
 import scipy as sp
@@ -9,13 +5,7 @@ import pandas as pd
 import numpy as np
 import re
 
-# other requirements
 from limmbo.utils.utils import verboseprint
-
-########################
-### functions: input ###
-########################
-
 
 class MissingInput(Exception):
     """Raised when no appropriate input is given"""

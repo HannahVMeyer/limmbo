@@ -1,27 +1,9 @@
-r"""Title
----------
-
-Document
-
-.. autoclass::DataInput
-    :members:
-"""
-
-###############
-### modules ###
-###############
-
-import sys
-
-# import LIMIX tools
 from limix.util.preprocess import regressOut
 
-# import LiMMBo tools
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import match
 from limmbo.utils.utils import scale
 
-# other requirements
 import pandas as pd
 import numpy as np
 import re

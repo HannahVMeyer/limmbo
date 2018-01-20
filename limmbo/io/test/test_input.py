@@ -1,23 +1,12 @@
-######################
-### import modules ###
-######################
-
-import h5py
-import pdb
-import sys
-import os
-#sys.path = ['/homes/hannah/LiMMBo/limmbo'] + \
-#['/homes/hannah/bin/python_modules/mtSet'] + sys.path
-
 import unittest as unittest
 import numpy as np
 import pandas as pd
 
-from limmbo.io.input import DataInput
+from limmbo.io.input import InputData
 from limmbo.io.input import MissingInput
 from limmbo.io.input import DataMismatch
 from limmbo.io.input import FormatError
-from limmbo.core.vdbootstrap import DataLimmbo
+from limmbo.core.vdbootstrap import LiMMBo
 
 #################
 ### functions ###
@@ -27,7 +16,7 @@ from limmbo.core.vdbootstrap import DataLimmbo
 class Input(unittest.TestCase):
 
     def setUp(self):
-        self.datainput = DataInput()
+        self.datainput = InputData()
         self.phenotypes = np.array(((1,2),(1,3)))
         self.pheno_samples = np.array(('S1','S2'))
         self.phenotype_ID = np.array(('ID2','ID2'))

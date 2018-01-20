@@ -1,16 +1,8 @@
-######################
-### import modules ###
-######################
-
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import regularize
 from limix.mtset import MTSet as MTST
 
 import time
-
-######################
-### core functions ###
-######################
 
 
 def vd_reml(datainput, iterations=10, verbose=True):
