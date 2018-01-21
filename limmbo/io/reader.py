@@ -1,11 +1,12 @@
-import h5py
-
 import scipy as sp
 import pandas as pd
 import numpy as np
-import re
+
+from limix.io import read_plink
+from limix.io import read_gen
 
 from limmbo.utils.utils import verboseprint
+from limmbo.io.utils import file_type
 
 class MissingInput(Exception):
     """Raised when no appropriate input is given"""
@@ -49,25 +50,17 @@ class ReadData(object):
         self.Cg = None
         self.Cn = None
 
-    def getPhenotypes(self, file_pheno=None, verbose=True):
+    def getPhenotypes(self, file_pheno=None, delim=",", verbose=True):
         r"""
-        Reads phenotype file, either as hf5 (.h5)  or comma-separated values
-        (.csv) file; file ending must be either .h5 or .csv
+        Reads [`N` x `P`] phenotype file; file ending must be either .txt or 
+        .csv
 
         Arguments:
             file_pheno (string):
-                path to phenotype file in hf5 or .csv format
-
-                - **.h5 file format**: with group ['phenotype'] containing:
-
-                  - ['col_header']['phenotype_ID']: [`P`] phenotype IDs
-                    (string)
-                  - ['row_header']['sample_ID']: [`N`] sample IDs (string)
-                  - ['matrix']: [`N` x `P`] phenotypes (array-like)
-
-                - **.csv format**:
-                  [(`N`+1) x (`P`+1)] .csv file with: [`N`] sample IDs in
-                  the first column and [`P`] phenotype IDs in the first row
+                path to [(`N`+1) x (`P`+1)] phenotype file with: [`N`] sample 
+                IDs in the first column and [`P`] phenotype IDs in the first row
+            delim (string): 
+                delimiter of phenotype file, one of " ", ",", "\t"
             verbose (bool):
                 should progress messages be printed to stdout
 
@@ -88,6 +81,7 @@ class ReadData(object):
 
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
+                >>> from limmbo.io.utils import file_type
                 >>> data = ReadData()
                 >>> file_pheno = resource_filename('limmbo',
                 ...                                'io/test/data/pheno.csv')
@@ -106,43 +100,32 @@ class ReadData(object):
         if file_pheno is None:
             raise MissingInput('No phenotype file specified')
         else:
-            if re.search(".h5", file_pheno) is None \
-                           and re.search(".csv", file_pheno) is None:
-                raise FormatError('Supplied phenotype file is neither .h5 or',
-                                  '.csv')
+            if file_type(file_pheno) is not delim: 
+                raise FormatError('Supplied phenotype file is neither .csv' 
+                        'nor .txt')
             verboseprint(
                 "Reading phenotypes from %s" % file_pheno, verbose=verbose)
-            if re.search(".h5", file_pheno) is None:
-                try:
-                    self.phenotypes = pd.io.parsers.read_csv(
-                        file_pheno, index_col=0)
-                except Exception:
-                    raise IOError('{} could not be opened'.format(file_pheno))
-                self.phenotype_ID = np.array(self.phenotypes.columns)
-                self.pheno_samples = np.array(self.phenotypes.index)
-                self.phenotypes = np.array(self.phenotypes)
-            else:
-                try:
-                    file = h5py.File(file_pheno, 'r')
-                except Exception:
-                    raise IOError('{} could not be opened'.format(file_pheno))
-                self.phenotypes = file['phenotype']['matrix'][:]
-                self.phenotype_ID = np.array(file['phenotype']['col_header'][
-                    'phenotype_ID'][:].astype('str'))
-                self.pheno_samples = np.array(file['phenotype']['row_header'][
-                    'sample_ID'][:].astype('str'))
-                self.phenotypes = np.array(self.phenotypes)
-                file.close()
+            try:
+                self.phenotypes = pd.io.parsers.read_csv(
+                    file_pheno, index_col=0, sep=delim)
+            except Exception:
+                raise IOError('{} could not be opened'.format(file_pheno))
+            self.phenotype_ID = np.array(self.phenotypes.columns)
+            self.pheno_samples = np.array(self.phenotypes.index)
+            self.phenotypes = np.array(self.phenotypes)
 
-    def getCovariates(self, file_covariates=None, verbose=True):
+    def getCovariates(self, file_covariates=None, delim=',', verbose=True):
         r"""
-        Reads a comma-separated [`N` x `K`] covariate matrix with [`N`] samples
-        and [`K`] covariates
+        Reads [`N` x `K`] covariate matrix with [`N`] samples and [`K`] 
+        covariates.
 
         Arguments:
             file_covariates (string):
-                [`N` x (`K` +1)] .csv file with [`N`] sample IDs in the first
-                column
+                [`N` x (`K` +1)] covariates file with [`N`] sample IDs in the 
+                first column
+            delim (string): 
+                delimiter of covariates file, one of " ", ",", "\t"
+             
             verbose (bool): should progress messages be printed to stdout
 
         Returns:
@@ -160,6 +143,7 @@ class ReadData(object):
 
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
+                >>> from limmbo.io.utils import file_type
                 >>> data = ReadData()
                 >>> file_covs = resource_filename('limmbo',
                 ...                               'io/test/data/covs.csv')
@@ -174,10 +158,11 @@ class ReadData(object):
         """
 
         if file_covariates is not None:
-            if re.search(".csv", file_covariates) is None:
-                raise FormatError('Supplied covariate file is not .csv')
+            if file_type(file_covariates) is not 'delim':
+                raise FormatError('Supplied covariate file is not .csv or .txt')
             try:
-                self.covariates = pd.io.parsers.read_csv(file_covariates)
+                self.covariates = pd.io.parsers.read_csv(file_covariates, 
+                        sep=delim)
                 verboseprint("Reading covariates file", verbose=verbose)
             except Exception:
                 raise IOError('{} could not be opened'.format(file_covariates))
@@ -194,14 +179,17 @@ class ReadData(object):
             self.covariates = None
             self.covs_samples = None
 
-    def getRelatedness(self, file_relatedness, verbose=True):
+    def getRelatedness(self, file_relatedness, delim=",", verbose=True):
         """
-        Read comma-separated file of [`N` x `N`] pairwise relatedness estimates of [`N`] samples.
+        Read file of [`N` x `N`] pairwise relatedness estimates of [`N`] 
+        samples.
 
         Arguments:
             file_relatedness (string):
                 [(`N` + `1`) x N] .csv file with: [`N`] sample IDs in the first
                 row
+            delim (string): 
+                delimiter of covariate file, one of " ", ",", "\t"
             verbose (bool):
                 should progress messages be printed to stdout
 
@@ -219,6 +207,7 @@ class ReadData(object):
 
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
+                >>> from limmbo.io.utils import file_type
                 >>> data = ReadData()
                 >>> file_relatedness = resource_filename('limmbo',
                 ...                     'io/test/data/relatedness.csv')
@@ -231,30 +220,35 @@ class ReadData(object):
                        [  2.00758504e-04,   9.98844885e-01,   4.86487318e-03],
                        [  4.30499103e-03,   4.86487318e-03,   9.85687665e-01]])
         """
+
         if file_relatedness is None:
             raise MissingInput('No relatedness data specified')
-        if re.search(".csv", file_relatedness) is None:
-            raise FormatError('Supplied relatedness file is not .csv')
+        if file_type(file_relatedness) is not 'delim':
+            raise FormatError('Supplied relatedness file is not .csv or .txt')
         try:
-            self.relatedness = pd.io.parsers.read_csv(file_relatedness)
+            self.relatedness = pd.io.parsers.read_csv(file_relatedness, 
+                    sep=delim)
         except Exception:
             raise IOError('{} could not be opened'.format(file_relatedness))
         verboseprint("Reading relationship matrix", verbose=verbose)
         self.relatedness_samples = np.array(self.relatedness.columns)
         self.relatedness = np.array(self.relatedness).astype(float)
 
-    def getPCs(self, file_pcs=None, nrpcs=None, verbose=True):
+    def getPCs(self, file_pcs=None, nrpcs=None, delim=",", verbose=True):
         r"""
-        Reads a comma-separated file with [`N` x `PC`] matrix of [`PC`]
-    principal components from the genotypes of [`N`] samples.
+        Reads file with [`N` x `PC`] matrix of [`PC`] principal components from 
+        the genotypes of [`N`] samples.
 
         Arguments:
             file_pcs (string):
-                [`N` x (`PC` +1)] .csv file with [`N`] sample IDs in the first
+                [`N` x (`PC` +1)] PCA file with [`N`] sample IDs in the first
                 column
-        nrpcs (integer):
-        Number of PCs to use (uses first nrpcs  principal components)
-            verbose (bool): should progress messages be printed to stdout
+            delim (string): 
+                delimiter of PCA file, one of " ", ",", "\t"
+            nrpcs (integer):
+                Number of PCs to use (uses first nrpcs  principal components)
+            verbose (bool): 
+                should progress messages be printed to stdout
 
         Returns:
             None:
@@ -271,22 +265,26 @@ class ReadData(object):
 
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
+                >>> from limmbo.io.utils import file_type
                 >>> data = ReadData()
                 >>> file_pcs = resource_filename('limmbo',
                 ...                     'io/test/data/pcs.csv')
                 >>> data.getPCs(file_pcs=file_pcs, nrpcs=10,
-                ...                     verbose=False)
+                ...                     verbose=False, delim=" ")
                 >>> data.pc_samples[:3]
                 array(['ID_1', 'ID_2', 'ID_3'], dtype=object)
                 >>> data.pcs[:3,:3]
-        array([[-0.02632738,  0.00761785,  0.01069307],
-               [-0.05791269,  0.00538956, -0.0205066 ],
-               [-0.03619099,  0.00624196,  0.02299996]])
+                array([[-0.02632738,  0.00761785,  0.01069307],
+                       [-0.05791269,  0.00538956, -0.0205066 ],
+                       [-0.03619099,  0.00624196,  0.02299996]])
+        """
 
-    """
+        if file_type(file_pcs) is not 'delim':
+            raise FormatError('Supplied PCA file is not .csv or .txt')
+
         if file_pcs is not None:
             verboseprint("Reading PCs", verbose=verbose)
-            self.pcs = pd.io.parsers.read_csv(file_pcs, header=0, sep=" ")
+            self.pcs = pd.io.parsers.read_csv(file_pcs, header=0, sep=delim)
             self.pc_samples = np.array(self.pcs.columns)
             self.pcs = np.array(self.pcs).astype(float)
             if nrpcs is not None:
@@ -300,30 +298,23 @@ class ReadData(object):
 
     def getGenotypes(self, file_geno=None, verbose=True):
         r"""
-        Reads genotype file, either as hf5 (.h5) or comma-separated values
-        (.csv) file; file ending must be either .h5 or .csv
+        Reads genotype file in the following formats: plink (.bed, .bim, .fam),  
+        gen (.gen, .sample) or comma-separated values (.csv) file
 
         Arguments:
             file_geno (string):
-                path to phenotype file in hf5 or .csv format
+                path to phenotype file in .plink, .gen or .csv format
+                - **plink format**:
 
-                - **.h5 file format**: with group ['genotype'] containing:
-
-                  - ['col_header']['chrom']: [`NrSNPs`] chromosome IDs of SNPs
-                    (string)
-                  - ['col_header']['pos']: [`NrSNPs`] chromosome position of
-            SNPs (string)
-                  - ['col_header']['rs']: [`NrSNPs`] rsIDs/IDs of SNPs (string)
-                  - ['row_header']['sample_ID']: [`N`] sample IDs (string)
-                  - ['matrix']: [`N` x `NrSNP`] genotypes (array-like)
+                - **gen format**:
 
                 - **.csv format**:
 
                   - [(`NrSNP` + 1) x (`N`+1)] .csv file with: [`N`] sample IDs
                     in the first row and [`NrSNP`] genotype IDs in the first
-            column
-          - sample IDs should be of type: chrom-pos-rsID for instance
-            22-50714616-rs6010226
+                    column
+                  - sample IDs should be of type: chrom-pos-rsID for instance
+                    22-50714616-rs6010226
 
             verbose (bool):
                 should progress messages be printed to stdout
@@ -338,7 +329,7 @@ class ReadData(object):
                   [`N`] sample IDs
                 - **self.genotypes_info** (pd.dataframe):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
-          rsIDs as index
+                  rsIDs as index
 
         Examples:
 
@@ -346,6 +337,7 @@ class ReadData(object):
 
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
+                >>> from limmbo.io.utils import file_type
                 >>> data = ReadData()
                 >>> file_geno = resource_filename('limmbo',
                 ...                                'io/test/data/genotypes.csv')
@@ -353,30 +345,31 @@ class ReadData(object):
                 ...                   verbose=False)
                 >>> data.geno_samples[:5]
                 array(['ID_1', 'ID_2', 'ID_3', 'ID_4', 'ID_5'], dtype=object)
-        >>> data.genotypes.shape
-        (1000, 20)
+                >>> data.genotypes.shape
+                (1000, 20)
                 >>> data.genotypes[:5,:5]
-        array([[ 0.,  1.,  1.,  0.,  1.],
-               [ 0.,  1.,  0.,  1.,  1.],
-               [ 0.,  0.,  0.,  0.,  0.],
-               [ 0.,  1.,  0.,  0.,  1.],
-               [ 0.,  0.,  1.,  0.,  0.]])
-        >>> data.genotypes_info[:5]
-                chrom       pos
-        rs111647458    15  49385160
-        rs67918533     15  92151569
-        rs12903533     15  98887790
-        rs34937778     19  18495997
-        rs150270350    19  47869060
+                array([[ 0.,  1.,  1.,  0.,  1.],
+                       [ 0.,  1.,  0.,  1.,  1.],
+                       [ 0.,  0.,  0.,  0.,  0.],
+                       [ 0.,  1.,  0.,  0.,  1.],
+                       [ 0.,  0.,  1.,  0.,  0.]])
+                >>> data.genotypes_info[:5]
+                        chrom       pos
+                rs111647458    15  49385160
+                rs67918533     15  92151569
+                rs12903533     15  98887790
+                rs34937778     19  18495997
+                rs150270350    19  47869060
 
         """
 
-        if re.search(".h5", file_geno) is None \
-         and re.search(".csv", file_geno) is None:
-            raise FormatError('Supplied genotype file is neither .h5 or',
-                              '.csv')
+        if file_type(file_geno) not in ['csv', 'bed']:
+            raise FormatError('Supplied genotype file is neither in plink nor'
+                    '.csv format')
         verboseprint("Reading genotypes from %s" % file_geno, verbose=verbose)
-        if re.search(".h5", file_geno) is None:
+        
+        
+        if file_type(file_geno) is 'csv':
             try:
                 genotypes = pd.io.parsers.read_csv(
                     file_geno, index_col=0, header=0)
@@ -398,18 +391,24 @@ class ReadData(object):
                 np.array(genotypes_info),
                 columns=['chrom', 'pos'],
                 index=snp_ID)
-        else:
-            # read genotype information: chromosome-wise .h5 files
-            geno_reader = gr.genotype_reader_h5py(file_geno)
-            verboseprint("Extracting genotypes from .h5 file", verbose=verbose)
-            self.geno_samples = geno_reader.sample_ID
-            self.genotypes = geno_reader.getGenotypes().astype(float)
-            self.genotypes_info = geno_reader.getPos()
-
+        
+        if file_type(file_geno) is 'bed':
+            try:
+                (bim, fam, bed) = read_plink(file_geno, verbose=verbose)
+            except Exception:
+                raise IOError('{} could not be opened'.format(file_geno))
+            
+            self.geno_samples = np.array(fam.iid)
+            self.genotypes = np.array(bed.compute()).T
+            self.genotypes_info = pd.DataFrame(
+                np.array([bim.chrom, bim.pos]).T,
+                columns=['chrom', 'pos'],
+                index=bim.snp)
+                
     def getVarianceComponents(self, file_Cg=None, file_Cn=None, verbose=True):
         r"""
         Reads a comma-separated files with [`P` x `P`] matrices of [`P`] trait
-    covariance estimates.
+        covariance estimates.
 
         Arguments:
             file_Cg (string):
@@ -426,10 +425,10 @@ class ReadData(object):
 
                 - **self.Cg** (np.array):
                   [`P` x `P`] matrix with trait covariance of the genetic
-          component
+                  component
                 - **self.Cn** (np.array):
                   [`P` x `P`] matrix with trait covariance of the non-genetic
-          (noise) component
+                  (noise) component
 
         Examples:
 
@@ -443,21 +442,20 @@ class ReadData(object):
                 >>> file_Cn = resource_filename('limmbo',
                 ...                     'io/test/data/Cn.csv')
                 >>> data.getVarianceComponents(file_Cg=file_Cg,
-        ...                   file_Cn=file_Cn,
-                ...                            verbose=False)
-        >>> data.Cg.shape
-        (10, 10)
-        >>> data.Cn.shape
-        (10, 10)
+                ...                   file_Cn=file_Cn, verbose=False)
+                >>> data.Cg.shape
+                (10, 10)
+                >>> data.Cn.shape
+                (10, 10)
                 >>> data.Cg[:3,:3]
-        array([[ 0.04265732, -0.02540865,  0.01784288],
-               [-0.02540865,  0.03610362, -0.02802982],
-               [ 0.01784288, -0.02802982,  0.04448125]])
+                array([[ 0.04265732, -0.02540865,  0.01784288],
+                       [-0.02540865,  0.03610362, -0.02802982],
+                       [ 0.01784288, -0.02802982,  0.04448125]])
                 >>> data.Cn[:3,:3]
-        array([[ 0.96301131, -0.86185094, -0.35197147],
-               [-0.86185094,  0.9647436 ,  0.37166803],
-               [-0.35197147,  0.37166803,  0.96285129]])
-    """
+                array([[ 0.96301131, -0.86185094, -0.35197147],
+                       [-0.86185094,  0.9647436 ,  0.37166803],
+                       [-0.35197147,  0.37166803,  0.96285129]])
+        """
 
         if file_Cg is None and file_Cn is None:
             verboseprint(
