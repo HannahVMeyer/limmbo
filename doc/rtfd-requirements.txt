@@ -8,6 +8,4 @@
     numpy>=1.14.0
     toolz>=0.9.0
     scipy-sugar>=1.0.4
-    limix>=1.0.12
     pandas-plink>=1.2.15
-    limix-legacy>=0.8.12
