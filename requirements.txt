@@ -1,0 +1,7 @@
+argparse>=1.1
+matplotlib>=2.1.0
+bottleneck>=1.2.1
+pp>=1.6.5
+toolz>=0.9.0
+scipy-sugar>=1.0.4
+pypandoc>=1.4
