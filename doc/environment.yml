@@ -1,0 +1,20 @@
+name: py27
+channels:
+- conda-forge
+- defaults
+dependencies:
+- argparse>=1.1
+- matplotlib>=2.1.0
+- scipy>=0.19.1
+- bottleneck>=1.2.1
+- pypandoc>=1.4
+- pp>=1.6.5
+- pandas>=0.22
+- numpy>=1.14.0
+- toolz>=0.9.0
+- scipy-sugar>=1.0.4
+- limix>=1.0.12
+- limix-legacy>=0.8.12
+- pip:
+   - https://pypi.python.org/packages/f2/9c/1a2789b70bc52aa637c3b685adaeea8265bf4fcd9f47961f1f2b1b489779/limix_legacy-0.8.12-cp35-cp35m-manylinux1_x86_64.whl#md5=9b3c313c61084c13e91145669381924f
+
