@@ -1,0 +1,2 @@
+Sphinx>=1.6.
+sphinxcontrib-napoleon>=0.6.0

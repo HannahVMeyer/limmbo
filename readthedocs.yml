@@ -1,6 +1,7 @@
+requirements_file: requirements_docs.txt
+
 python:
    version: 2.7
-   setup_py_install: true
 
-conda:
-    file: doc/environment.yml
+formats:
+    - none
