@@ -147,7 +147,6 @@ dependencies:
 - pyopenssl=16.2.0
 - pyparsing=2.1.4
 - pyqt=5.6.0
-- pytables=3.3.0
 - pytest=3.0.5
 - python=3.5.2
 - python-dateutil=2.6.0
@@ -185,7 +184,6 @@ dependencies:
 - sympy=1.0
 - terminado=0.6
 - tk=8.5.18
-- toolz=0.9.0
 - tornado=4.4.2
 - traitlets=4.3.1
 - unicodecsv=0.14.1
@@ -201,6 +199,4 @@ dependencies:
 - yaml=0.1.6
 - zeromq=4.1.5
 - zlib=1.2.8
-- pip:
-   - https://pypi.python.org/packages/c6/01/67c068c7d05a4e997a60d34ccffab2434ed57773313634a1c6f9e9482af2/limix_legacy-0.8.12-cp27-cp27m-manylinux1_x86_64.whl#md5=c87d5780944fae970ea18dce6cdad714
 
