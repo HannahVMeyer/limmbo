@@ -99,6 +99,7 @@ dependencies:
 - libtiff=4.0.6
 - libxcb=1.12
 - libxml2=2.9.4
+- limix=1.0.12
 - libxslt=1.1.29
 - llvmlite=0.15.0
 - locket=0.2.0
@@ -207,5 +208,5 @@ dependencies:
 - zeromq=4.1.5
 - zlib=1.2.8
 - pip:
-   - https://pypi.python.org/packages/f2/9c/1a2789b70bc52aa637c3b685adaeea8265bf4fcd9f47961f1f2b1b489779/limix_legacy-0.8.12-cp35-cp35m-manylinux1_x86_64.whl#md5=9b3c313c61084c13e91145669381924f
+   - https://pypi.python.org/packages/c6/01/67c068c7d05a4e997a60d34ccffab2434ed57773313634a1c6f9e9482af2/limix_legacy-0.8.12-cp27-cp27m-manylinux1_x86_64.whl#md5=c87d5780944fae970ea18dce6cdad714
 
