@@ -3,7 +3,6 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- argparse=1.1
 - boto3=1.4.4
 - botocore=1.5.39
 - dask=0.14.3
