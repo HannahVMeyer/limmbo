@@ -124,7 +124,6 @@ dependencies:
 - odo=0.5.0
 - openpyxl=2.4.1
 - openssl=1.0.2k
-- pp=1.6.5
 - pandas=0.19.2
 - partd=0.3.7
 - path.py=10.0
