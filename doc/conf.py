@@ -22,6 +22,17 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 
+import sys
+from mock import Mock as MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+MOCK_MODULES = ['scipy', 'limix-legacy', 'limix', 'argparse', 'numpy', 'pandas']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 import sphinx_rtd_theme
 # -- General configuration ------------------------------------------------
 
@@ -143,6 +154,5 @@ texinfo_documents = [
      author, 'limmbo', 'One line description of project.',
      'Miscellaneous'),
 ]
-
 
 
