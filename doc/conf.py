@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
 # limmbo documentation build configuration file, created by
@@ -47,7 +47,8 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon']
+    'sphinx.ext.napoleon',
+    'sphinxarg.ext']
 napoleon_google_docstring = True
 
 # Add any paths that contain templates here, relative to this directory.
