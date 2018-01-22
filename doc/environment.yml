@@ -10,7 +10,6 @@ dependencies:
 - jmespath=0.9.2
 - liknorm=1.2.3
 - msgpack-python=0.4.8
-- pandas-plink=1.1.6
 - s3fs=0.1.0
 - s3transfer=0.1.10
 - sortedcontainers=1.5.3
@@ -101,7 +100,6 @@ dependencies:
 - libxml2=2.9.4
 - limix=1.0.12
 - libxslt=1.1.29
-- llvmlite=0.15.0
 - locket=0.2.0
 - lxml=3.7.2
 - markupsafe=0.23
@@ -118,7 +116,6 @@ dependencies:
 - nltk=3.2.2
 - nose=1.3.7
 - notebook=4.3.1
-- numba=0.30.1
 - numexpr=2.6.1
 - numpy=1.11.3
 - numpydoc=0.6.0
@@ -131,7 +128,6 @@ dependencies:
 - pathlib2=2.2.0
 - patsy=0.4.1
 - pcre=8.39
-- pep8=1.7.0
 - pexpect=4.2.1
 - pickleshare=0.7.4
 - pillow=4.0.0
