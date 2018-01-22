@@ -16,19 +16,19 @@ class ParseData(object):
             dest="file_relatedness",
             required=False,
             default=None,
-            help=('Path [string] to [N x (N+1)]',
-                  'file of kinship/relatedness matrix with [N]',
-                  'samples (first row: sample IDs)'))
+            help=('Path [string] to [N x (N+1)] file of kinship/relatedness ' 
+                'matrix with [N] samples (first row: sample IDs). Default: '
+                '%(default)s'))
         parser.add_argument(
             '-pf',
             '--file_pheno',
             action="store",
             dest="file_pheno",
             required=False,
-            help=('Path [string] to HF5 phenotype file (via',
-                  'limix_format_data.py) or [(N+1) x (P+1)] .csv',
-                  'file of [P] phenotypes with [N] samples (first',
-                  'column: sample IDs, first row: phenotype IDs)'))
+            help=('Path [string] to HF5 phenotype file (via '
+                'limix_format_data.py) or [(N+1) x (P+1)] .csv file of [P] ' 
+                'phenotypes with [N] samples (first column: sample IDs, first '
+                'row: phenotype IDs). Default: %(default)s'))
         parser.add_argument(
             '-cf',
             '--file_cov',
@@ -36,10 +36,9 @@ class ParseData(object):
             dest="file_covariates",
             required=False,
             default=None,
-            help=('Path [string] to [(N+1) x C] file of',
-                  'covariates matrix with [N] samples and [K]',
-                  'covariates (first column: sample IDs, first row:',
-                  'phenotype IDs)'))
+            help=('Path [string] to [(N+1) x C] file of covariates matrix with '
+                 '[N] samples and [K] covariates (first column: sample IDs, '
+                 'first row: phenotype IDs). Default: %(default)s'))
         parser.add_argument(
             '-sf',
             '--file_samplelist',
@@ -47,8 +46,8 @@ class ParseData(object):
             dest="file_samplelist",
             required=False,
             default=None,
-            help=('Path [string] to file with samplelist for',
-                  'sample selection'))
+            help=('Path [string] to file with samplelist for sample '
+                'selection. Default: %(default)s'))
 
         ### LiMMBo settings
         parser.add_argument(
@@ -58,7 +57,8 @@ class ParseData(object):
             dest="seed",
             default=234,
             required=False,
-            help=('seed [int] used to generate bootstrap matrix'),
+            help=('seed [int] used to generate bootstrap matrix. Default: '
+                '%(default)s'),
             type=int)
 
         parser.add_argument(
@@ -68,8 +68,8 @@ class ParseData(object):
             dest="S",
             default=None,
             required=False,
-            help=('Size [int] of phenotype subsamples used',
-                  'for variance decomposition'),
+            help=('Size [int] of phenotype subsamples used for variance '
+                'decomposition. Default: %(default)s'),
             type=int)
         parser.add_argument(
             '-r',
@@ -78,7 +78,7 @@ class ParseData(object):
             dest="runs",
             default=None,
             required=False,
-            help='Total number [int] of bootstrap runs',
+            help='Total number [int] of bootstrap runs. Default: %(default)s',
             type=int)
         parser.add_argument(
             '-t',
@@ -87,8 +87,8 @@ class ParseData(object):
             dest="timing",
             default=False,
             required=False,
-            help=('[bool]: should variance decomposition be'
-                  'timed'))
+            help=('[bool]: should variance decomposition be timed. Default: '
+                '%(default)s'))
         parser.add_argument(
             '--minCooccurrence',
             action="store",
@@ -96,9 +96,8 @@ class ParseData(object):
             default=3,
             type=int,
             required=False,
-            help=('Minimum count [int] of the'
-                  'pairwise sampling of any given trait pair,'
-                  'default:3'))
+            help=('Minimum count [int] of the pairwise sampling of any given '
+                'trait pair. Default: %(default)s'))
         parser.add_argument(
             '-i',
             '--iterations',
@@ -107,8 +106,8 @@ class ParseData(object):
             default=10,
             required=False,
             type=int,
-            help=('Number [int] of iterations for variance',
-                  'decomposition attempts'))
+            help=('Number [int] of iterations for variance decomposition '
+                'attempts. Default: %(default)s'))
         parser.add_argument(
             '-cpus',
             '--cpus',
@@ -117,8 +116,8 @@ class ParseData(object):
             default=None,
             required=False,
             type=int,
-            help=('Number [int] of available CPUs for',
-                  'parallelisation of variance decomposition steps'))
+            help=('Number [int] of available CPUs for parallelisation of '
+                'variance decomposition steps. Default: %(default)s'))
         ### GWAS settings:
         parser.add_argument(
             '-adjustP',
@@ -127,10 +126,10 @@ class ParseData(object):
             dest="adjustP",
             default=None,
             required=False,
-            type=string,
+            type=str,
             help=('Method to adjust single-trait p-values for'
-                  'multiple hypotheis testing when running'
-                  'multiple single-trait GWAS'))
+                  'multiple hypothesis testing when running'
+                  'multiple single-trait GWAS. Default: %(default)s'))
         parser.add_argument(
             '-nrpermutations',
             '--nrpermutations',
@@ -139,9 +138,10 @@ class ParseData(object):
             default=None,
             required=False,
             type=int,
-            help=('Number of permutations for computing'
-                  'empirical p-values; 1/nrpermutations is'
-                  'maximumn level of testing for significance'))
+            help=('Number of permutations for computing empirical p-values; '
+                '1/nrpermutations is maximum level of testing for '
+                'significance. Default: %(default)s')
+            )
         parser.add_argument(
             '-fdr',
             '--fdr',
@@ -150,8 +150,8 @@ class ParseData(object):
             required=False,
             default=None,
             type=float,
-            help=('FDR threshold for'
-                  'computing empirical FDR'))
+            help=('FDR threshold for computing empirical FDR. Default: '
+                '%(default)s'))
 
         # settings: data transform options
         parser.add_argument(
@@ -161,17 +161,17 @@ class ParseData(object):
             dest="transform",
             default='scale',
             required=False,
-            help=('Choose type [string] of data',
-                  'preprocessing: scale (mean center, divide by',
-                  'sd) or gaussian (inverse normalise)'))
+            help=('Choose type [string] of data preprocessing: scale (mean '
+                'center, divide by sd) or gaussian (inverse normalise). ' 
+                'Default: %(default)s'))
         parser.add_argument(
             '-reg',
             '--reg_covariates',
             action="store_true",
             dest="regress",
             required=False,
-            help=('[bool]: should covariates be regressed',
-                  ' out? Default: False'))
+            help=('[bool]: should covariates be regressed out? Default: '
+                '%(default)s'))
 
         # settings: subset options
         parser.add_argument(
@@ -181,10 +181,10 @@ class ParseData(object):
             dest="traitstring",
             required=False,
             default=None,
-            help=('Comma- (for list of traits) or hyphen-',
-                  '(for trait range) or comma and hyphen-separated',
-                  'list [string] of traits (trait columns) to',
-                  'choose; default: None (=all traits)'))
+            help=('Comma- (for list of traits) or hyphen- (for trait range) or '
+            'comma and hyphen-separated list [string] of traits (trait '
+            'columns) to choose; default: None (=all traits). Default: '
+            '%(default)s'))
 
         # output settings
         parser.add_argument(
@@ -193,8 +193,8 @@ class ParseData(object):
             action="store",
             dest="output",
             required=True,
-            help=('Path [string] of output',
-                  'directory; user needs writing permission'))
+            help=('Path [string] of output directory; user needs writing '
+                'permission. Default: %(default)s'))
         parser.add_argument(
             '-dontSaveIntermediate',
             '--dontSaveIntermediate',
@@ -202,8 +202,8 @@ class ParseData(object):
             dest="intermediate",
             default=True,
             required=False,
-            help=('Set to suppress saving',
-                  'intermediate variance components'))
+            help=('Set to suppress saving intermediate variance components. ' 
+                'Default: %(default)s'))
         parser.add_argument(
             '-v',
             '--verbose',
@@ -211,7 +211,7 @@ class ParseData(object):
             dest="verbose",
             required=False,
             default=False,
-            help=('[bool]: should analysis step description',
-                  'be printed default: False'))
+            help=('[bool]: should analysis step description be printed. '
+                'Default: %(default)s'))
 
         self.options = parser.parse_args()
