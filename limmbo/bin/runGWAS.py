@@ -1,4 +1,4 @@
-from limmbo.io.parser import ParseData
+from limmbo.io.parser import getGWASargs
 from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.vdbootstrap import LiMMBo
@@ -6,15 +6,15 @@ from limmbo.core.vdbootstrap import LiMMBo
 def entry_point():
 
     # parse command-line arguments
-    dataparse = ParseData()
-    dataparse.getArgs()
+    parser = getGWASargs()
+    options = parser.parse_args()
 
     # read data specified in command-line arguments
-    dataread = ReadData(verbose=dataparse.options.verbose)
-    dataread.getPhenotypes(file_pheno = dataparse.options.file_pheno)
-    dataread.getCovariates(file_covariates = dataparse.options.file_covariates)
-    dataread.getRelatedness(file_relatedness = dataparse.options.file_relatedness)
-    dataread.getGenotypes(file_genotypes = dataparse.options.file_genotypes)
+    dataread = ReadData(verbose=options.verbose)
+    dataread.getPhenotypes(file_pheno = options.file_pheno)
+    dataread.getCovariates(file_covariates = options.file_covariates)
+    dataread.getRelatedness(file_relatedness = options.file_relatedness)
+    dataread.getGenotypes(file_genotypes = options.file_genotypes)
     
     # combine all input, check for consistency and pre-process data
     datainput = InputData(verbose=dataparse.options.verbose)
@@ -29,40 +29,54 @@ def entry_point():
     datainput.addCovariates(covariates = dataread.covariates,
                             covs_samples = dataread.covs_samples)
     datainput.commonSamples()
-    datainput.subsetTraits(traitstring = dataparse.options.traitstring)
-    datainput.regress(regress = dataparse.options.regress)
-    datainput.transform(type = dataparse.options.transform)
+    datainput.subsetTraits(traitstring = options.traitstring)
+    datainput.regress(regress = options.regress)
+    datainput.transform(type = options.transform)
 
     # set up variance decomposition via LiMMBo
     gwas = GWAS(datainput=datainput,
-            seed=dataparse.options.seed,
-            searchDelta=dataparse.options.searchDelta,
-            verbose=dataparse.options.verbose)
-            
+            seed=options.seed,
+            searchDelta=options.searchDelta,
+            verbose=options.verbose)
+           
+    if options.singletrait:
+        mode='singletrait'
+    else:
+        mode='multitrait'
+
+    if options.lmm: 
+        setup='lmm'
+    else:
+        setup='lm'
+
     resultsAssociation = gwas.runAssociationAnalysis(
-        setup=dataparse.options.setup,
-        mode=dataparse.options.mode,
-        adjustSingleTrait = dataparse.options.adjustP)
+        setup=setup,
+        mode=mode,
+        adjustSingleTrait = options.adjustP)
 
-    if dataparse.options.nrpermutations is not None:
-        resultsEmpiricalP = gwas.computeEmpiricalP(nrpermutations =
-            dataparse.options.nrpermutations)
+    if options.nrpermutations is not None:
+        pvalues_empirical = gwas.computeEmpiricalP(nrpermutations =
+            options.nrpermutations)
+    else:
+        pvalues_empirical = None
     
-    if dataparse.options.fdr is not None:
-       resultsFDR = gwas.__computeFDR(fdr = dataparse.options.fdr)
+    if options.fdr is not None:
+       empirical_fdr, empirical_pvalue_dist = gwas.computeFDR(fdr = options.fdr)
 
+    saveAssociationResults(resultsAssociation, outdir=options.outdir,
+            name=options.name, pvalues_empirical = pvalues_empirical)
     if plot:
         if gwas.fdr_empirical is not None:
             thr = gwas.fdr.empirical
         else:
-            thr = dataparse.options.thr
+            thr = options.thr
 
         output = '{}/{}_{}.png' % (output, chromosome, model)
-        manhattanQQ(pvalues=resultsAssociation['pvalues'], 
-            colorS=dataparse.options.colorS, 
-            colorNS=dataparse.options.colorNS,
-            alphaNS=dataparse.options.alphaNS, 
-            thr_plotting=thr, savePlot = output)
+        manhattanQQ(pvalues=resultsAssociation, 
+            colorS=options.colorS, 
+            colorNS=options.colorNS,
+            alphaNS=options.alphaNS, 
+            thr_plotting=thr, savePlot = options.outdir)
 
 
 #############

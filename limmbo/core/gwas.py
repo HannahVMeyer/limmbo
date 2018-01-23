@@ -356,18 +356,45 @@ class GWAS(object):
                 "betas": betas}
 
 
-    def saveAssociationResults(self, model, output, chromosome, columns=None,
-            plotResults=False):
+    def saveAssociationResults(self, results, outdir, name,
+            pvalues_empirical=None):
+        
         r"""
+        Saves results of association analyses.
 
+        Arguments:
+            results (dictionary):
+                dictionary generated via runAssociation analysis, containing:
+		
+                - **lm** (:class:`limix.qtl.LMM`):
+		  LIMIX LMM object
+		- **pvalues** (numpy array):
+		  [`P` x `NrSNP`] array of p-values
+		- **betas** (numpy array):
+		  [`P` x `NrSNP`] array of effect size estimates per SNP
+		  across all traits
+		- **pvalues_adjust** (numpy array):
+		  only returned mode == singletrait and if 'adjustSingleTrait'
+                  is not None; contains single-trait p-values adjusted for the 
+                  number of single-trait analyses conducted
+                
+            outdir (string):
+                '/path/to/output/directory'; needs user writing permission
+            name (string):
+                input name specific name, such as chromosome used in analysis
+            pvalues_empirical (pandas dataframe, optional):
+                empirical pvalues via adjustSingleTrait 
+
+        Returns:
+            (None)
         """
 
-        outstring = (output, model, chromosome)
+        outstring = (outdir, self.model, name)
         
         self.genotypes_info['SNP'] = self.genotype_info.index
 
         beta_df = pd.DataFrame(results['betas'].T,
-            index=gwas.genotypes_info.index, columns = columns)
+            index=gwas.genotypes_info.index, columns = self.phenotype_ID)
         beta_df = pd.concat([self.genotypes_info, beta_df], axis=1)
         
         if self.mode is 'singletrait':
@@ -376,14 +403,15 @@ class GWAS(object):
 
             if results['pvalues_adjust'] is not None:
                 pvalues_adjust_df = pd.DataFrame(results['pvalues_adjust'].T,  
-                    index=gwas.genotypes_info.index, columns = columns)
+                    index=gwas.genotypes_info.index, 
+                    columns = self.phenotype_ID)
                 
                 pvalues_adjust_df.to_csv("%s/%s_padjust_%s.csv" % outstring,
                     index=False)
             
-            if results['pvalues_empirical'] is not None:
+            if pvalues_empirical is not None:
                 
-                pempirical_df = pd.DataFrame(results['pvalues_empirical'].T,
+                pempirical_df = pd.DataFrame(pvalues_empirical.T,
                     index=gwas.genotypes_info.index, columns = columns)
                     #index=SNP, columns=['Pempirical'])
                 
@@ -396,31 +424,27 @@ class GWAS(object):
             pvalues_df = pd.DataFrame(results['pvalues'],
                 index=gwas.genotypes_info.index, columns = "P")
             
-            if self.pvalues_empirical is not None:
-                pvalue_df = pd.DataFrame(results['pvalues_empirical'],
+            if pvalues_empirical is not None:
+                pvalue_df = pd.DataFrame(pvalues_empirical,
                     index=gwas.genotypes_info.index, columns = "P")
 
             
         pvalues_df.to_csv("%s/%s_pvalue_%s.csv" % outstring, index=False)
         beta_df.to_csv("%s/%s_betavalue_%s.csv" % outstring, index=False)
 
-        if results['pvalues_empirical'] is not None:
+        if pvalues_empirical is not None:
             pempirical_df.to_csv("%s/%s_pempirical_%s%s.csv" %
                 (outstring + (self.fdr,)), index=False)
 
-
-        if plotResults:
-            self.manhattanQQ(model=model, P=P)
-        
         if self.estimate_vd:
             if self.timeVD is not None:
                 pd.DataFrame(self.timeVD).to_csv(
-                    "%s/timeVarianceDecomposition_REML.csv" % output,
+                    "%s/timeVarianceDecomposition_REML.csv" % outdir,
                     index=False, header=False)
 
-            pd.DataFrame(self.Cg).to_csv("%s/Cg_REML.csv" % (output),
+            pd.DataFrame(self.Cg).to_csv("%s/Cg_REML.csv" % (outdir),
                 index=False, header=False)
-            pd.DataFrame(self.Cn).to_csv("%s/Cn_REML.csv" % (output),
+            pd.DataFrame(self.Cn).to_csv("%s/Cn_REML.csv" % (outdir),
                 index=False, header=False)
 
             if self.fdr is not None:
@@ -449,7 +473,7 @@ class GWAS(object):
         Returns:
             (numpy array): 
                 [`P` x `NrSNP`] (single-trait) or [1 x `NrSNP`] (multi-trait) 
-                array of emprirical p-values
+                array of empirical p-values
         """
 
         verboseprint("Computing empirical p-values", verbose=self.verbose)
@@ -494,11 +518,10 @@ class GWAS(object):
                 desired fdr threshold
 
         Returns:
-            (dictionary):
-                dictionary containing:
+            (tuple):
+                tuple containing:
 
-                    - **fdr** (float):
-                      empirical FDR
+                    - **empirical fdr** (float):
                     - **empirical_pvalue_distribution** (numpy array):
                       array of empirical p-values for 10 permutations tests
         """
@@ -531,10 +554,21 @@ class GWAS(object):
         self.allppermute.sort()
         self.fdr_empirical = self.allppermute[SNPsPassingFDR]
 
-        return {"fdr": self.fdr_empirical,
-                "empirical_pvalue_dist": self.allppermute}
+        return self.fdr_empirical, self.allppermute
 
     def __adjust(self, pv):
+	r"""
+	Adjust pvalues for multiple hypothesis testing by multiplying with 
+        a constant (if adjustBy=P, equivalent to Bonferroni adjustment).
+
+	Arguments:
+            pv (array like):
+                p-values
+
+        Returns:
+            pv (numpy array):
+                adjusted p-values
+	"""
         pvadjust = np.array([min(pveff, 1) for pveff in (pv * self.adjustBy)])
         return pvadjust
 
@@ -549,52 +583,77 @@ class GWAS(object):
         else:
             sys.exit("Variance decomposition did not converge")
 
-    ##############
-    ### output ###
-    ##############
-
-    def manhattanQQ(self, pvalues, colorS='DarkBLue', colorNS='Orange',
-            alphaNS=0.05, thr_plotting=0.05, savePlot=None):
+    def manhattanQQ(self, results, colourS='DarkBLue', colourNS='Orange',
+            alphaNS=0.05, thr_plotting=None, saveTo=None):
         r"""
+	Plot manhattan and quantile-quantile plot of association results.
 
         Arguments:
-            pvalues (array-like):
-                [`P` x `NrSNP`] (single-trait) or [1 x `NrSNP`] (multi-trait) 
-                array of p-values
-            colorS (string):
-                color of significant points
-            colorNS (string):
-                color of non-significant points
-            alphaNS (float):
+            results (dictionary):
+                dictionary generated via runAssociation analysis
+            colourS (string, optional):
+                colour of significant points
+            colourNS (string, optional):
+                colour of non-significant points
+            alphaNS (float, optional):
                 plotting transparency of non-significant points
-            thr_plotting (float):
+            thr_plotting (float, optional):
                 y-intercept for horizontal line as a marker for significance
+            saveTo (string, optional):
+		/path/to/output/directory to automatically save plot as pdf;
+                needs user writing permission.
 
         Returns:
             (None)
         """
         self.position, chromBounds = self.__getCumSum(self.genotypes_info)
-        fig = plt.figure(figsize=[12,4])
-        ax1 = fig.add_subplot(2,1,1)
 
-        if self.fdr_empirical is not None:
-            thr_plotting = self.fdr_empirical
         if self.mode is 'singletrait':
-            pv = np.array(pvalues).min(axis=0).ravel()
+            fig = plt.figure(figsize=[12,4])
+            pv_min = np.array(results['pvalues']).min(axis=0).ravel()
+            ax1 = fig.add_subplot(2,1,1)
+            plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
+                int), pv=pv_min, colourS=colourS, colourNS=colourNS,
+                alphaNS=alphaNS, thr_plotting=thr_plotting)
+            ax1.set_title('%s' % self.name)
+            ax2 = fig.add_subplot(2,1,2)
+            plot.qqplot(results['pvalues'].ravel())
+            fig.tight_layout()      
+            
+            if results['pvalues_adjust'] is not None:
+            	fig = plt.figure(figsize=[12,8])
+            	pv_adjust_min = np.array(results['pvalues_adjust']).min(
+                    axis=0).ravel()
+		ax1 = fig.add_subplot(4,1,1)
+		plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
+		    int), pv=pv_min, colourS=colourS, colourNS=colourNS,
+		    alphaNS=alphaNS, thr_plotting=thr_plotting)
+		ax1.set_title('%s (p-values)' % self.name)
+		ax2 = fig.add_subplot(4,1,2)
+		plot.qqplot(results['pvalues_adjust'].ravel())
+		ax1 = fig.add_subplot(4,1,3)
+		plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
+		    int), pv=pv_min, colourS=colourS, colourNS=colourNS,
+		    alphaNS=alphaNS, thr_plotting=thr_plotting)
+		ax1.set_title('%s (p-values adjust)' % self.name)
+		ax2 = fig.add_subplot(4,1,4)
+		plot.qqplot(results['pvalues_adjust'].ravel())
+		fig.tight_layout()      
+  
         if self.mode is 'multitrait':
             pv = np.array(pvalues).ravel() 
-
-        plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(int),
-                pv=pv, colorS=colorS, colorNS=colorNS, alphaNS=alphaNS,
-                thr_plotting=thr_plotting)
-
-        ax1.set_title('%s' % self.chromosome)
-        ax2 = fig.add_subplot(2,1,2)
-        plot.qqplot(self.pvalues.ravel())
-        fig.tight_layout()
+            fig = plt.figure(figsize=[12,4])
+            ax1 = fig.add_subplot(2,1,1)
+            plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
+                int), pv=pv, colourS=colourS, colourNS=colourNS, 
+                alphaNS=alphaNS, thr_plotting=thr_plotting)
+            ax1.set_title('%s' % self.name)
+            ax2 = fig.add_subplot(2,1,2)
+            plot.qqplot(pvalues.ravel())
+            fig.tight_layout()
 
         if saveTo is not None:
-            fig.savefig('{}.png'.format(savePlot))
+            fig.savefig('{}.png'.format(saveTo))
 
     def __getCumSum (self, offset=100000, chrom_len=None):
         RV = self.position.copy()
