@@ -18,7 +18,6 @@ import limix.mtset
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import effectiveTests
 
-
 class GWAS(object):
     """
     """
@@ -50,6 +49,8 @@ class GWAS(object):
         model = None
         self.pvalues_empirical = None
         self.adjustBy = None
+        self.estimate_vd = None
+        self.fdr_empirical = None
 
 
     ############################
@@ -102,7 +103,7 @@ class GWAS(object):
                 >>> from limmbo.io.reader import ReadData
                 >>> from limmbo.io.input import InputData
                 >>> from limmbo.core.gwas import GWAS
-                >>> data = ReadData()
+                >>> data = ReadData(verbose=False)
                 >>> file_pheno = resource_filename('limmbo',
                 ...                                'io/test/data/pheno.csv')
                 >>> file_geno = resource_filename('limmbo',
@@ -115,18 +116,13 @@ class GWAS(object):
                 ...                     'io/test/data/Cg.csv')
                 >>> file_Cn = resource_filename('limmbo',
                 ...                     'io/test/data/Cn.csv')
-                >>> data.getPhenotypes(file_pheno=file_pheno,
-                ...                   verbose=False)
-                >>> data.getCovariates(file_covariates=file_covs,
-                ...                   verbose=False)
-                >>> data.getRelatedness(file_relatedness=file_relatedness,
-                ...                     verbose=False)
-                >>> data.getGenotypes(file_geno=file_geno,
-                ...                   verbose=False)
+                >>> data.getPhenotypes(file_pheno=file_pheno)
+                >>> data.getCovariates(file_covariates=file_covs)
+                >>> data.getRelatedness(file_relatedness=file_relatedness)
+                >>> data.getGenotypes(file_genotypes=file_geno)
                 >>> data.getVarianceComponents(file_Cg=file_Cg,
-                ...                            file_Cn=file_Cn,
-                ...                            verbose=False)
-                >>> indata = InputData()
+                ...                            file_Cn=file_Cn)
+                >>> indata = InputData(verbose=False)
                 >>> indata.addPhenotypes(phenotypes = data.phenotypes,
                 ...                      pheno_samples = data.pheno_samples,
                 ...                      phenotype_ID = data.phenotype_ID)
@@ -139,7 +135,7 @@ class GWAS(object):
                 ...                     geno_samples=data.geno_samples)
                 >>> indata.addVarianceComponents(Cg = data.Cg, Cn=data.Cn)
                 >>> indata.commonSamples()
-                >>> indata.regress(regress=True, verbose=False)
+                >>> indata.regress(regress=True)
                 >>> gwas = GWAS(datainput=indata, seed=10, verbose=False)
                 >>>
                 >>>
@@ -172,13 +168,12 @@ class GWAS(object):
                 '1.037e-02'
         """
 
+
         # set parameters for the analysis
         self.N, self.P = self.phenotypes.shape
         self.S    = self.genotypes.shape[1]
         verboseprint("Loaded {} samples, {} phenotypes, {} snps".format(
             self.N, self.P, self.S), verbose = self.verbose)
-        verboseprint("Set searchDelta {}".format(self.searchDelta),
-            verbose = self.verbose)
             
         self.setup = setup
         self.mode = mode
@@ -232,14 +227,14 @@ class GWAS(object):
             Acovs = sp.eye(self.P)
         if self.setup is "lmm":
             if self.Cg is None:
-                if P > 30:
+                if self.P > 30:
                     print("Warning: For large trait sizes, computation times "
                   "for pure REML variance decomposition are long, "
                    "consider bootstrapping trait-trait covariance"
                     " components")
                 verboseprint("Estimate Variance components",
                             verbose = self.verbose)
-                self.Cg, self.Cn = self.__varianceDecomposition()
+                self.__varianceDecomposition()
             K1c = self.Cg
             K2c = self.Cn
             K1r = self.relatedness
@@ -356,7 +351,7 @@ class GWAS(object):
                 "betas": betas}
 
 
-    def saveAssociationResults(self, results, outdir, name,
+    def saveAssociationResults(self, results, outdir, name="",
             pvalues_empirical=None):
         
         r"""
@@ -388,52 +383,69 @@ class GWAS(object):
         Returns:
             (None)
         """
-
-        outstring = (outdir, self.model, name)
+        if name is not "":
+            self.name = name
+            outstring = (outdir, self.model, "_" + name)
+        else:
+            self.name = ""
+            outstring = (outdir, self.model, "")
         
-        self.genotypes_info['SNP'] = self.genotype_info.index
+        self.genotypes_info['SNP'] = self.genotypes_info.index
 
         beta_df = pd.DataFrame(results['betas'].T,
-            index=gwas.genotypes_info.index, columns = self.phenotype_ID)
+            index=self.genotypes_info.index, columns = self.phenotype_ID)
         beta_df = pd.concat([self.genotypes_info, beta_df], axis=1)
         
         if self.mode is 'singletrait':
             pvalues_df = pd.DataFrame(results['pvalues'].T,  
-                index=gwas.genotypes_info.index, columns = columns)
+                index=self.genotypes_info.index, columns = self.phenotype_ID)
+            pvalues_df = pd.concat([self.genotypes_info, pvalues_df], axis=1)
 
             if results['pvalues_adjust'] is not None:
                 pvalues_adjust_df = pd.DataFrame(results['pvalues_adjust'].T,  
-                    index=gwas.genotypes_info.index, 
+                    index=self.genotypes_info.index, 
                     columns = self.phenotype_ID)
+                pvalues_adjust_df = pd.concat([self.genotypes_info,
+                    pvalues_adjust_df], axis=1)
                 
-                pvalues_adjust_df.to_csv("%s/%s_padjust_%s.csv" % outstring,
+                pvalues_adjust_df.to_csv("%s/%s_padjust%s.csv" % outstring,
                     index=False)
             
             if pvalues_empirical is not None:
                 
                 pempirical_df = pd.DataFrame(pvalues_empirical.T,
-                    index=gwas.genotypes_info.index, columns = columns)
+                    index=self.genotypes_info.index, 
+                    columns = self.phenotype_ID)
                     #index=SNP, columns=['Pempirical'])
+                pempirical_df = pd.concat([self.genotypes_info, 
+                    pempirical_df], axis=1)
                 
                 pempirical_raw_df = pd.DataFrame(self.pvalues_empirical_raw.T,
-                    index=gwas.genotypes_info.index, columns = columns)
+                    index=self.genotypes_info.index, 
+                    columns = self.phenotype_ID)
+                pempirical_raw_df = pd.concat([self.genotypes_info, 
+                    pempirical_raw_df], axis=1)
+                
                 pempirical_raw_df.to_csv("%s/%s_pempirical_raw%s%s.csv" %
                     (outstring + (self.fdr,)), index=False)
             
         if self.mode is 'multitrait':
-            pvalues_df = pd.DataFrame(results['pvalues'],
-                index=gwas.genotypes_info.index, columns = "P")
+            pvalues_df = pd.DataFrame(results['pvalues'].T,
+                index=self.genotypes_info.index, columns = ["P"])
+            pvalues_df = pd.concat([self.genotypes_info, pvalues_df], axis=1)
             
             if pvalues_empirical is not None:
-                pvalue_df = pd.DataFrame(pvalues_empirical,
-                    index=gwas.genotypes_info.index, columns = "P")
+                pvalues_empirical_df = pd.DataFrame(pvalues_empirical.T,
+                    index=self.genotypes_info.index, columns = ["P"])
+                pvalues_empirical_df = pd.concat([self.genotypes_info, 
+                    pvalues_empirical-df], axis=1)
 
             
-        pvalues_df.to_csv("%s/%s_pvalue_%s.csv" % outstring, index=False)
-        beta_df.to_csv("%s/%s_betavalue_%s.csv" % outstring, index=False)
+        pvalues_df.to_csv("%s/%s_pvalue%s.csv" % outstring, index=False)
+        beta_df.to_csv("%s/%s_betavalue%s.csv" % outstring, index=False)
 
         if pvalues_empirical is not None:
-            pempirical_df.to_csv("%s/%s_pempirical_%s%s.csv" %
+            pempirical_df.to_csv("%s/%s_pempirical%s%s.csv" %
                 (outstring + (self.fdr,)), index=False)
 
         if self.estimate_vd:
@@ -448,7 +460,7 @@ class GWAS(object):
                 index=False, header=False)
 
             if self.fdr is not None:
-                pd.DataFrame(self.ppermute).to_csv("%s/%s_ppermute_%s.csv" %
+                pd.DataFrame(self.ppermute).to_csv("%s/%s_ppermute%s.csv" %
                     outstring, index=False)
                 pd.DataFrame(['FDR', str(self.FDR)]).T.to_csv(
                     "%s/%s_empiricalFDR_%s.csv" % outstring, header=False, 
@@ -577,14 +589,14 @@ class GWAS(object):
         vd_null_info = vd.fitNull(n_times=1000, rewrite=True)
         if vd_null_info['conv']:
             verboseprint("Variance decomposition converged")
-            Cg = vd_null_info['Cg'] + 1e-4*sp.eye(self.P)
-            Cn = vd_null_info['Cn'] + 1e-4*sp.eye(self.P)
-            time = vd_null_info['time']
+            self.Cg = vd_null_info['Cg'] + 1e-4*sp.eye(self.P)
+            self.Cn = vd_null_info['Cn'] + 1e-4*sp.eye(self.P)
+            self.time = vd_null_info['time']
         else:
             sys.exit("Variance decomposition did not converge")
 
     def manhattanQQ(self, results, colourS='DarkBLue', colourNS='Orange',
-            alphaNS=0.05, thr_plotting=None, saveTo=None):
+            alphaS=0.5, alphaNS=0.1, thr_plotting=None, saveTo=None):
         r"""
 	Plot manhattan and quantile-quantile plot of association results.
 
@@ -595,6 +607,8 @@ class GWAS(object):
                 colour of significant points
             colourNS (string, optional):
                 colour of non-significant points
+            alphaS (float, optional):
+                plotting transparency of significant points
             alphaNS (float, optional):
                 plotting transparency of non-significant points
             thr_plotting (float, optional):
@@ -606,74 +620,66 @@ class GWAS(object):
         Returns:
             (None)
         """
-        self.position, chromBounds = self.__getCumSum(self.genotypes_info)
-
         if self.mode is 'singletrait':
             fig = plt.figure(figsize=[12,4])
-            pv_min = np.array(results['pvalues']).min(axis=0).ravel()
+            pv_min = np.array(results['pvalues']).min(axis=0)
+            data = pd.DataFrame({'pv': pv_min, 
+                'chrom': np.array(self.genotypes_info['chrom']).astype('int'), 
+                'pos': np.array(self.genotypes_info['pos']).astype('int')})
             ax1 = fig.add_subplot(2,1,1)
-            plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
-                int), pv=pv_min, colourS=colourS, colourNS=colourNS,
-                alphaNS=alphaNS, thr_plotting=thr_plotting)
+            plot.plot_manhattan(df=data, 
+                null_style={'alpha':alphaS, 'color':colourS}, 
+                alt_style = {'alpha':alphaNS, 'color':colourNS},
+                alpha=thr_plotting)
             ax1.set_title('%s' % self.name)
             ax2 = fig.add_subplot(2,1,2)
-            plot.qqplot(results['pvalues'].ravel())
+            plot.qqplot(results['pvalues'].ravel(), alphaLevel=None)
             fig.tight_layout()      
             
             if results['pvalues_adjust'] is not None:
             	fig = plt.figure(figsize=[12,8])
             	pv_adjust_min = np.array(results['pvalues_adjust']).min(
                     axis=0).ravel()
+                data_adjust = pd.DataFrame({'pv': pv_min, 
+                    'chrom': np.array(self.genotypes_info['chrom']).astype('int'), 
+                    'pos': np.array(self.genotypes_info['pos']).astype('int')})
 		ax1 = fig.add_subplot(4,1,1)
-		plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
-		    int), pv=pv_min, colourS=colourS, colourNS=colourNS,
-		    alphaNS=alphaNS, thr_plotting=thr_plotting)
+                plot.plot_manhattan(df=data, 
+                    null_style={'alpha':alphaS, 'color':colourS}, 
+                    alt_style = {'alpha':alphaNS, 'color':colourNS},
+                    alpha=thr_plotting)
 		ax1.set_title('%s (p-values)' % self.name)
 		ax2 = fig.add_subplot(4,1,2)
-		plot.qqplot(results['pvalues_adjust'].ravel())
+		plot.qqplot(results['pvalues'].ravel())
 		ax1 = fig.add_subplot(4,1,3)
-		plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
-		    int), pv=pv_min, colourS=colourS, colourNS=colourNS,
-		    alphaNS=alphaNS, thr_plotting=thr_plotting)
+                plot.plot_manhattan(df=data_adjust, 
+                    null_style={'alpha':alphaS, 'color':colourS}, 
+                    alt_style = {'alpha':alphaNS, 'color':colourNS},
+                    alpha=thr_plotting)
 		ax1.set_title('%s (p-values adjust)' % self.name)
 		ax2 = fig.add_subplot(4,1,4)
 		plot.qqplot(results['pvalues_adjust'].ravel())
 		fig.tight_layout()      
   
         if self.mode is 'multitrait':
-            pv = np.array(pvalues).ravel() 
+            pv = np.array(results['pvalues']).ravel() 
+            data = pd.DataFrame({'pv': pv, 
+                'chrom': np.array(self.genotypes_info['chrom']).astype('int'), 
+                'pos': np.array(self.genotypes_info['pos']).astype('int')})
             fig = plt.figure(figsize=[12,4])
             ax1 = fig.add_subplot(2,1,1)
-            plot.plot_manhattan(posCum=self.position['pos_cum'].values.astype(
-                int), pv=pv, colourS=colourS, colourNS=colourNS, 
-                alphaNS=alphaNS, thr_plotting=thr_plotting)
+            plot.plot_manhattan(df=data, 
+                null_style={'alpha':alphaS, 'color':colourS}, 
+                alt_style = {'alpha':alphaNS, 'color':colourNS},
+                alpha=thr_plotting)
             ax1.set_title('%s' % self.name)
             ax2 = fig.add_subplot(2,1,2)
-            plot.qqplot(pvalues.ravel())
+            plot.qqplot(results['pvalues'].ravel())
             fig.tight_layout()
 
         if saveTo is not None:
-            fig.savefig('{}.png'.format(saveTo))
-
-    def __getCumSum (self, offset=100000, chrom_len=None):
-        RV = self.position.copy()
-        chromvals = sp.unique(self.genotypes_info['chrom'])
-        chrom_pos_cum = sp.zeros_like(chromvals)
-        pos_cum = sp.zeros_like(self.genotypes_info.shape[0])
-        offset = 100000
-        if not 'pos_cum' in self.genotypes_info:
-            RV["pos_cum"] = sp.zeros_like(self.genotypes_info['pos'])
-            pos_cum = RV['pos_cum'].values
-            maxpos_cum = 0
-        for i, mychrom in enumerate(chromvals):
-            chrom_pos_cum[i] = maxpos_cum
-            i_chr=self.genotypes_info['chrom'] == mychrom
-            if chrom_len is None:
-                maxpos = self.genotypes_info['pos'][i_chr].values.astype(
-                    int).max() + offset
+            if self.name is not "":
+                output = '{}/{}_{}.png'.format(saveTo, self.name, self.model)
             else:
-                maxpos = chrom_len[i] + offset
-                pos_cum[i_chr.values] = maxpos_cum + \
-                        self.position.loc[i_chr,'pos'].values.astype(int)
-                maxpos_cum += maxpos
-        return (RV, chrom_pos_cum)
+                output = '{}/{}.png'.format(saveTo, self.model)
+            fig.savefig(output)
