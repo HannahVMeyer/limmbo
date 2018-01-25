@@ -11,7 +11,9 @@ if __name__ == '__main__':
 
     setup(long_description=long_description,
           entry_points = {
-              'console_scripts': ['runGWAS=limmbo.bin.runGWAS:entry_point'],
-              'console_scripts': ['runVarianceEstimation=limmbo.bin.runVarianceEstimation:entry_point']
+              'console_scripts': [
+                  'runGWAS=limmbo.bin.runGWAS:entry_point',
+                  'runVarianceEstimation=limmbo.bin.runVarianceEstimation:entry_point'
+                  ]
               }
           )
