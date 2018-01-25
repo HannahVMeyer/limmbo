@@ -211,7 +211,7 @@ class ReadData(object):
                 >>> data.relatedness_samples[:3]
                 array(['ID_1', 'ID_2', 'ID_3'], dtype=object)
                 >>> data.relatedness[:3,:3]
-                array([[1.00882922e+00, 2.00758504e-04, 4.30499103e-03],
+                array([[1.00882922e+00, 2.00758504e-04, 4.30499103e-03], 
                        [2.00758504e-04, 9.98844885e-01, 4.86487318e-03],
                        [4.30499103e-03, 4.86487318e-03, 9.85687665e-01]])
         """
@@ -400,7 +400,7 @@ class ReadData(object):
                 columns=['chrom', 'pos'],
                 index=bim.snp)
                 
-    def getVarianceComponents(self, file_Cg=None, file_Cn=None):
+    def getVarianceComponents(self, file_Cg=None, file_Cn=None, delim=","):
         r"""
         Reads a comma-separated files with [`P` x `P`] matrices of [`P`] trait
         covariance estimates.
@@ -461,11 +461,11 @@ class ReadData(object):
         else:
             try:
                 self.Cg = np.array(
-                    pd.io.parsers.read_csv(file_Cg, header=None))
+                    pd.io.parsers.read_csv(file_Cg, header=None, sep=delim))
             except Exception:
                 raise IOError('{} could not be opened'.format(file_Cg))
             try:
                 self.Cn = np.array(
-                    pd.io.parsers.read_csv(file_Cn, header=None))
+                    pd.io.parsers.read_csv(file_Cn, header=None, sep=delim))
             except Exception:
                 raise IOError('{} could not be opened'.format(file_Cn))
