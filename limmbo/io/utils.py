@@ -1,6 +1,20 @@
 from os.path import exists
 
 def file_type(filepath):
+    r"""
+    Determine filetype based on file ending
+    Arguments:
+        filepath (string):
+            'path/2/file/with/fileending
+    Returns:
+        (string):
+            filetype
+
+    Example:
+
+    .. doctest::
+        
+    """
     imexts = ['.png', '.bmp', '.jpg', 'jpeg']
     textexts = ['.csv', '.txt']
     if filepath.endswith('.hdf5') or filepath.endswith('.h5'):
