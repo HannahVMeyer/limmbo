@@ -8,12 +8,8 @@ import scipy.stats as stats
 import numpy as np
 import pandas as pd
 from distutils.util import strtobool
-from scipy_sugar.stats import quantile_gaussianize
+from math import sqrt
 
-
-####################################
-### functions: data manipulation ###
-####################################
 def boolanize(string):
     r"""
     Convert command line parameter "True"/"False" into boolean
@@ -63,32 +59,6 @@ def scale(x):
     x -= x.mean(axis=0)
     x /= x.std(axis=0)
     return x
-
-
-def transform(x, type="scale"):
-    r"""
-    Transform input array by either scaling or gaussianising
-
-        * scale: mean-center, unit variance
-        * gaussian: inverse normalise
-        * None: No transformation
-
-    Arguments:
-        x (array-like):
-            array to be transformed
-        scale (string):
-            name of transformation method (scale, gaussian, None)
-
-    Returns:
-        (numpy array):
-            transformed x
-    """
-    x = np.array(x)
-    if type is "scale":
-        x = scale(x)
-    if type is "gaussian":
-        x = quantile_gaussianize(x)
-    return (x)
 
 
 def getEigen(covMatrix, reverse=True):
