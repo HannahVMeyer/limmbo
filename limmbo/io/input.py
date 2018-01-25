@@ -229,11 +229,17 @@ class InputData(object):
                 'specified via relatedness_samples'))
         self.relatedness = np.array(relatedness)
         self.relatedness_samples = np.array(relatedness_samples)
-        if self.relatedness.shape[0] != self.relatedness.shape[1]:
+       
+	if self.relatedness.shape[0] != self.relatedness.shape[1]:
             raise FormatError(('Relatedness has to be a square matrix, but '
                 'number of rows {} is not equal to number of columns '
                 '{}').format(self.relatedness.shape[0], 
                     self.relatedness.shape[1]))
+
+        if not np.all(self.relatedness - self.relatedness.T == 0):
+            raise FormatError('Relatedness matrix is not symmetric')
+        if not self._is_positive_definite(self.relatedness):
+            raise FormatError('Relatedness matrix is not positive-semi definite')
         if self.relatedness.shape[0] != self.relatedness_samples.shape[0]:
             raise DataMismatch(('Number of samples in relatedness ({}) does '
                     'not match number of sample IDs ({}) provided').format(
@@ -384,14 +390,23 @@ class InputData(object):
             raise FormatError(('Cg has to be a square matrix, but '
                 'number of rows {} is not equal to number of columns'
                 '{}').format(self.Cg.shape[0], self.Cg.shape[1]))
+        if not np.all(self.Cg - self.Cg.T == 0):
+            raise FormatError('Cg is not symmetric')
+        if not self._is_positive_definite(self.Cg):
+            raise FormatError('Cg is not positive-semi definite')
         if self.Cg.shape[0] != self.phenotypes.shape[1]:
             raise DataMismatch(('Number of traits in Cg ({}) does '
                 'not match number of traits ({}) in phenotypes').format(
                     self.Cg.shape[0], self.phenotypes.shape[1]))
         if self.Cn.shape[0] != self.Cn.shape[1]:
             raise FormatError(('Cn has to be a square matrix, but '
-                    'number of rows {} is not equal to number of columns'
-                    '{}').format(self.Cn.shape[0], self.Cn.shape[1]))
+                'number of rows {} is not equal to number of columns'
+                '{}').format(self.Cn.shape[0], self.Cn.shape[1]))
+
+        if not np.all(self.Cn - self.Cn.T == 0):
+            raise FormatError('Cn is not symmetric')
+        if not self._is_positive_definite(self.Cn):
+            raise FormatError('Cn is not positive-semi definite')
         if self.Cn.shape[0] != self.phenotypes.shape[1]:
             raise DataMismatch(('Number of traits in Cn ({}) does '
                 'not match number of traits ({}) in phenotypes').format(
@@ -924,3 +939,11 @@ class InputData(object):
         self.freqs = pd.DataFrame(self.freqs, index=self.genotypes_info.index, 
                 columns=['p', 'q'])
         return self.freqs
+
+    @staticmethod
+    def _is_positive_definite(matrix):
+        try: 
+            chol_matrix = np.linalg.cholesky(matrix)
+	    return(True)
+        except np.linalg.linalg.LinAlgError:
+	    return(False)

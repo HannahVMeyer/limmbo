@@ -18,7 +18,7 @@ class Input(unittest.TestCase):
         self.covariates = np.array((1,2))
         self.covs_samples = np.array(('S1','S2'))
         
-        self.relatedness = np.array(((1,2),(2,1)))
+        self.relatedness = np.array(((3,2),(2,3)))
         self.relatedness_samples = np.array(('S1','S2'))
 
 
@@ -71,8 +71,20 @@ class Input(unittest.TestCase):
 	    self.datainput.addRelatedness(relatedness=self.relatedness,
                                 relatedness_samples=relatedness_samples)
     
-    def test_addRelatedness_is_square_matrix(self):
-        relatedness = np.array(((1,2),(2,1), (3,3)))
+    def test_addRelatedness_is_square(self):
+        relatedness = np.array(((1,2),(2,1),(3,3)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addRelatedness(relatedness=relatedness,
+                                relatedness_samples=self.relatedness_samples)
+    
+    def test_addRelatedness_is_symmetric(self):
+        relatedness = np.array(((1,2),(6,1)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addRelatedness(relatedness=relatedness,
+                                relatedness_samples=self.relatedness_samples)
+    
+    def test_addRelatedness_is_positive_semidefinite(self):
+        relatedness = np.array(((1,2),(2,1)))
         with self.assertRaises(FormatError):
 	    self.datainput.addRelatedness(relatedness=relatedness,
                                 relatedness_samples=self.relatedness_samples)
@@ -150,6 +162,42 @@ class Input(unittest.TestCase):
                     phenotype_ID=self.phenotype_ID)
         with self.assertRaises(TypeError):
             self.datainput.transform(type = "blub")
+    
+    def test_addVarianceComponents_Cg_is_square(self):
+        Cg = np.array(((1,2),(2,1),(3,3)))
+        Cn = np.array(((1,2),(2,1)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addVarianceComponents(Cg=Cg, Cn=Cn)
+    
+    def test_addVarianceComponents_Cn_is_symmetric(self):
+        Cg = np.array(((1,2),(2,5)))
+        Cn = np.array(((1,2),(2,1)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addVarianceComponents(Cg=Cg, Cn=Cn)
+    
+    def test_addVarianceComponents_Cg_is_positive_semidefinite(self):
+        Cg = np.array(((1,2),(2,1)))
+        Cn = np.array(((3,2),(2,3)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addVarianceComponents(Cg=Cg, Cn=Cn)
+    
+    def test_addVarianceComponents_Cn_is_square(self):
+        Cn = np.array(((1,2),(2,1),(3,3)))
+        Cg = np.array(((1,2),(2,1)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addVarianceComponents(Cg=Cg, Cn=Cn)
+    
+    def test_addVarianceComponents_Cn_is_symmetric(self):
+        Cn = np.array(((1,2),(3,1)))
+        Cg = np.array(((1,2),(2,1)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addVarianceComponents(Cg=Cg, Cn=Cn)
+    
+    def test_addVarianceComponents_Cn_is_positive_semidefinite(self):
+        Cn = np.array(((1,2),(2,1)))
+        Cg = np.array(((3,2),(2,3)))
+        with self.assertRaises(FormatError):
+	    self.datainput.addVarianceComponents(Cg=Cg, Cn=Cn)
 
 if __name__ == '__main__':
     unittest.main()
