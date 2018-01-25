@@ -1,13 +1,19 @@
 from limmbo.io.parser import getGWASargs
 from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
-from limmbo.core.vdbootstrap import LiMMBo
+from limmbo.core.gwas import GWAS
 
 def entry_point():
 
     # parse command-line arguments
     parser = getGWASargs()
     options = parser.parse_args()
+    if options.lmm and options.file_kinship is None:
+	parser.error("For --lmm, --kf is required")
+    if options.file_covariates is None and \
+	    options.file_pcs is None and options.regress is True:
+	parser.error(("Regress is set to True but neither covariate file",
+	"nor PC file provided"))
 
     # read data specified in command-line arguments
     dataread = ReadData(verbose=options.verbose)
@@ -17,7 +23,7 @@ def entry_point():
     dataread.getGenotypes(file_genotypes = options.file_genotypes)
     
     # combine all input, check for consistency and pre-process data
-    datainput = InputData(verbose=dataparse.options.verbose)
+    datainput = InputData(verbose=options.verbose)
     datainput.addPhenotypes(phenotypes = dataread.phenotypes,
                             phenotype_ID = dataread.phenotype_ID,
                             pheno_samples = dataread.pheno_samples)
@@ -36,7 +42,6 @@ def entry_point():
     # set up variance decomposition via LiMMBo
     gwas = GWAS(datainput=datainput,
             seed=options.seed,
-            searchDelta=options.searchDelta,
             verbose=options.verbose)
            
     if options.singletrait:
@@ -63,25 +68,22 @@ def entry_point():
     if options.fdr is not None:
        empirical_fdr, empirical_pvalue_dist = gwas.computeFDR(fdr = options.fdr)
 
-    saveAssociationResults(resultsAssociation, outdir=options.outdir,
+    gwas.saveAssociationResults(resultsAssociation, outdir=options.outdir,
             name=options.name, pvalues_empirical = pvalues_empirical)
-    if plot:
+    
+    if options.plot:
         if gwas.fdr_empirical is not None:
             thr = gwas.fdr.empirical
         else:
             thr = options.thr
 
-        output = '{}/{}_{}.png' % (output, chromosome, model)
-        manhattanQQ(pvalues=resultsAssociation, 
-            colorS=options.colorS, 
-            colorNS=options.colorNS,
+        gwas.manhattanQQ(results=resultsAssociation, 
+            colourS=options.colourS, 
+            colourNS=options.colourNS,
+            alphaS=options.alphaS, 
             alphaNS=options.alphaNS, 
-            thr_plotting=thr, savePlot = options.outdir)
+            thr_plotting=thr, saveTo = options.outdir)
 
-
-#############
-### main  ###
-#############
 
 if __name__ == "__main__":
     entry_point()

@@ -1,4 +1,4 @@
-from limmbo.io.parser import getLiMMBoArgs
+from limmbo.io.parser import getVarianceEstimationArgs
 from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.vdbootstrap import LiMMBo
@@ -6,9 +6,12 @@ from limmbo.core.vdbootstrap import LiMMBo
 def entry_point():
 
     # parse command-line arguments
-    parser = getLiMMBoArgs()
+    parser = getVarianceEstimationArgs()
     options = parser.parse_args()
-
+    if options.file_covariates is None and options.file_pcs is None and \
+        options.regress is True:
+            parser.error(("Regress is set to True but neither covariate file",
+            "nor PC file provided"))
     # read data specified in command-line arguments
     dataread = ReadData(verbose=options.verbose)
     dataread.getPhenotypes(file_pheno = options.file_pheno)
