@@ -381,36 +381,37 @@ class InputData(object):
                 >>> print indata.Cg.shape
                 (10, 10)
         """
-        if self.phenotypes is None:
-            raise FormatError(('Phenotypes have to be added before Cg/Cn '
-                    'can be added'))
-        self.Cg = np.array(Cg)
-        self.Cn = np.array(Cn)
-        if self.Cg.shape[0] != self.Cg.shape[1]:
-            raise FormatError(('Cg has to be a square matrix, but '
-                'number of rows {} is not equal to number of columns'
-                '{}').format(self.Cg.shape[0], self.Cg.shape[1]))
-        if not np.all(self.Cg - self.Cg.T == 0):
-            raise FormatError('Cg is not symmetric')
-        if not self._is_positive_definite(self.Cg):
-            raise FormatError('Cg is not positive-semi definite')
-        if self.Cg.shape[0] != self.phenotypes.shape[1]:
-            raise DataMismatch(('Number of traits in Cg ({}) does '
-                'not match number of traits ({}) in phenotypes').format(
-                    self.Cg.shape[0], self.phenotypes.shape[1]))
-        if self.Cn.shape[0] != self.Cn.shape[1]:
-            raise FormatError(('Cn has to be a square matrix, but '
-                'number of rows {} is not equal to number of columns'
-                '{}').format(self.Cn.shape[0], self.Cn.shape[1]))
+        if Cg is not None and Cn is not None:
+            if self.phenotypes is None:
+                raise FormatError(('Phenotypes have to be added before Cg/Cn '
+                        'can be added'))
+            self.Cg = np.array(Cg)
+            self.Cn = np.array(Cn)
+            if self.Cg.shape[0] != self.Cg.shape[1]:
+                raise FormatError(('Cg has to be a square matrix, but '
+                    'number of rows {} is not equal to number of columns'
+                    '{}').format(self.Cg.shape[0], self.Cg.shape[1]))
+            if not np.all(self.Cg - self.Cg.T == 0):
+                raise FormatError('Cg is not symmetric')
+            if not self._is_positive_definite(self.Cg):
+                raise FormatError('Cg is not positive-semi definite')
+            if self.Cg.shape[0] != self.phenotypes.shape[1]:
+                raise DataMismatch(('Number of traits in Cg ({}) does '
+                    'not match number of traits ({}) in phenotypes').format(
+                        self.Cg.shape[0], self.phenotypes.shape[1]))
+            if self.Cn.shape[0] != self.Cn.shape[1]:
+                raise FormatError(('Cn has to be a square matrix, but '
+                    'number of rows {} is not equal to number of columns'
+                    '{}').format(self.Cn.shape[0], self.Cn.shape[1]))
 
-        if not np.all(self.Cn - self.Cn.T == 0):
-            raise FormatError('Cn is not symmetric')
-        if not self._is_positive_definite(self.Cn):
-            raise FormatError('Cn is not positive-semi definite')
-        if self.Cn.shape[0] != self.phenotypes.shape[1]:
-            raise DataMismatch(('Number of traits in Cn ({}) does '
-                'not match number of traits ({}) in phenotypes').format(
-                    self.Cn.shape[0], self.phenotypes.shape[1]))
+            if not np.all(self.Cn - self.Cn.T == 0):
+                raise FormatError('Cn is not symmetric')
+            if not self._is_positive_definite(self.Cn):
+                raise FormatError('Cn is not positive-semi definite')
+            if self.Cn.shape[0] != self.phenotypes.shape[1]:
+                raise DataMismatch(('Number of traits in Cn ({}) does '
+                    'not match number of traits ({}) in phenotypes').format(
+                        self.Cn.shape[0], self.phenotypes.shape[1]))
 
     def addPCs(self, pcs = None, pc_samples = None):
         """
@@ -467,23 +468,20 @@ class InputData(object):
         else:
             verboseprint('No principal components set', verbose=self.verbose)
 
-    def subsetTraits(self, traitstring = None, traitsarray = None):
+
+    def subsetTraits(self, traitlist = None):
         """
         Limit analysis to specific subset of traits
         
         Arguments:
-            traitstring (string):
-                comma-separated trait numbers (for single traits) or hyphen-
-                separated trait numbers (for trait ranges) or combination of
-                both for trait selection (1-based)
-            traitsarray (array-like):
-                array of trait numbers for trait selection
+            traitlist (array-like):
+                array of trait numbers to select from phenotypes
         
         Returns:
             None:
                 updated the following attributes of the InputData instance:
         
-                - **self.traitsarray** (list):
+                - **self.traitlist** (list):
                   of [`t`] trait numbers (int) to choose for analysis
                 - **self.phenotypes** (np.array):
                   reduced set of [`N` x `t`] phenotypes
@@ -491,76 +489,54 @@ class InputData(object):
                   reduced set of [`t`] phenotype IDs
         
         Examples:
-        
+
             .. doctest::
-        
-                >>> from limmbo.io import input
-                >>> import numpy as np
-                >>> from numpy.random import RandomState
-                >>> random = RandomState(15)
-                >>> N = 100
-                >>> P = 10
-                >>> pheno = random.normal(0,1, (N, P))
-                >>> pheno_samples = np.array(
-                ...     ['S{}'.format(x+1) for x in range(N)])
-                >>> phenotype_ID = np.array(
-                ...     ['ID{}'.format(x+1) for x in range(P)])
-                >>> indata = input.InputData()
-                >>> indata.addPhenotypes(phenotypes = pheno,
-                ...                      pheno_samples = pheno_samples,
-                ...                      phenotype_ID = phenotype_ID)
+            
+                >>> from pkg_resources import resource_filename
+                >>> from limmbo.io.reader import ReadData
+                >>> from limmbo.io.input import InputData
+                >>> from limmbo.io.utils import file_type
+                >>> data = ReadData(verbose=False)
+                >>> file_pheno = resource_filename('limmbo',
+                ...                                'io/test/data/pheno.csv')
+                >>> data.getPhenotypes(file_pheno=file_pheno)
+                >>> traitlist = data.getTraitSubset(traitstring="1-3,5")
+                >>> indata = InputData(verbose=False)
+                >>> indata.addPhenotypes(phenotypes = data.phenotypes,
+                ...                      pheno_samples = data.pheno_samples,
+                ...                      phenotype_ID = data.phenotype_ID)
                 >>> print indata.phenotypes.shape
-                (100, 10)
+                (1000, 10)
                 >>> print indata.phenotype_ID.shape
                 (10,)
-                >>> indata.subsetTraits(traitsarray=[1,2,3,6])
+                >>> indata.subsetTraits(traitlist=traitlist)
                 >>> print indata.phenotypes.shape
-                (100, 4)
+                (1000, 4)
                 >>> print indata.phenotype_ID.shape
                 (4,)
         """
-        if traitstring is None and traitsarray is None:
+        if traitlist is None:
             verboseprint('No trait subset chosen', verbose=self.verbose)
         else:
-            if traitstring is not None and traitsarray is not None:
-                verboseprint(('Both traitsarray and traitstring are provided '
-                        'traitstring chosen for subset selection'), 
-                        verbose=self.verbose)
-            elif traitstring is not None:
-                verboseprint('Chose subset of {} traits'.format(traitstring), 
-                        verbose=self.verbose)
-                search = re.compile('[^0-9,-]').search
-                if bool(search(traitstring)):
-                    raise FormatError(('Traitstring can only contain integers '
-                            '(0-9), comma (,) and hyphen (-), but {}'
-                            'provided').format(traitstring))
-                traitslist = [ x.split('-') for x in traitstring.split(',') ]
-                self.traitsarray = []
-                for t in traitslist:
-                    if len(t) == 1:
-                        self.traitsarray.append(int(t[0]) - 1)
-                    else:
-                        [ self.traitsarray.append(x) for x in range(int(t[0]) - 1, int(t[1])) ]
+            self.traitlist = np.array(traitlist)
+        try:
+            self.phenotypes = self.phenotypes[:, self.traitlist]
+            self.phenotype_ID = self.phenotype_ID[self.traitlist]
+        except:
+            raise DataMismatch(('Selected trait number {} is greater '
+                    'than number of phenotypes provided {}').format(
+                        max(self.traitlist) + 1, 
+                        self.phenotypes.shape[1]))
 
-            else:
-                self.traitsarray = np.array(traitsarray)
-            try:
-                self.phenotypes = self.phenotypes[:, self.traitsarray]
-                self.phenotype_ID = self.phenotype_ID[self.traitsarray]
-            except:
-                raise DataMismatch(('Selected trait number {} is greater '
-                        'than number of phenotypes provided {}').format(
-                            max(self.traitsarray) + 1, 
-                            self.phenotypes.shape[1]))
-
-    def commonSamples(self):
+    def commonSamples(self, samplelist=None):
         """
         Get [`M]` common samples out of phenotype, relatedness and optional
         covariates with [`N`] samples (if all samples present in all datasets
         [`M`] = [`N`]) and ensure that samples are in same order.
         
         Arguments:
-            None
+            samplelist (array-like):
+                array of sample IDs to select from data
         
         Returns:
             None:
@@ -609,10 +585,10 @@ class InputData(object):
                 >>> relatedness = np.dot(X, X.T)/float(SNP)
                 >>> relatedness_samples = np.array(['S{}'.format(x+1)
                 ...     for x in range(N)])
-                >>> covariates = random.normal(0,1, (N-5, K))
+                >>> covariates = random.normal(0,1, (N-2, K))
                 >>> covs_samples = np.array(['S{}'.format(x+1)
-                ...     for x in range(N-5)])
-                >>> indata = input.InputData()
+                ...     for x in range(N-2)])
+                >>> indata = input.InputData(verbose=False)
                 >>> indata.addPhenotypes(phenotypes = pheno,
                 ...                      pheno_samples = pheno_samples,
                 ...                      phenotype_ID = phenotype_ID)
@@ -621,20 +597,21 @@ class InputData(object):
                 >>> indata.addCovariates(covariates = covariates,
                 ...                      covs_samples = covs_samples)
                 >>> indata.covariates.shape
-                (5, 4)
+                (8, 4)
                 >>> indata.phenotypes.shape
                 (10, 2)
                 >>> indata.relatedness.shape
                 (10, 10)
-                >>> indata.commonSamples()
+                >>> indata.commonSamples(samplelist=["S4", "S5", "S6"])
                 >>> indata.covariates.shape
-                (2, 4)
+                (3, 4)
                 >>> indata.phenotypes.shape
-                (2, 2)
+                (3, 2)
                 >>> indata.relatedness.shape
-                (2, 2)
+                (3, 3)
         """
         self.samples = self.pheno_samples
+
         if self.relatedness is not None:
             test_pheno_relatedness = np.intersect1d(self.pheno_samples, 
                     self.relatedness_samples)
@@ -663,6 +640,17 @@ class InputData(object):
                 raise DataMismatch(('No common samples between phenotypes,'
                         'and pcs'))
             self.samples = np.intersect1d(self.samples, test_pheno_pcs)
+	
+        if samplelist is not None:
+	    test_samples_samplelist = np.intersect1d(self.samples, samplelist)
+            if len(test_samples_samplelist) == 0:
+                raise DataMismatch(('No samples between common samples in, '
+                        'datasets and samplelist'))
+            if len(test_samples_samplelist) < len(samplelist):
+                raise DataMismatch(('Not all Ids in samplelist are contained '
+                    'in common samples from provided datasets'))
+	    self.samples = np.intersect1d(self.samples, samplelist)
+        
         subset_pheno_samples = np.in1d(self.pheno_samples, self.samples)
         self.pheno_samples = self.pheno_samples[subset_pheno_samples]
         self.phenotypes = self.phenotypes[subset_pheno_samples, :]
@@ -705,9 +693,8 @@ class InputData(object):
         
         Arguments:
             regress (bool):
-                if True, covariates are explanatory variables in linear model
-                with phenotypes as response; residuals returned as new
-                phenotype
+                if True, covariates are regressed from phenotypes prior to 
+                association analyses.
         
         Returns:
             None:
@@ -738,7 +725,7 @@ class InputData(object):
                 >>> covariates = random.normal(0,1, (N, K))
                 >>> covs_samples = np.array(['S{}'.format(x+1)
                 ...     for x in range(N)])
-                >>> indata = input.InputData()
+                >>> indata = input.InputData(verbose=False)
                 >>> indata.addPhenotypes(phenotypes = pheno,
                 ...                      pheno_samples = pheno_samples,
                 ...                      phenotype_ID = phenotype_ID)
@@ -758,7 +745,7 @@ class InputData(object):
             if np.array_equal(self.phenotypes, self.covariates):
                 raise DataMismatch(('Phenotype and covariate arrays are '
                         'identical'))
-            verboseprint('Regress out %s' % type, verbose=self.verbose)
+            verboseprint('Regress covariates', verbose=self.verbose)
             self.phenotypes = regressOut(self.phenotypes, self.covariates)
             self.covariates = None
 

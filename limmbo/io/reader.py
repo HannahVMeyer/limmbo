@@ -1,6 +1,7 @@
 import scipy as sp
 import pandas as pd
 import numpy as np
+import re
 
 from limix.io import read_plink
 from limix.io import read_gen
@@ -211,9 +212,9 @@ class ReadData(object):
                 >>> data.relatedness_samples[:3]
                 array(['ID_1', 'ID_2', 'ID_3'], dtype=object)
                 >>> data.relatedness[:3,:3]
-                array([[1.00882922e+00, 2.00758504e-04, 4.30499103e-03], 
-                       [2.00758504e-04, 9.98844885e-01, 4.86487318e-03],
-                       [4.30499103e-03, 4.86487318e-03, 9.85687665e-01]])
+		array([[1.00892922e+00, 2.00758504e-04, 4.30499103e-03],
+		       [2.00758504e-04, 9.98944885e-01, 4.86487318e-03],
+		       [4.30499103e-03, 4.86487318e-03, 9.85787665e-01]])
         """
 
         if file_relatedness is None:
@@ -400,7 +401,8 @@ class ReadData(object):
                 columns=['chrom', 'pos'],
                 index=bim.snp)
                 
-    def getVarianceComponents(self, file_Cg=None, file_Cn=None, delim=","):
+    def getVarianceComponents(self, file_Cg=None, file_Cn=None, delim_cg=",",
+            delim_cn=","):
         r"""
         Reads a comma-separated files with [`P` x `P`] matrices of [`P`] trait
         covariance estimates.
@@ -452,7 +454,7 @@ class ReadData(object):
 
         if file_Cg is None and file_Cn is None:
             verboseprint(
-                ("No variance components supplied, run VD/limmbo",
+                ("No variance components supplied, estimate variance components "
                  "before lmm test"),
                 verbose=self.verbose)
         elif file_Cg is None or file_Cn is None:
@@ -461,11 +463,90 @@ class ReadData(object):
         else:
             try:
                 self.Cg = np.array(
-                    pd.io.parsers.read_csv(file_Cg, header=None, sep=delim))
+                    pd.io.parsers.read_csv(file_Cg, header=None, sep=delim_cg))
             except Exception:
                 raise IOError('{} could not be opened'.format(file_Cg))
             try:
                 self.Cn = np.array(
-                    pd.io.parsers.read_csv(file_Cn, header=None, sep=delim))
+                    pd.io.parsers.read_csv(file_Cn, header=None, sep=delim_cn))
             except Exception:
                 raise IOError('{} could not be opened'.format(file_Cn))
+    
+    def getTraitSubset(self, traitstring = None):
+        """
+        Limit analysis to specific subset of traits
+        
+        Arguments:
+            traitstring (string):
+                comma-separated trait numbers (for single traits) or hyphen-
+                separated trait numbers (for trait ranges) or combination of
+                both for trait selection (1-based)
+        
+        Returns:
+            (numpy array)
+                array containing list of trait IDs
+        
+        Examples:
+        
+            .. doctest::
+        
+                >>> from limmbo.io import reader
+                >>> data = reader.ReadData(verbose=False)
+                >>> traitlist = data.getTraitSubset("1,3,5,7-10")
+                >>> print traitlist
+                [0 2 4 6 7 8 9]
+        """
+        if traitstring is None:
+            verboseprint('No trait subset chosen', verbose=self.verbose)
+        else:
+            verboseprint('Chose subset of {} traits'.format(traitstring), 
+                    verbose=self.verbose)
+            search = re.compile('[^0-9,-]').search
+            if bool(search(traitstring)):
+                raise FormatError(('Traitstring can only contain integers '
+                        '(0-9), comma (,) and hyphen (-), but {}'
+                        'provided').format(traitstring))
+            traitslist = [x.split('-') for x in traitstring.split(',') ]
+            traitsarray = []
+            for t in traitslist:
+                if len(t) == 1:
+                    traitsarray.append(int(t[0]) - 1)
+                else:
+                    [traitsarray.append(x) for x in range(int(t[0]) - 1, int(t[1])) ]
+            return np.array(traitsarray)
+
+    def getSampleSubset(self, file_samplelist=None, samplelist=None):
+        r"""
+        Read file or string with subset of sample IDs to analyse.
+
+        Arguments:
+            file_samplelist (string):
+                "path/to/file_samplelist": file contains subset sample IDs with
+                one ID per line, no header.
+            samplestring (string): 
+                comma-separated list of sample IDs e.g. "ID1,ID2,ID5,ID10".
+
+        Returns:
+            (numpy array)
+                array containing list of sample IDs
+        """
+        if file_samplelist is not None and samplelist is not None:
+           raise IOError("Only one of file_samplelist or samplelist can "
+                    "be specified")
+        if file_samplelist is not None or samplelist is not None:
+	    if file_samplelist is not None:
+                try:
+		    samplelist = np.array(pd.io.parsers.read_csv(
+		    file_samplelist, header=None))
+                    verboseprint("Read sample list from file", 
+                        verbose=self.verbose)
+                except Exception:
+                    raise IOError('{} could not be opened'.format(
+                        file_samplelist))
+	    else:
+                verboseprint("Read sample list", verbose=self.verbose)
+		samplelist = np.array(samplelist.split(","))
+	    
+            verboseprint("Number of samples in sample list: %s" %
+		len(samplelist), verbose=self.verbose)
+            return samplelist

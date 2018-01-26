@@ -132,7 +132,7 @@ def getGWASargs():
         '-cg', 
         '--file_cg', 
         action="store",
-        dest="file_Cg",
+        dest="file_cg",
         required=False,
         default=None,
         help=('Required for large phenotype sizes when --lmm/-lm; computed via '
@@ -149,7 +149,7 @@ def getGWASargs():
         '-cn', 
         '--file_cn',
         action="store",
-        dest="file_Cn",
+        dest="file_cn",
         required=False,
         default=None,
         help=('Required for large phenotype sizeswhen --lmm/-lm; computed via '
@@ -292,15 +292,24 @@ def getGWASargs():
         help='First PCs to chose. Default: %(default)s',
         type= int)
 
-    subset.add_argument(
-        '-sf',
+    samples = subset.add_mutually_exclusive_group(required=False)
+    samples.add_argument(
         '--file_samplelist',
         action="store",
         dest="file_samplelist",
         required=False,
         default=None,
         help=('Path [string] to file with samplelist for sample '
-            'selection. Default: %(default)s'))
+            'selection, with one sample ID per line. Default: %(default)s'))
+    
+    samples.add_argument(
+        '--samplelist',
+        action="store",
+        dest="samplelist",
+        required=False,
+        default=None,
+        help=('Comma-separated list [string] of samples IDs to restrict ',
+            'analysis to, e.g. ID1,ID2,ID5,ID9,ID10. Default: %(default)s'))
 
     plotting = parser.add_argument_group('Plot arguments', 
             'Arguments for depicting GWAS results as manhattan plot')
@@ -397,7 +406,7 @@ def getVarianceEstimationArgs():
     required.add_argument(
         '--kinship_delim',
         action="store",
-        dest="kinship_delim",
+        dest="relatedness_delim",
         required=False,
         default=",",
         help=('Delimiter of kinship file. Specify \"\t\" as TAB. '
@@ -422,6 +431,14 @@ def getVarianceEstimationArgs():
         help=('Path [string] to [(N+1) x C] file of covariates matrix with '
              '[N] samples and [K] covariates (first column: sample IDs, '
              'first row: phenotype IDs). Default: %(default)s'))
+    optionalfiles.add_argument(
+        '--covariate_delim',
+        action="store",
+        dest="covariate_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of covariates file. Specify \"\t\" as TAB. '
+             'Default: %(default)s'))
 
     limmbo = parser.add_argument_group('Bootstrapping parameters')
     limmbo.add_argument(
@@ -528,15 +545,24 @@ def getVarianceEstimationArgs():
         'columns) to choose; default: None (=all traits). Default: '
         '%(default)s'))
 
-    subset.add_argument(
-        '-sf',
+    samples = subset.add_mutually_exclusive_group(required=False)
+    samples.add_argument(
         '--file_samplelist',
         action="store",
         dest="file_samplelist",
         required=False,
         default=None,
         help=('Path [string] to file with samplelist for sample '
-            'selection. Default: %(default)s'))
+            'selection, with one sample ID per line.Default: %(default)s'))
+
+    samples.add_argument(
+        '--samplelist',
+        action="store",
+        dest="samplelist",
+        required=False,
+        default=None,
+        help=('Comma-separated list [string] of samples IDs to restrict ',
+            'analysis to, e.g. ID1,ID2,ID5,ID9,ID10. Default: %(default)s'))
 
     output = parser.add_argument_group('Output arguments')
     output.add_argument(
