@@ -17,6 +17,10 @@ import limix.mtset
 from limix_core.covar import FreeFormCov
 import pp
 
+class DataMismatch(Exception):
+    """Raised when dimensions of sample/ID names do not match dimension of
+    corresponding data"""
+    pass
 
 class LiMMBo(object):
     def __init__(self, datainput, S, timing=False, iterations=10,
@@ -39,6 +43,10 @@ class LiMMBo(object):
         self.timing = timing
         self.iterations = iterations
         self.verbose = verbose
+
+        if self.S > self.phenotypes.shape[1]:
+            raise DataMismatch(("Subsampling size S ({}) greater than number "
+                "of phnenotypes ({})").format(self.S, self.phenotypes.shape[1]))
 
     def runBootstrapCovarianceEstimation(self,
             seed, cpus, minCooccurrence=3, n=None):
@@ -82,7 +90,7 @@ class LiMMBo(object):
 
         for bs in range(self.runs):
             pheno = self.__bootstrapPhenotypes(bs)
-            verboseprint('Start vd for bootstrap nr {}'.format(bs))
+            verboseprint('Start vd for bootstrap nr {}'.format(bs + 1))
             jobs.append(
                 job_server.submit(self.__VarianceDecomposition, (pheno, bs),
                                   (verboseprint, ), ("limix.mtset", "time")))
@@ -149,9 +157,8 @@ class LiMMBo(object):
         bs_results = self.__getBootstrapResults(results=results)
         time1 = time.clock()
 
-        if self.timing:
-            proc_time_combine_bs = time1 - time0
-            proc_time_sum_ind_bs = np.array(bs_results['process_time_bs']).sum()
+        proc_time_combine_bs = time1 - time0
+        proc_time_sum_ind_bs = np.array(bs_results['process_time_bs']).sum()
 
         verboseprint("Check Cg (average):", verbose=self.verbose)
         Cg_average, Cg_average_ev_min = regularize(bs_results['Cg_average'])
@@ -253,7 +260,7 @@ class LiMMBo(object):
 
             verboseprint("Save intermediate variance components",
                 verbose=self.verbose)
-            verboseprint(("Write covariance matrices based on average of"
+            verboseprint(("Write covariance matrices based on average of "
                 "bootstrap matrices"), verbose=self.verbose)
             pd.DataFrame(resultsCombineBootstrap['Cg_average']).to_csv(
                 "%s/Cg_average_seed%s.csv" % (output, self.seed),
@@ -262,15 +269,15 @@ class LiMMBo(object):
                 "%s/Cn_average_seed%s.csv" % (output, self.seed),
                 sep=",", header=False, index=False)
 
-            verboseprint(("Pickle array of all [`S` x `S`] bootstrap"
+            verboseprint(("Pickle array of all [`S` x `S`] bootstrap "
                     "covariance matrices"), verbose=self.verbose)
             cPickle.dump(resultsCombineBootstrap['Cg_all_bs'],
                      open('{}/Cg_all_bootstraps.p'.format(output), "wb"))
             cPickle.dump(resultsCombineBootstrap['Cn_all_bs'],
                      open('{}/Cn_all_bootstraps.p'.format(output), "wb"))
 
-            verboseprint(("Pickle result parameters of BFGS fit for fitting"
-                "the [`S` x `S`] bootstrap covariance matrices to the"
+            verboseprint(("Pickle result parameters of BFGS fit for fitting "
+                "the [`S` x `S`] bootstrap covariance matrices to the "
                 "[`P` x `P`] overall trait covariance matrices"),
                 verbose=self.verbose)
             cPickle.dump(resultsCombineBootstrap['results_fit_Cg'],
@@ -375,7 +382,7 @@ class LiMMBo(object):
 
         if n is not None:
             verboseprint(
-                ('Generate bootstrap matrix with {} bootstrap samples'
+                ('Generate bootstrap matrix with {} bootstrap samples '
                  '(number of specified bootstraps').format(n),
                 verbose=self.verbose)
             for i in xrange(n):
@@ -530,8 +537,7 @@ class LiMMBo(object):
         n = 0
         for vdresult in results:
             bootstrap[n] = vdresult['bootstrap']
-            if self.timing:
-                process_time_bs.append(vdresult['process_time'])
+            process_time_bs.append(vdresult['process_time'])
 
             # store results of each bootstrap as matrix of inflated
             # matrices: NAs for traits that were not sampled
@@ -566,7 +572,7 @@ class LiMMBo(object):
         Cn_reg, ev_n,  = regularize(Cn_average)
 
         verboseprint(
-            ("Fitting bootstrapping results: minimize residual sum of"
+            ("Fitting bootstrapping results: minimize residual sum of "
              "squares over all bootstraps"),
             verbose=self.verbose)
         Cg_fit, results_fit_Cg = self.__fit_bootstrap_results(
@@ -836,14 +842,14 @@ class LiMMBo(object):
 
         if vd_null_info['conv']:
             verboseprint(
-                ('Variance decomposition for bootstrap number {}'
-                'converged').format(bs), verbose=self.verbose)
+                ('Variance decomposition for bootstrap number {} '
+                'converged').format(bs + 1), verbose=self.verbose)
             Cg = vd_null_info['Cg']
             Cn = vd_null_info['Cn']
         else:
             verboseprint(
-                ('Variance decomposition for bootstrap number {}'
-                'did not converge').format(bs), verbose=self.verbose)
+                ('Variance decomposition for bootstrap number {} '
+                'did not converge').format(bs + 1), verbose=self.verbose)
             Cg = None
             Cn = None
         return {'Cg': Cg, 'Cn': Cn, 'process_time': processtime, 'bsindex': bs}
