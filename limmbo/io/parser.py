@@ -18,15 +18,31 @@ def getGWASargs():
             'phenotypes with [N] samples (first column: sample IDs, first '
             'row: phenotype IDs). Default: %(default)s'))
     required.add_argument(
+        '--pheno_delim',
+        action="store",
+        dest="pheno_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of phenotype file.  Specify \"\t\" as TAB. '
+             'Default: %(default)s'))
+    required.add_argument(
         '-g', 
         '--file_geno',
         action="store",
-        dest="file_geno", 
+        dest="file_genotypes", 
         required=False, 
         default=None,
         help=('Genotype file: either [S x N].csv file (first column: SNP id, '
              'first row: sample IDs) or plink formated genotypes '
              '(.bim/.fam/.bed). Default: %(default)s'))
+    required.add_argument(
+        '--geno_delim',
+        action="store",
+        dest="genotypes_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of genotype file (if not in plink format). '
+             'Specify \"\t\" as TAB. Default: %(default)s'))
     required.add_argument(
         '-o',
         '--outdir',
@@ -78,6 +94,7 @@ def getGWASargs():
         '--name',
         action="store",
         dest="name",
+        default="",
         help=('Name (used for output file naming). Default: '
              '%(default)s'))
 
@@ -99,22 +116,37 @@ def getGWASargs():
         dest="file_relatedness",
         required=False,
         default=None,
-        help=('Path [string] to [N x (N+1)] file of kinship/relatedness ' 
+        help=('Path [string] to [N x (N+1)] file of kinship/relatedness '
             'matrix with [N] samples (first row: sample IDs). Required when '
             '--lmm/-lm. Default: '
             '%(default)s'))
     optionalfiles.add_argument(
-        '-cgf', 
+        '--kinship_delim',
+        action="store",
+        dest="relatedness_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of kinship file. Specify \"\t\" as TAB. '
+             'Default: %(default)s'))
+    optionalfiles.add_argument(
+        '-cg', 
         '--file_cg', 
         action="store",
         dest="file_Cg",
         required=False,
         default=None,
-        help=('Required for large phenotype sizeswhen --lmm/-lm; computed via '
+        help=('Required for large phenotype sizes when --lmm/-lm; computed via '
              'runLiMMBo; specifies file name for genetic trait covariance '
              ' matrix (rows: traits, columns: traits). Default: %(default)s'))
     optionalfiles.add_argument(
-        '-cnf', 
+        '--cg_delim',
+        action="store",
+        dest="cg_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of Cg file. Specify \"\t\" as TAB. Default: %(default)s'))
+    optionalfiles.add_argument(
+        '-cn', 
         '--file_cn',
         action="store",
         dest="file_Cn",
@@ -124,7 +156,14 @@ def getGWASargs():
              'runLiMMBo; specifies file name for non-genetic trait covariance '
              ' matrix (rows: traits, columns: traits). Default: %(default)s'))
     optionalfiles.add_argument(
-        '-pcsf', 
+        '--cn_delim',
+        action="store",
+        dest="cn_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of Cn file. Specify \"\t\" as TAB. Default: %(default)s'))
+    optionalfiles.add_argument(
+        '-pcs', 
         '--file_pcs', 
         action="store",
         dest="file_pcs",
@@ -134,7 +173,14 @@ def getGWASargs():
              'genotypes to be included as covariates (first column: '
              'sample IDs, first row: PC IDs); Default: %(default)s'))
     optionalfiles.add_argument(
-        '-cf',
+        '--pcs_delim',
+        action="store",
+        dest="pcs_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of PCs file. Specify \"\t\" as TAB. Default: %(default)s'))
+    optionalfiles.add_argument(
+        '-c',
         '--file_cov',
         action="store",
         dest="file_covariates",
@@ -143,6 +189,14 @@ def getGWASargs():
         help=('Path [string] to [(N+1) x C] file of covariates matrix with '
              '[N] samples and [K] covariates (first column: sample IDs, '
              'first row: phenotype IDs). Default: %(default)s'))
+    optionalfiles.add_argument(
+        '--covariate_delim',
+        action="store",
+        dest="covariate_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of covariates file. Specify \"\t\" as TAB. '
+             'Default: %(default)s'))
 
 
     optional = parser.add_argument_group('Optional association parameters')
@@ -183,6 +237,16 @@ def getGWASargs():
         type=float,
         help=('FDR threshold for computing empirical FDR. Default: '
             '%(default)s'))
+    optional.add_argument(
+        '-seed',
+        '--seed',
+        action="store",
+        dest="seed",
+        default=256,
+        required=False,
+        help=('Seed [int] to inittiate random number generation for '
+            'permutations. Default: %(default)s'),
+        type=int)
 
     data = parser.add_argument_group('Optional data processing parameters')
     data.add_argument(
@@ -241,6 +305,14 @@ def getGWASargs():
     plotting = parser.add_argument_group('Plot arguments', 
             'Arguments for depicting GWAS results as manhattan plot')
     plotting.add_argument(
+        '--plot',
+        action="store_true",
+        dest="plot",
+        required=False,
+        default=False,
+        help=('Set flag if results of association analysis should be depicted '
+             'as manhattan and quantile-quantile plot'))
+    plotting.add_argument(
         '-colourS',
         '--colourS',
         action="store",
@@ -257,17 +329,34 @@ def getGWASargs():
         default='Orange',
         help=('Colour of non-significant points in manhattan plot'))
     plotting.add_argument(
+        '-alphaS',
+        '--alphaS',
+        action="store",
+        dest="alphaS",
+        required=False,
+        default=0.5,
+        help=('Transparency of significant points in manhattan plot'))
+    plotting.add_argument(
         '-alphaNS',
         '--alphaNS',
         action="store",
         dest="alphaNS",
         required=False,
-        default=0.05,
+        default=0.1,
         help=('Transparency of non-significant points in manhattan plot'))
+    plotting.add_argument(
+        '-thr',
+        '--threshold',
+        action="store",
+        dest="thr",
+        required=False,
+        default=None,
+        help=('Significance threshold; when --fdr specified, empirical fdr used '
+             'as threshold'))
 
     version = parser.add_argument_group('Version')
     version.add_argument('--version', action='version', version='%(prog)s 0.1.0')
-
+    
     return parser
 
 def getVarianceEstimationArgs():
@@ -287,6 +376,14 @@ def getVarianceEstimationArgs():
             'phenotypes with [N] samples (first column: sample IDs, first '
             'row: phenotype IDs). Default: %(default)s'))
     required.add_argument(
+        '--pheno_delim',
+        action="store",
+        dest="pheno_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of phenotype file. Specify \"\t\" as TAB. '
+             'Default: %(default)s'))
+    required.add_argument(
         '-k',
         '--file_kinship',
         action="store",
@@ -297,6 +394,14 @@ def getVarianceEstimationArgs():
             'matrix with [N] samples (first row: sample IDs). Required when '
             '--lmm/-lm. Default: '
             '%(default)s'))
+    required.add_argument(
+        '--kinship_delim',
+        action="store",
+        dest="kinship_delim",
+        required=False,
+        default=",",
+        help=('Delimiter of kinship file. Specify \"\t\" as TAB. '
+             'Default: %(default)s'))
     required.add_argument(
         '-o',
         '--outdir',
