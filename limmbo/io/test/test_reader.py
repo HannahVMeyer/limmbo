@@ -58,6 +58,10 @@ class Reader(unittest.TestCase):
 	    self.datainput.getVarianceComponents(file_Cg="cg.csv",
             file_Cn="cn_csv")
     
+    def test_traitstring_with_wrong_characters(self):
+        with self.assertRaises(FormatError):
+            self.datainput.getTraitSubset(traitstring="1.3")
+    
 
 if __name__ == '__main__':
     unittest.main()

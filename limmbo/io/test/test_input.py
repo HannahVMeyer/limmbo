@@ -88,11 +88,7 @@ class Input(unittest.TestCase):
         with self.assertRaises(FormatError):
 	    self.datainput.addRelatedness(relatedness=relatedness,
                                 relatedness_samples=self.relatedness_samples)
-
-    def test_traitstring_with_wrong_characters(self):
-        with self.assertRaises(FormatError):
-            self.datainput.subsetTraits(traitstring="1.3")
-    
+ 
     def test_traitstring_with_traitnumber_gt_number_of_phenotypes(self):
         phenotypes = np.array(((1,2,1,3), (1,3,1,3)))
         phenotype_ID = np.array(('ID2','ID2', 'ID3','ID4'))
@@ -101,7 +97,7 @@ class Input(unittest.TestCase):
         self.datainput.addPhenotypes(phenotypes=phenotypes, 
                     pheno_samples=pheno_samples, phenotype_ID=phenotype_ID)
         with self.assertRaises(DataMismatch):
-            self.datainput.subsetTraits(traitstring="1,1,5")
+            self.datainput.subsetTraits(traitlist=[1,2,5])
 
     def test_common_samples_no_overlap_pheno_relatedness(self):
         pheno_samples = np.array(('S10','S30'))
@@ -124,6 +120,26 @@ class Input(unittest.TestCase):
                             relatedness_samples=self.relatedness_samples)
         with self.assertRaises(DataMismatch):
             self.datainput.commonSamples()
+
+    def test_common_samples_no_overlap_samplelist(self):
+        self.datainput = InputData(verbose=False)
+        self.datainput.addPhenotypes(phenotypes=self.phenotypes,
+                    pheno_samples=self.pheno_samples, 
+                    phenotype_ID=self.phenotype_ID)
+        self.datainput.addRelatedness(relatedness=self.relatedness,
+                            relatedness_samples=self.relatedness_samples)
+        with self.assertRaises(DataMismatch):
+            self.datainput.commonSamples(samplelist=["S3", "S4"])
+    
+    def test_common_samples_samplelist_longer_than_common_samples(self):
+        self.datainput = InputData(verbose=False)
+        self.datainput.addPhenotypes(phenotypes=self.phenotypes,
+                    pheno_samples=self.pheno_samples, 
+                    phenotype_ID=self.phenotype_ID)
+        self.datainput.addRelatedness(relatedness=self.relatedness,
+                            relatedness_samples=self.relatedness_samples)
+        with self.assertRaises(DataMismatch):
+            self.datainput.commonSamples(samplelist=["S1", "S2", "S3", "S4"])
 
     def test_passing_of_transformation_method(self):
         phenotypes = np.array(((1,2,1,3), (1,3,1,3)))
