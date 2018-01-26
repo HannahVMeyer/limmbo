@@ -8,7 +8,7 @@ def entry_point():
     # parse command-line arguments
     parser = getGWASargs()
     options = parser.parse_args()
-    if options.lmm and options.file_kinship is None:
+    if options.lmm and options.file_relatedness is None:
 	parser.error("For --lmm, --kf is required")
     if options.file_covariates is None and \
 	    options.file_pcs is None and options.regress is True:
@@ -17,16 +17,33 @@ def entry_point():
 
     # read data specified in command-line arguments
     dataread = ReadData(verbose=options.verbose)
-    dataread.getPhenotypes(file_pheno = options.file_pheno)
-    dataread.getCovariates(file_covariates = options.file_covariates)
-    dataread.getRelatedness(file_relatedness = options.file_relatedness)
-    dataread.getGenotypes(file_genotypes = options.file_genotypes)
+    dataread.getPhenotypes(file_pheno = options.file_pheno, delim =
+            options.pheno_delim)
+    dataread.getCovariates(file_covariates = options.file_covariates, delim =
+                        options.covariate_delim)
+    dataread.getRelatedness(file_relatedness = options.file_relatedness,
+            delim = options.relatedness_delim)
+    dataread.getGenotypes(file_genotypes = options.file_genotypes, delim =
+                        options.genotypes_delim)
+    dataread.getVarianceComponents(file_Cg = options.file_cg, delim_cg =
+            options.cg_delim, file_Cn = options.file_cn, delim_cn =
+                        options.cn_delim)
+    if options.samplelist is not None or options.file_samplelist is not None:
+        samplelist = dataread.getSampleSubset(samplelist=options.samplelist, 
+                file_samplelist=options.file_samplelist)
+    else:
+        samplelist = None
+    if options.traitstring is not None: 
+        traitlist = dataread.getTraitSubset(traitstring=options.traitstring) 
+    else:
+        traitlist = None
     
     # combine all input, check for consistency and pre-process data
     datainput = InputData(verbose=options.verbose)
     datainput.addPhenotypes(phenotypes = dataread.phenotypes,
                             phenotype_ID = dataread.phenotype_ID,
                             pheno_samples = dataread.pheno_samples)
+    datainput.subsetTraits(traitlist = traitlist)
     datainput.addGenotypes(genotypes = dataread.genotypes,
                             genotypes_info = dataread.genotypes_info,
                             geno_samples = dataread.geno_samples)
@@ -34,8 +51,8 @@ def entry_point():
                             relatedness_samples = dataread.relatedness_samples)
     datainput.addCovariates(covariates = dataread.covariates,
                             covs_samples = dataread.covs_samples)
-    datainput.commonSamples()
-    datainput.subsetTraits(traitstring = options.traitstring)
+    datainput.addVarianceComponents(Cg = dataread.Cg, Cn = dataread.Cn)
+    datainput.commonSamples(samplelist=samplelist)
     datainput.regress(regress = options.regress)
     datainput.transform(type = options.transform)
 
