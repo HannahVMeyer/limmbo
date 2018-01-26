@@ -52,11 +52,6 @@ class GWAS(object):
         self.estimate_vd = None
         self.fdr_empirical = None
 
-
-    ############################
-    ### core functions GWAS: ###
-    ############################
-
     def runAssociationAnalysis(self, mode, setup="lmm", adjustSingleTrait=None):
         r"""
         Analysing the association between phenotypes, genotypes, optional
@@ -148,7 +143,7 @@ class GWAS(object):
                 >>> resultsAssociation['pvalues'].shape
                 (1, 20)
                 >>> '{:0.3e}'.format(resultsAssociation['pvalues'].min())
-                '9.055e-09'
+                '9.054e-09'
                 >>> resultsAssociation['betas'].shape
                 (10, 20)
                 >>>
