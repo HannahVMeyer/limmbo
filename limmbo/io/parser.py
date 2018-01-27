@@ -23,7 +23,7 @@ def getGWASargs():
         dest="pheno_delim",
         required=False,
         default=",",
-        help=('Delimiter of phenotype file.  Specify \"\t\" as TAB. '
+        help=('Delimiter of phenotype file.  g '
              'Default: %(default)s'))
     required.add_argument(
         '-g', 
@@ -42,7 +42,7 @@ def getGWASargs():
         required=False,
         default=",",
         help=('Delimiter of genotype file (if not in plink format). '
-             'Specify \"\t\" as TAB. Default: %(default)s'))
+             'g Default: %(default)s'))
     required.add_argument(
         '-o',
         '--outdir',
@@ -126,7 +126,7 @@ def getGWASargs():
         dest="relatedness_delim",
         required=False,
         default=",",
-        help=('Delimiter of kinship file. Specify \"\t\" as TAB. '
+        help=('Delimiter of kinship file. g '
              'Default: %(default)s'))
     optionalfiles.add_argument(
         '-cg', 
@@ -144,7 +144,7 @@ def getGWASargs():
         dest="cg_delim",
         required=False,
         default=",",
-        help=('Delimiter of Cg file. Specify \"\t\" as TAB. Default: %(default)s'))
+        help=('Delimiter of Cg file. g Default: %(default)s'))
     optionalfiles.add_argument(
         '-cn', 
         '--file_cn',
@@ -161,7 +161,7 @@ def getGWASargs():
         dest="cn_delim",
         required=False,
         default=",",
-        help=('Delimiter of Cn file. Specify \"\t\" as TAB. Default: %(default)s'))
+        help=('Delimiter of Cn file. g Default: %(default)s'))
     optionalfiles.add_argument(
         '-pcs', 
         '--file_pcs', 
@@ -178,7 +178,7 @@ def getGWASargs():
         dest="pcs_delim",
         required=False,
         default=",",
-        help=('Delimiter of PCs file. Specify \"\t\" as TAB. Default: %(default)s'))
+        help=('Delimiter of PCs file. g Default: %(default)s'))
     optionalfiles.add_argument(
         '-c',
         '--file_cov',
@@ -195,7 +195,7 @@ def getGWASargs():
         dest="covariate_delim",
         required=False,
         default=",",
-        help=('Delimiter of covariates file. Specify \"\t\" as TAB. '
+        help=('Delimiter of covariates file. g '
              'Default: %(default)s'))
 
 
@@ -308,7 +308,7 @@ def getGWASargs():
         dest="samplelist",
         required=False,
         default=None,
-        help=('Comma-separated list [string] of samples IDs to restrict ',
+        help=('Comma-separated list [string] of samples IDs to restrict '
             'analysis to, e.g. ID1,ID2,ID5,ID9,ID10. Default: %(default)s'))
 
     plotting = parser.add_argument_group('Plot arguments', 
@@ -390,7 +390,7 @@ def getVarianceEstimationArgs():
         dest="pheno_delim",
         required=False,
         default=",",
-        help=('Delimiter of phenotype file. Specify \"\t\" as TAB. '
+        help=('Delimiter of phenotype file. g '
              'Default: %(default)s'))
     required.add_argument(
         '-k',
@@ -409,7 +409,7 @@ def getVarianceEstimationArgs():
         dest="relatedness_delim",
         required=False,
         default=",",
-        help=('Delimiter of kinship file. Specify \"\t\" as TAB. '
+        help=('Delimiter of kinship file. g '
              'Default: %(default)s'))
     required.add_argument(
         '-o',
@@ -437,7 +437,7 @@ def getVarianceEstimationArgs():
         dest="covariate_delim",
         required=False,
         default=",",
-        help=('Delimiter of covariates file. Specify \"\t\" as TAB. '
+        help=('Delimiter of covariates file. g '
              'Default: %(default)s'))
 
     limmbo = parser.add_argument_group('Bootstrapping parameters')
@@ -561,7 +561,7 @@ def getVarianceEstimationArgs():
         dest="samplelist",
         required=False,
         default=None,
-        help=('Comma-separated list [string] of samples IDs to restrict ',
+        help=('Comma-separated list [string] of samples IDs to restrict '
             'analysis to, e.g. ID1,ID2,ID5,ID9,ID10. Default: %(default)s'))
 
     output = parser.add_argument_group('Output arguments')

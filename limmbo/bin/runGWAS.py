@@ -45,16 +45,15 @@ def entry_point():
                             pheno_samples = dataread.pheno_samples)
     datainput.subsetTraits(traitlist = traitlist)
     datainput.addGenotypes(genotypes = dataread.genotypes,
-                            genotypes_info = dataread.genotypes_info,
-                            geno_samples = dataread.geno_samples)
-    datainput.addRelatedness(relatedness = dataread.relatedness,
-                            relatedness_samples = dataread.relatedness_samples)
-    datainput.addCovariates(covariates = dataread.covariates,
-                            covs_samples = dataread.covs_samples)
+                            genotypes_info = dataread.genotypes_info)
+    datainput.addRelatedness(relatedness = dataread.relatedness)
+    datainput.addCovariates(covariates = dataread.covariates)
     datainput.addVarianceComponents(Cg = dataread.Cg, Cn = dataread.Cn)
+    import pdb
+    pdb.set_trace()
     datainput.commonSamples(samplelist=samplelist)
     datainput.regress(regress = options.regress)
-    datainput.transform(type = options.transform)
+    datainput.transform(transform = options.transform)
 
     # set up variance decomposition via LiMMBo
     gwas = GWAS(datainput=datainput,

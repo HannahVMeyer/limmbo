@@ -60,7 +60,7 @@ class InputData(object):
         self.Cg = None
         self.Cn = None
 
-    def addPhenotypes(self, phenotypes, pheno_samples, phenotype_ID):
+    def addPhenotypes(self, phenotypes, pheno_samples=None, phenotype_ID=None):
         """
         Add phenotypes, their phenotype ID and their sample IDs to
         InputData instance
@@ -92,13 +92,14 @@ class InputData(object):
         
                 >>> from limmbo.io import input
                 >>> import numpy as np
-                >>> phenotypes = np.array(((1,2),(7,1),(3,4)))
-                >>> pheno_samples = np.array(('S1','S2', 'S3'))
-                >>> phenotype_ID = np.array(('ID2','ID2'))
-                >>> indata = input.InputData()
-                >>> indata.addPhenotypes(phenotypes = phenotypes,
-                ...                      pheno_samples = pheno_samples,
-                ...                      phenotype_ID = phenotype_ID)
+                >>> import pandas as pd
+                >>> pheno = np.array(((1,2),(7,1),(3,4)))
+                >>> pheno_samples = ['S1','S2', 'S3']
+                >>> phenotype_ID = ['ID2','ID2']
+                >>> phenotypes = pd.DataFrame(pheno, index=pheno_samples,
+                ...     columns = phenotype_ID)
+                >>> indata = input.InputData(verbose=False)
+                >>> indata.addPhenotypes(phenotypes = phenotypes)
                 >>> print indata.phenotypes.shape
                 (3, 2)
                 >>> print indata.pheno_samples.shape
@@ -108,15 +109,15 @@ class InputData(object):
         """
         if phenotypes is None:
             raise MissingInput('No phenotypes specified')
+        self.phenotypes = phenotypes
         if pheno_samples is None:
-            raise MissingInput(('Phenotype sample names have to be '
-                'specified via pheno_samples'))
+            self.pheno_samples = np.array(phenotypes.index)
+        else:
+            self.pheno_samples = np.array(pheno_samples)
         if phenotype_ID is None:
-            raise MissingInput(('Phenotype IDs have to be specified via '
-                ' phenotype_ID'))
-        self.phenotypes = np.array(phenotypes)
-        self.pheno_samples = np.array(pheno_samples)
-        self.phenotype_ID = np.array(phenotype_ID)
+            self.phenotype_ID = np.array(phenotypes.columns)
+        else:
+            self.phenotype_ID = np.array(phenotype_ID)
         if self.phenotypes.shape[0] != self.pheno_samples.shape[0]:
             raise DataMismatch(('Number of samples in phenotypes ({}) does '
                 'not match number of sample IDs ({}) provided').format(
@@ -125,6 +126,8 @@ class InputData(object):
             raise DataMismatch(('Number phenotypes ({}) does not match '
                 'number of phenotype IDs ({}) provided').format(
                     self.phenotypes.shape[1], self.phenotype_ID.shape[0]))
+        self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples,
+            columns = self.phenotype_ID)
 
     def addCovariates(self, covariates = None, covs_samples = None):
         """
@@ -153,11 +156,13 @@ class InputData(object):
         
                 >>> from limmbo.io import input
                 >>> import numpy as np
-                >>> covariates = np.array(((1,2,4),(1,1,6),(0,4,8)))
-                >>> covs_samples = np.array(('S1','S2', 'S3'))
-                >>> indata = input.InputData()
+                >>> import pandas as pd
+                >>> covariates = [(1,2,4),(1,1,6),(0,4,8)]
+                >>> covs_samples = ['S1','S2', 'S3']
+                >>> covariates = pd.DataFrame(covariates, index=covs_samples)
+                >>> indata = input.InputData(verbose=False)
                 >>> indata.addCovariates(covariates = covariates,
-                ...                      covs_samples = covs_samples)
+                ...     covs_samples = covs_samples)
                 >>> print indata.covariates.shape
                 (3, 3)
                 >>> print indata.covs_samples.shape
@@ -166,15 +171,15 @@ class InputData(object):
         """
         if covariates is not None:
             if covs_samples is None:
-                raise MissingInput(('Covariate sample names have to be'
-                    'specified via covs_samples'))
-            if np.array(covariates).shape[0] != np.array(covs_samples).shape[0]:
+                self.covs_samples = np.array(covariates.index)
+            else:
+                self.covs_samples = np.array(covs_samples)
+            if np.array(covariates).shape[0] != np.array(self.covs_samples).shape[0]:
                 raise DataMismatch(('Number of samples in covariates ({}) does '
                     'not match number of sample IDs ({}) provided').format(
                         np.array(covariates).shape[0],
-                        np.array(covs_samples).shape[0]))
-            self.covariates = np.array(covariates)
-            self.covs_samples = np.array(covs_samples)
+                        np.array(self.covs_samples).shape[0]))
+            self.covariates = pd.DataFrame(covariates, index=self.covs_samples)
         else:
             verboseprint('No covariates set', verbose=self.verbose)
 
@@ -204,6 +209,7 @@ class InputData(object):
         
                 >>> from limmbo.io import input
                 >>> import numpy
+                >>> import pandas as pd
                 >>> from numpy.random import RandomState
                 >>> from numpy.linalg import cholesky as chol
                 >>> random = RandomState(5)
@@ -213,38 +219,36 @@ class InputData(object):
                 >>> relatedness = numpy.dot(X, X.T)/float(SNP)
                 >>> relatedness_samples = numpy.array(
                 ...     ['S{}'.format(x+1) for x in range(N)])
-                >>> indata = input.InputData()
-                >>> indata.addRelatedness(relatedness = relatedness,
-                ...                  relatedness_samples = relatedness_samples)
+                >>> relatedness = pd.DataFrame(relatedness,
+                ...     index=relatedness_samples)
+                >>> indata = input.InputData(verbose=False)
+                >>> indata.addRelatedness(relatedness = relatedness)
                 >>> print indata.relatedness.shape
                 (100, 100)
                 >>> print indata.relatedness_samples.shape
                 (100,)
         
         """
-        if relatedness is None:
-            raise MissingInput('No relatedness data specified')
         if relatedness_samples is None:
-            raise MissingInput(('Relatedness samples names have to be'
-                'specified via relatedness_samples'))
-        self.relatedness = np.array(relatedness)
-        self.relatedness_samples = np.array(relatedness_samples)
-       
-	if self.relatedness.shape[0] != self.relatedness.shape[1]:
+            self.relatedness_samples = np.array(relatedness.index)
+        else:
+            self.relatedness_samples = np.array(relatedness_samples)
+        rel = np.array(relatedness)
+	if rel.shape[0] != rel.shape[1]:
             raise FormatError(('Relatedness has to be a square matrix, but '
                 'number of rows {} is not equal to number of columns '
-                '{}').format(self.relatedness.shape[0], 
-                    self.relatedness.shape[1]))
+                '{}').format(rel.shape[0], rel.shape[1]))
 
-        if not np.all(self.relatedness - self.relatedness.T == 0):
+        if not np.all(np.array(rel) - np.array(rel).T == 0):
             raise FormatError('Relatedness matrix is not symmetric')
-        if not self._is_positive_definite(self.relatedness):
+        if not self._is_positive_definite(rel):
             raise FormatError('Relatedness matrix is not positive-semi definite')
-        if self.relatedness.shape[0] != self.relatedness_samples.shape[0]:
+        if rel.shape[0] != self.relatedness_samples.shape[0]:
             raise DataMismatch(('Number of samples in relatedness ({}) does '
                     'not match number of sample IDs ({}) provided').format(
-                            self.relatedness.shape[0], 
-                            self.relatedness_samples.shape[0]))
+                    rel.shape[0], self.relatedness_samples.shape[0]))
+        self.relatedness = pd.DataFrame(relatedness,
+            index=self.relatedness_samples, columns=self.relatedness_samples)
 
     def addGenotypes(self, genotypes = None, geno_samples = None, 
             genotypes_info = None):
@@ -288,35 +292,34 @@ class InputData(object):
                 >>> data.getGenotypes(file_genotypes=file_geno)
                 >>> indata = input.InputData(verbose=False)
                 >>> indata.addGenotypes(genotypes=data.genotypes,
-                ...                     genotypes_info=data.genotypes_info,
-                ...                     geno_samples=data.geno_samples)
+                ...                     genotypes_info=data.genotypes_info)
                 >>> indata.geno_samples[:5]
                 array(['ID_1', 'ID_2', 'ID_3', 'ID_4', 'ID_5'], dtype=object)
                 >>> indata.genotypes.shape
                 (1000, 20)
-                >>> indata.genotypes[:5,:5]
-                array([[0., 1., 1., 0., 1.],
-                       [0., 1., 0., 1., 1.],
-                       [0., 0., 0., 0., 0.],
-                       [0., 1., 0., 0., 1.],
-                       [0., 0., 1., 0., 0.]])
+                >>> indata.genotypes.values[:5,:5]
+		array([[0., 0., 0., 0., 0.],
+		       [0., 0., 0., 0., 0.],
+		       [0., 0., 0., 0., 0.],
+		       [2., 1., 0., 0., 0.],
+		       [1., 0., 0., 0., 0.]])                
                 >>> indata.genotypes_info[:5]
-                            chrom       pos
-                rs111647458    15  49385160
-                rs67918533     15  92151569
-                rs12903533     15  98887790
-                rs34937778     19  18495997
-                rs150270350    19  47869060
+			   chrom       pos
+		rs1601111      3  88905003
+		rs13270638     8  20286021
+		rs75132935     8  76564608
+		rs72668606     8  79733124
+		rs55770986     7   2087823
         """
         if geno_samples is None:
-            raise MissingInput(('Genotype sample names have to be '
-                    'specified via geno_samples'))
+            self.geno_samples = np.array(genotypes.index)
+        else:
+            self.geno_samples = np.array(geno_samples)
         if genotypes_info is None:
             raise MissingInput(('Genotype info has to be specified via '
                     'genotypes_info'))
-        self.genotypes = np.array(genotypes)
-        self.genotypes_info = pd.DataFrame(genotypes_info)
-        self.geno_samples = np.array(geno_samples)
+        self.genotypes = pd.DataFrame(genotypes, index=self.geno_samples)
+        self.genotypes_info = genotypes_info
         if self.genotypes.shape[0] != self.geno_samples.shape[0]:
             raise DataMismatch(('Number of samples in genotypes ({}) does '
                 'not match number of sample IDs ({}) provided').format(
@@ -371,10 +374,8 @@ class InputData(object):
                 ...                     'io/test/data/Cn.csv')
                 >>> data.getVarianceComponents(file_Cg=file_Cg,
                 ...                            file_Cn=file_Cn)
-                >>> indata = input.InputData()
-                >>> indata.addPhenotypes(phenotypes = data.phenotypes,
-                ...                      pheno_samples = data.pheno_samples,
-                ...                      phenotype_ID = data.phenotype_ID)
+                >>> indata = input.InputData(verbose=False)
+                >>> indata.addPhenotypes(phenotypes = data.phenotypes)
                 >>> indata.addVarianceComponents(Cg = data.Cg, Cn=data.Cn)
                 >>> print indata.Cg.shape
                 (10, 10)
@@ -389,7 +390,7 @@ class InputData(object):
             self.Cn = np.array(Cn)
             if self.Cg.shape[0] != self.Cg.shape[1]:
                 raise FormatError(('Cg has to be a square matrix, but '
-                    'number of rows {} is not equal to number of columns'
+                    'number of rows {} is not equal to number of columns '
                     '{}').format(self.Cg.shape[0], self.Cg.shape[1]))
             if not np.all(self.Cg - self.Cg.T == 0):
                 raise FormatError('Cg is not symmetric')
@@ -401,7 +402,7 @@ class InputData(object):
                         self.Cg.shape[0], self.phenotypes.shape[1]))
             if self.Cn.shape[0] != self.Cn.shape[1]:
                 raise FormatError(('Cn has to be a square matrix, but '
-                    'number of rows {} is not equal to number of columns'
+                    'number of rows {} is not equal to number of columns '
                     '{}').format(self.Cn.shape[0], self.Cn.shape[1]))
 
             if not np.all(self.Cn - self.Cn.T == 0):
@@ -446,8 +447,7 @@ class InputData(object):
                 ...                     'io/test/data/pcs.csv')
                 >>> data.getPCs(file_pcs=file_pcs, nrpcs=10, delim=" ")
                 >>> indata = input.InputData(verbose=False)
-                >>> indata.addPCs(pcs = data.pcs,
-                ...               pc_samples = data.pc_samples)
+                >>> indata.addPCs(pcs = data.pcs)
                 >>> print indata.pcs.shape
                 (1000, 10)
                 >>> print indata.pc_samples.shape
@@ -456,15 +456,15 @@ class InputData(object):
         """
         if pcs is not None:
             if pc_samples is None:
-                raise MissingInput(('PC sample names have to be '
-                        'specified via pcs_samples'))
-            if np.array(pcs).shape[0] != np.array(pc_samples).shape[0]:
+                self.pc_samples = np.array(pcs.index)
+            else:
+                self.pc_samples = np.array(pc_samples)
+            if np.array(pcs).shape[0] != np.array(self.pc_samples).shape[0]:
                 raise DataMismatch(('Number of samples in pcs ({}) does'
                         'not match number of sample IDs ({}) provided').format(
                             np.array(pcs).shape[0], 
                             np.array(pc_samples).shape[0]))
-            self.pcs = np.array(pcs)
-            self.pc_samples = np.array(pc_samples)
+            self.pcs = pd.DataFrame(pcs, index=self.pc_samples)
         else:
             verboseprint('No principal components set', verbose=self.verbose)
 
@@ -502,9 +502,7 @@ class InputData(object):
                 >>> data.getPhenotypes(file_pheno=file_pheno)
                 >>> traitlist = data.getTraitSubset(traitstring="1-3,5")
                 >>> indata = InputData(verbose=False)
-                >>> indata.addPhenotypes(phenotypes = data.phenotypes,
-                ...                      pheno_samples = data.pheno_samples,
-                ...                      phenotype_ID = data.phenotype_ID)
+                >>> indata.addPhenotypes(phenotypes = data.phenotypes)
                 >>> print indata.phenotypes.shape
                 (1000, 10)
                 >>> print indata.phenotype_ID.shape
@@ -520,7 +518,7 @@ class InputData(object):
         else:
             self.traitlist = np.array(traitlist)
         try:
-            self.phenotypes = self.phenotypes[:, self.traitlist]
+            self.phenotypes = self.phenotypes.iloc[:, self.traitlist]
             self.phenotype_ID = self.phenotype_ID[self.traitlist]
         except:
             raise DataMismatch(('Selected trait number {} is greater '
@@ -569,6 +567,7 @@ class InputData(object):
         
                 >>> from limmbo.io import input
                 >>> import numpy as np
+                >>> import pandas as pd
                 >>> from numpy.random import RandomState
                 >>> from numpy.linalg import cholesky as chol
                 >>> random = RandomState(5)
@@ -581,6 +580,8 @@ class InputData(object):
                 ...     for x in range(N)])
                 >>> phenotype_ID = np.array(['ID{}'.format(x+1)
                 ...     for x in range(P)])
+                >>> phenotypes = pd.DataFrame(pheno, index=pheno_samples,
+                ...     columns=phenotype_ID)
                 >>> X = (random.rand(N, SNP) < 0.3).astype(float)
                 >>> relatedness = np.dot(X, X.T)/float(SNP)
                 >>> relatedness_samples = np.array(['S{}'.format(x+1)
@@ -602,7 +603,7 @@ class InputData(object):
                 (10, 2)
                 >>> indata.relatedness.shape
                 (10, 10)
-                >>> indata.commonSamples(samplelist=["S4", "S5", "S6"])
+                >>> indata.commonSamples(samplelist=["S4", "S6", "S5"])
                 >>> indata.covariates.shape
                 (3, 4)
                 >>> indata.phenotypes.shape
@@ -649,43 +650,24 @@ class InputData(object):
             if len(test_samples_samplelist) < len(samplelist):
                 raise DataMismatch(('Not all Ids in samplelist are contained '
                     'in common samples from provided datasets'))
-	    self.samples = np.intersect1d(self.samples, samplelist)
-        
-        subset_pheno_samples = np.in1d(self.pheno_samples, self.samples)
-        self.pheno_samples = self.pheno_samples[subset_pheno_samples]
-        self.phenotypes = self.phenotypes[subset_pheno_samples, :]
-        self.phenotypes, self.pheno_samples, samples_before, samples_after = \
-                match(samples_ref=self.samples, 
-                        samples_compare=self.pheno_samples, 
-                        data_compare=self.phenotypes, 
-                        squarematrix=False)
+	    self.samples = samplelist
+    
+        self.phenotypes = self.phenotypes.loc[self.samples,:]
+        self.pheno_samples = np.array(self.phenotypes.index)
+
         if self.genotypes is not None:
-            subset_geno_samples = np.in1d(self.geno_samples, self.samples)
-            self.geno_samples = self.geno_samples[subset_geno_samples]
-            self.genotypes = self.genotypes[subset_geno_samples, :]
-            self.genotypes, self.geno_samples, samples_before, samples_after = \
-                    match(samples_ref=self.samples, 
-                            samples_compare=self.geno_samples, 
-                            data_compare=self.genotypes, 
-                            squarematrix=False)
+            self.genotypes = self.genotypes.loc[self.samples,:]
+            self.geno_samples = np.array(self.genotypes.index)
         if self.relatedness is not None:
-            subset_relatedness_samples = np.in1d(self.relatedness_samples, 
-                    self.samples)
-            self.relatedness_samples = self.relatedness_samples[subset_relatedness_samples]
-            self.relatedness = self.relatedness[subset_relatedness_samples, :][:, subset_relatedness_samples]
-            self.relatedness, self.relatedness_samples, samples_before, samples_after = match(samples_ref=self.samples, samples_compare=self.relatedness_samples, data_compare=self.relatedness, squarematrix=True)
+            self.relatedness = self.relatedness.loc[self.samples,:]
+            self.relatedness = self.relatedness[self.samples]
+            self.relatedness_samples = np.array(self.relatedness.index)
         if self.covariates is not None:
-            subset_covs_samples = np.in1d(self.covs_samples, self.samples)
-            self.covs_samples = self.covs_samples[subset_covs_samples]
-            self.covariates = self.covariates[subset_covs_samples, :]
-            (self.covariates, self.covs_samples, samples_before)
-            samples_after = match(samples_ref=self.samples, samples_compare=self.covs_samples, data_compare=self.covariates, squarematrix=False)
+            self.covariates = self.covariates.loc[self.samples,:]
+            self.covs_samples = np.array(self.covariates.index)
         if self.pcs is not None:
-            subset_pc_samples = np.in1d(self.pc_samples, self.samples)
-            self.pc_samples = self.pc_samples[subset_pc_samples]
-            self.pcs = self.pcs[subset_pc_samples, :]
-            (self.pcs, self.pc_samples, samples_before)
-            samples_after = match(samples_ref=self.samples, samples_compare=self.pc_samples, data_compare=self.pcs, squarematrix=False)
+            self.pcs = self.pcs.loc[self.samples,:]
+            self.pc_samples = np.array(self.pcs.index)
 
     def regress(self, regress = False):
         """
@@ -731,12 +713,12 @@ class InputData(object):
                 ...                      phenotype_ID = phenotype_ID)
                 >>> indata.addCovariates(covariates = covariates,
                 ...                      covs_samples = covs_samples)
-                >>> indata.phenotypes[:3, :3]
+                >>> indata.phenotypes.values[:3, :3]
                 array([[ 0.44122749, -0.33087015,  2.43077119],
                        [ 1.58248112, -0.9092324 , -0.59163666],
                        [-1.19276461, -0.20487651, -0.35882895]])
                 >>> indata.regress(regress=True)
-                >>> indata.phenotypes[:3, :3]
+                >>> indata.phenotypes.values[:3, :3]
                 array([[ 0.34421705, -0.01470998,  2.25710966],
                        [ 1.69886647, -1.41756814, -0.55614649],
                        [-1.10700674, -0.66017713, -0.22201814]])
@@ -746,15 +728,18 @@ class InputData(object):
                 raise DataMismatch(('Phenotype and covariate arrays are '
                         'identical'))
             verboseprint('Regress covariates', verbose=self.verbose)
-            self.phenotypes = regressOut(self.phenotypes, self.covariates)
+            phenotypes = regressOut(np.array(self.phenotypes),
+                    np.array(self.covariates))
+            self.phenotypes = pd.DataFrame(phenotypes,
+                index=self.phenotypes.index, columns=self.phenotypes.columns)
             self.covariates = None
 
-    def transform(self, type = None):
+    def transform(self, transform = None):
         """
         Transform phenotypes
         
         Arguments:
-            type (string):
+            transform (string):
                 transformation method for phenotype data:
         
                     - scale:
@@ -799,26 +784,30 @@ class InputData(object):
                 ...                      phenotype_ID = phenotype_ID)
                 >>> indata.addRelatedness(relatedness = relatedness,
                 ...                  relatedness_samples = relatedness_samples)
-                >>> indata.phenotypes[:3, :3]
+                >>> indata.phenotypes.values[:3, :3]
                 array([[ 0.44122749, -0.33087015,  2.43077119],
                        [ 1.58248112, -0.9092324 , -0.59163666],
                        [-1.19276461, -0.20487651, -0.35882895]])
-                >>> indata.transform(type='gaussian')
-                >>> indata.phenotypes[:3, :3]
+                >>> indata.transform(transform='gaussian')
+                >>> indata.phenotypes.values[:3, :3]
                 array([[ 0.23799988, -0.11191464,  2.05785598],
                        [ 1.41041953, -0.81365681, -0.92217818],
                        [-1.55977999,  0.01240937, -0.62091817]])
         """
-        if type == 'scale':
-            verboseprint('Use %s as transformation' % type, verbose=self.verbose)
-            self.phenotypes = scale(self.phenotypes)
-        elif type == 'gaussian':
-            verboseprint('Use %s as transformation' % type, verbose=self.verbose)
-            self.phenotypes = np.apply_along_axis(quantile_gaussianize, 0, 
+        if transform == 'scale':
+            verboseprint('Use %s as transformation' % transform, verbose=self.verbose)
+            phenotypes = scale(self.phenotypes)
+            self.phenotypes = pd.DataFrame(phenotypes,
+                index=self.phenotypes.index, columns=self.phenotypes.columns)
+        elif transform == 'gaussian':
+            verboseprint('Use %s as transformation' % transform, verbose=self.verbose)
+            phenotypes = np.apply_along_axis(quantile_gaussianize, 0, 
                     self.phenotypes)
-        elif type is not None:
+            self.phenotypes = pd.DataFrame(phenotypes,
+                index=self.phenotypes.index, columns=self.phenotypes.columns)
+        elif transform != None:
             raise TypeError(('Possible transformation methods are: scale, '
-                    'gaussian or None but {} provided').format(type))
+                    'gaussian or None but {} provided').format(transform))
         else:
             verboseprint('Data will not be transformed', verbose=self.verbose)
 
@@ -858,23 +847,26 @@ class InputData(object):
                 >>> data.getGenotypes(file_genotypes=file_geno)
                 >>> indata = input.InputData(verbose=False)
                 >>> indata.addGenotypes(genotypes=data.genotypes,
-                ...                     genotypes_info=data.genotypes_info,
-                ...                     geno_samples=data.geno_samples)
+                ...                     genotypes_info=data.genotypes_info)
                 >>> geno_sd = indata.standardiseGenotypes()
-                >>> freqs.iloc[:5,:]
-                                    p         q
-                rs111647458  0.020715  0.979285
-                rs67918533   0.211964  0.788036
-                rs12903533   0.298573  0.701427
-                rs34937778   0.181465  0.818535
-                rs150270350  0.102225  0.897775
+                >>> geno_sd.iloc[:5,:3]
+			     0         1       2
+		ID_1 -2.201123 -2.141970 -8.9622
+		ID_2 -2.201123 -2.141970 -8.9622
+		ID_3 -2.201123 -2.141970 -8.9622
+		ID_4  0.908627 -0.604125 -8.9622
+		ID_5 -0.646248 -2.141970 -8.9622
         """
         self.genotypes_sd = np.zeros(self.genotypes.shape)
         for snp in range(self.genotypes.shape[1]):
-            p, q = AlleleFrequencies(self.genotypes[:, snp])
+            p, q = AlleleFrequencies(self.genotypes.iloc[:, snp])
             var_snp = sqrt(2 * p * q)
-            for n in range(self.genotypes[:, snp].shape[0]):
-                self.genotypes_sd[n, snp] = (self.genotypes[n, snp] - 2 * q) / var_snp
+            for n in range(self.genotypes.iloc[:, snp].shape[0]):
+                self.genotypes_sd[n, snp] = (np.array(self.genotypes)[n, snp] -
+                    2 * q) / var_snp
+
+        self.genotypes_sd = pd.DataFrame(self.genotypes_sd,
+                index=self.genotypes.index)
 
         return self.genotypes_sd
 
@@ -909,19 +901,19 @@ class InputData(object):
                 ...                     geno_samples=data.geno_samples)
                 >>> freqs = indata.getAlleleFrequencies()
                 >>> freqs.iloc[:5,:]
-                                    p         q
-                rs111647458  0.020715  0.979285
-                rs67918533   0.211964  0.788036
-                rs12903533   0.298573  0.701427
-                rs34937778   0.181465  0.818535
-                rs150270350  0.102225  0.897775
+				   p         q
+		rs1601111   0.292186  0.707814
+		rs13270638  0.303581  0.696419
+		rs75132935  0.024295  0.975705
+		rs72668606  0.119091  0.880909
+		rs55770986  0.169338  0.830662
         """
         verboseprint('Get allele frequencies of %s snps'.format(
             self.genotypes.shape[1]), verbose=self.verbose)
         self.freqs = np.zeros((self.genotypes.shape[1], 2))
         for snp in range(self.genotypes.shape[1]):
             self.freqs[snp, 0], self.freqs[snp, 1] = AlleleFrequencies(
-                    self.genotypes[:, snp])
+                np.array(self.genotypes)[:, snp])
 
         self.freqs = pd.DataFrame(self.freqs, index=self.genotypes_info.index, 
                 columns=['p', 'q'])

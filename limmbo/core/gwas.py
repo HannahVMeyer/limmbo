@@ -28,7 +28,6 @@ class GWAS(object):
         '''
         self.verbose = verbose
         self.seed = seed
-        #self.meff = meff
         self.searchDelta = searchDelta
         self.genotypes = datainput.genotypes
         self.genotypes_info = datainput.genotypes_info
@@ -52,6 +51,28 @@ class GWAS(object):
         self.estimate_vd = None
         self.fdr_empirical = None
 
+        try:
+            self.genotypes = np.array(self.genotypes)
+        except:
+            raise IOError("datainput.genotypes cannot be coverted to np.array")
+
+        try:
+            self.phenotypes = np.array(self.phenotypes)
+        except:
+            raise IOError("datainput.phenotypes cannot be coverted to np.array")
+
+        if self.covariates is not None:
+            try:
+                self.covariates = np.array(self.covariates)
+            except:
+                raise IOError("datainput.covariates cannot be coverted to np.array")
+        
+        if self.relatedness is not None:
+            try:
+                self.relatedness = np.array(self.relatedness)
+            except:
+                raise IOError("datainput.relatedness cannot be coverted to np.array")
+
     def runAssociationAnalysis(self, mode, setup="lmm", adjustSingleTrait=None):
         r"""
         Analysing the association between phenotypes, genotypes, optional
@@ -59,7 +80,7 @@ class GWAS(object):
 
         Arguments:
             mode (string):
-                specifies the type of linear model: either 'multitrait' for
+                pecifies the type of linear model: either 'multitrait' for
                 multivariate analysis or 'singletrait' for univariate analysis.
             setup (string):
                 specifies the linear model setup: either 'lmm' for linear mixed
@@ -118,19 +139,15 @@ class GWAS(object):
                 >>> data.getVarianceComponents(file_Cg=file_Cg,
                 ...                            file_Cn=file_Cn)
                 >>> indata = InputData(verbose=False)
-                >>> indata.addPhenotypes(phenotypes = data.phenotypes,
-                ...                      pheno_samples = data.pheno_samples,
-                ...                      phenotype_ID = data.phenotype_ID)
-                >>> indata.addRelatedness(relatedness = data.relatedness,
-                ...     relatedness_samples = data.relatedness_samples)
-                >>> indata.addCovariates(covariates = data.covariates,
-                ...                      covs_samples = data.covs_samples)
+                >>> indata.addPhenotypes(phenotypes = data.phenotypes)
+                >>> indata.addRelatedness(relatedness = data.relatedness)
+                >>> indata.addCovariates(covariates = data.covariates)
                 >>> indata.addGenotypes(genotypes=data.genotypes,
-                ...                     genotypes_info=data.genotypes_info,
-                ...                     geno_samples=data.geno_samples)
+                ...                     genotypes_info=data.genotypes_info)
                 >>> indata.addVarianceComponents(Cg = data.Cg, Cn=data.Cn)
                 >>> indata.commonSamples()
                 >>> indata.regress(regress=True)
+                >>> indata.transform(type="scale")
                 >>> gwas = GWAS(datainput=indata, seed=10, verbose=False)
                 >>>
                 >>>
@@ -143,7 +160,7 @@ class GWAS(object):
                 >>> resultsAssociation['pvalues'].shape
                 (1, 20)
                 >>> '{:0.3e}'.format(resultsAssociation['pvalues'].min())
-                '9.054e-09'
+                '4.584e-09'
                 >>> resultsAssociation['betas'].shape
                 (10, 20)
                 >>>
@@ -160,7 +177,7 @@ class GWAS(object):
                 >>> resultsAssociation['betas'].shape
                 (10, 20)
                 >>> '{:0.3e}'.format(resultsAssociation['pvalues_adjust'].min())
-                '1.037e-02'
+                '2.262e-03'
         """
 
 
@@ -282,8 +299,7 @@ class GWAS(object):
                 multiple traits; If None (default) no adjusting. Options are
                 'bonferroni' (for bonferroni correction') or 'effective' (for
                 correcting for the effective number of tests as described in 
-                `(Galwey,2009)
-                <http://onlinelibrary.wiley.com/doi/10.1002/gepi.20408/abstract>`_
+                `(Galwey,2009) <http://onlinelibrary.wiley.com/doi/10.1002/gepi.20408/abstract>`_.
 
         Returns:
             (dictionary):

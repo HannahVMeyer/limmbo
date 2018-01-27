@@ -26,16 +26,6 @@ class Input(unittest.TestCase):
         with self.assertRaises(TypeError):
 	    self.datainput.addPhenotypes()
     
-    def test_addPhenotypes_missing_phenotype_ID(self):
-        with self.assertRaises(TypeError):
-	    self.datainput.addPhenotypes(phenotypes=self.phenotypes,
-                                         pheno_samples=self.pheno_samples)
-    
-    def test_addPhenotypes_missing_pheno_samples(self):
-        with self.assertRaises(TypeError):
-	    self.datainput.addPhenotypes(phenotypes=self.phenotypes,
-                                         phenotype_ID=self.phenotype_ID)
-    
     def test_addPhenotypes_mismatch_phenotype_ID_phenotype_dimension(self):
         pheno_ID=np.array(('ID1', 'ID2', 'ID3', 'ID4'))
         with self.assertRaises(DataMismatch):
@@ -50,20 +40,11 @@ class Input(unittest.TestCase):
                                          phenotype_ID=self.phenotype_ID,
                                          pheno_samples=pheno_samples)
     
-
-    def test_addCovariates_missing_covs_samples(self):
-        with self.assertRaises(MissingInput):
-	    self.datainput.addCovariates(covariates=self.covariates)
-    
     def test_addCovariates_mismatch_covs_samples_covariates_dimension(self):
         covs_samples=np.array(('S1', 'S2', 'S3'))
         with self.assertRaises(DataMismatch):
 	    self.datainput.addCovariates(covariates=self.covariates,
                                          covs_samples=covs_samples)
-
-    def test_addRelatedness_missing_relatedness_samples(self):
-        with self.assertRaises(MissingInput):
-	    self.datainput.addRelatedness(relatedness=self.relatedness)
     
     def test_addRelatedness_mismatch_relatedness_and_samples_dimension(self):
         relatedness_samples=np.array(('S1', 'S2', 'S3'))

@@ -44,7 +44,17 @@ class LiMMBo(object):
         self.iterations = iterations
         self.verbose = verbose
 
-        if self.S > self.phenotypes.shape[1]:
+        try:
+            self.phenotypes = np.array(self.phenotypes)
+        except:
+            raise IOError("datainput.phenotypes cannot be converted to np.array")
+
+	try:
+	    self.relatedness = np.array(self.relatedness)
+	except:
+	    raise IOError("datainput.relatedness cannot be converted to np.array")
+        
+	if self.S > self.phenotypes.shape[1]:
             raise DataMismatch(("Subsampling size S ({}) greater than number "
                 "of phnenotypes ({})").format(self.S, self.phenotypes.shape[1]))
 

@@ -73,10 +73,6 @@ class ReadData(object):
 
                 - **self.phenotypes** (np.array):
                   [`N` x `P`] phenotype matrix
-                - **self.pheno_samples** (np.array):
-                  [`N`] sample IDs
-                - **self.phenotype_ID** (np.array):
-                  [`P`] phenotype IDs
 
         Examples:
 
@@ -89,14 +85,14 @@ class ReadData(object):
                 >>> file_pheno = resource_filename('limmbo',
                 ...                                'io/test/data/pheno.csv')
                 >>> data.getPhenotypes(file_pheno=file_pheno)
-                >>> data.pheno_samples[:3]
-                array(['ID_1', 'ID_2', 'ID_3'], dtype=object)
-                >>> data.phenotype_ID[:3]
-                array(['trait_1', 'trait_2', 'trait_3'], dtype=object)
-                >>> data.phenotypes[:3,:3]
-                array([[-0.58292258, -0.64127589,  1.02820392],
-                       [ 1.40385214, -1.33475008, -0.85868719],
-                       [-0.14518214,  0.53119702, -0.98530978]])
+                >>> data.phenotypes.index[:3]
+                Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
+                >>> data.phenotypes.columns[:3]
+                Index([u'trait_1', u'trait_2', u'trait_3'], dtype='object')
+                >>> data.phenotypes.values[:3,:3]
+		array([[-1.56760036, -1.5324513 ,  1.17789321],
+		       [-0.85655034,  0.48358151,  1.35664966],
+		       [ 0.10772832, -0.02262884, -0.27963328]])
         """
 
         if file_pheno is None:
@@ -112,9 +108,6 @@ class ReadData(object):
                     file_pheno, index_col=0, sep=delim)
             except Exception:
                 raise IOError('{} could not be opened'.format(file_pheno))
-            self.phenotype_ID = np.array(self.phenotypes.columns)
-            self.pheno_samples = np.array(self.phenotypes.index)
-            self.phenotypes = np.array(self.phenotypes)
 
     def getCovariates(self, file_covariates=None, delim=','):
         r"""
@@ -134,8 +127,6 @@ class ReadData(object):
 
                 - **self.covariates** (np.array):
                   [`N` x `K`] covariates matrix
-                - **self.covs_samples** (np.array):
-                  [`N`] sample IDs
 
         Examples:
 
@@ -148,12 +139,12 @@ class ReadData(object):
                 >>> file_covs = resource_filename('limmbo',
                 ...                               'io/test/data/covs.csv')
                 >>> data.getCovariates(file_covariates=file_covs)
-                >>> data.covs_samples[:3]
-                array(['ID_1', 'ID_2', 'ID_3'], dtype=object)
-                >>> data.covariates[:3,:3]
-                array([[-1.05808516, -0.89731694,  0.18733211],
-                       [ 0.28205298,  0.57994795, -0.41383724],
-                       [-1.55179427, -1.70411737, -0.448364  ]])
+                >>> data.covariates.index[:3]
+                Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
+                >>> data.covariates.values[:3,:3]
+		array([[ 0.92734699,  1.59767659, -0.67263682],
+		       [ 0.57061985, -0.84679736, -1.11037123],
+		       [ 0.44201204, -1.61499228,  0.23302345]])
         """
 
         if file_covariates is not None:
@@ -161,22 +152,17 @@ class ReadData(object):
                 raise FormatError('Supplied covariate file is not .csv or .txt')
             try:
                 self.covariates = pd.io.parsers.read_csv(file_covariates, 
-                        sep=delim)
+                        sep=delim, index_col=0)
                 verboseprint("Reading covariates file", verbose=self.verbose)
             except Exception:
                 raise IOError('{} could not be opened'.format(file_covariates))
-            self.covs_samples = np.ravel(self.covariates.iloc[:, :1])
-            self.covariates = np.array(
-                self.covariates.iloc[:, 1:]).astype(float)
             # append column of 1's to adjust for mean of covariates
-            self.covariates = sp.concatenate(
-                [self.covariates,
-                 sp.ones((self.covariates.shape[0], 1))], 1)
-            self.covariates = np.array(self.covariates)
+            self.covariates = pd.concat([self.covariates, pd.DataFrame(sp.ones(
+                self.covariates.shape[0]), index=self.covariates.index)],
+                 axis=1)
         else:
             verboseprint("No covariates set", verbose=self.verbose)
             self.covariates = None
-            self.covs_samples = None
 
     def getRelatedness(self, file_relatedness, delim=","):
         """
@@ -196,8 +182,6 @@ class ReadData(object):
 
                 - **self.relatedness** (np.array):
                   [`N` x `N`] relatedness matrix
-                - **self.relatedness_samples** (np.array):
-                  [`N`] sample IDs of relatedness matrix
         Examples:
 
             .. doctest::
@@ -209,9 +193,11 @@ class ReadData(object):
                 >>> file_relatedness = resource_filename('limmbo',
                 ...                     'io/test/data/relatedness.csv')
                 >>> data.getRelatedness(file_relatedness=file_relatedness)
-                >>> data.relatedness_samples[:3]
-                array(['ID_1', 'ID_2', 'ID_3'], dtype=object)
-                >>> data.relatedness[:3,:3]
+                >>> data.relatedness.index[:3]
+                Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
+                >>> data.relatedness.columns[:3]
+                Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
+                >>> data.relatedness.values[:3,:3]
 		array([[1.00892922e+00, 2.00758504e-04, 4.30499103e-03],
 		       [2.00758504e-04, 9.98944885e-01, 4.86487318e-03],
 		       [4.30499103e-03, 4.86487318e-03, 9.85787665e-01]])
@@ -224,11 +210,10 @@ class ReadData(object):
         try:
             self.relatedness = pd.io.parsers.read_csv(file_relatedness, 
                     sep=delim)
+            self.relatedness.index = self.relatedness.columns
         except Exception:
             raise IOError('{} could not be opened'.format(file_relatedness))
         verboseprint("Reading relationship matrix", verbose=self.verbose)
-        self.relatedness_samples = np.array(self.relatedness.columns)
-        self.relatedness = np.array(self.relatedness).astype(float)
 
     def getPCs(self, file_pcs=None, nrpcs=None, delim=","):
         r"""
@@ -250,8 +235,6 @@ class ReadData(object):
 
                 - **self.pcs** (np.array):
                   [`N` x `PC`] principal component matrix
-                - **self.pc_samples** (np.array):
-                  [`N`] sample IDs
 
         Examples:
 
@@ -264,12 +247,12 @@ class ReadData(object):
                 >>> file_pcs = resource_filename('limmbo',
                 ...                     'io/test/data/pcs.csv')
                 >>> data.getPCs(file_pcs=file_pcs, nrpcs=10, delim=" ")
-                >>> data.pc_samples[:3]
-                array(['ID_1', 'ID_2', 'ID_3'], dtype=object)
-                >>> data.pcs[:3,:3]
-                array([[-0.02632738,  0.00761785,  0.01069307],
-                       [-0.05791269,  0.00538956, -0.0205066 ],
-                       [-0.03619099,  0.00624196,  0.02299996]])
+                >>> data.pcs.index[:3]
+                Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object', name=0)
+                >>> data.pcs.values[:3,:3]
+                array([[-0.02632738, -0.05791269, -0.03619099],
+                       [ 0.00761785,  0.00538956,  0.00624196],
+                       [ 0.01069307, -0.0205066 ,  0.02299996]])
         """
 
         if file_type(file_pcs) is not 'delim':
@@ -277,17 +260,15 @@ class ReadData(object):
 
         if file_pcs is not None:
             verboseprint("Reading PCs", verbose=self.verbose)
-            self.pcs = pd.io.parsers.read_csv(file_pcs, header=0, sep=delim)
-            self.pc_samples = np.array(self.pcs.columns)
-            self.pcs = np.array(self.pcs).astype(float)
+            self.pcs = pd.io.parsers.read_csv(file_pcs, index_col=0, 
+                            sep=delim, header=None)
             if nrpcs is not None:
                 verboseprint(
                     "Extracting first %s pcs" % nrpcs, verbose=self.verbose)
-                self.pcs = self.pcs[:, :nrpcs]
+                self.pcs = self.pcs.iloc[:, :nrpcs]
         else:
             verboseprint("No pcs set", verbose=self.verbose)
             self.pcs = None
-            self.pc_samples = None
 
     def getGenotypes(self, file_genotypes=None, delim = ','):
         r"""
@@ -318,8 +299,6 @@ class ReadData(object):
 
                 - **self.genotypes** (np.array):
                   [`N` x `NrSNPs`] genotype matrix
-                - **self.geno_samples** (np.array):
-                  [`N`] sample IDs
                 - **self.genotypes_info** (pd.dataframe):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
                   rsIDs as index
@@ -335,24 +314,23 @@ class ReadData(object):
                 >>> file_geno = resource_filename('limmbo',
                 ...                                'io/test/data/genotypes.csv')
                 >>> data.getGenotypes(file_genotypes=file_geno)
-                >>> data.geno_samples[:5]
-                array(['ID_1', 'ID_2', 'ID_3', 'ID_4', 'ID_5'], dtype=object)
+                >>> data.genotypes.index[:4]
+                Index([u'ID_1', u'ID_2', u'ID_3', u'ID_4'], dtype='object')
                 >>> data.genotypes.shape
                 (1000, 20)
-                >>> data.genotypes[:5,:5]
-                array([[0., 1., 1., 0., 1.],
-                       [0., 1., 0., 1., 1.],
-                       [0., 0., 0., 0., 0.],
-                       [0., 1., 0., 0., 1.],
-                       [0., 0., 1., 0., 0.]])
+                >>> data.genotypes.values[:5,:5]
+		array([[0., 0., 0., 0., 0.],
+		       [0., 0., 0., 0., 0.],
+		       [0., 0., 0., 0., 0.],
+		       [2., 1., 0., 0., 0.],
+		       [1., 0., 0., 0., 0.]])
                 >>> data.genotypes_info[:5]
-                            chrom       pos
-                rs111647458    15  49385160
-                rs67918533     15  92151569
-                rs12903533     15  98887790
-                rs34937778     19  18495997
-                rs150270350    19  47869060
-
+			   chrom       pos
+		rs1601111      3  88905003
+		rs13270638     8  20286021
+		rs75132935     8  76564608
+		rs72668606     8  79733124
+		rs55770986     7   2087823
         """
 
         if file_genotypes is None:
@@ -380,8 +358,7 @@ class ReadData(object):
                 snp_ID.append(split[2])
                 genotypes_info.append(split[[0, 1]])
 
-            self.geno_samples = np.array(genotypes.columns)
-            self.genotypes = np.array(genotypes).astype(float).T
+            self.genotypes = genotypes.astype(float).T
             self.genotypes_info = pd.DataFrame(
                 np.array(genotypes_info),
                 columns=['chrom', 'pos'],
@@ -394,8 +371,8 @@ class ReadData(object):
             except Exception:
                 raise IOError('{} could not be opened'.format(file_genotypes))
             
-            self.geno_samples = np.array(fam.iid)
-            self.genotypes = np.array(bed.compute()).T
+            self.genotypes = pd.DataFrame(bed.compute()).astype(float).T
+            self.genotypes.index = fam.iid
             self.genotypes_info = pd.DataFrame(
                 np.array([bim.chrom, bim.pos]).T,
                 columns=['chrom', 'pos'],
@@ -443,13 +420,13 @@ class ReadData(object):
                 >>> data.Cn.shape
                 (10, 10)
                 >>> data.Cg[:3,:3]
-                array([[ 0.04265732, -0.02540865,  0.01784288],
-                       [-0.02540865,  0.03610362, -0.02802982],
-                       [ 0.01784288, -0.02802982,  0.04448125]])
+		array([[ 0.45446454, -0.21084613,  0.01440468],
+		       [-0.21084613,  0.11443656,  0.01250233],
+		       [ 0.01440468,  0.01250233,  0.02347906]])
                 >>> data.Cn[:3,:3]
-                array([[ 0.96301131, -0.86185094, -0.35197147],
-                       [-0.86185094,  0.9647436 ,  0.37166803],
-                       [-0.35197147,  0.37166803,  0.96285129]])
+		array([[ 0.53654803, -0.14392748, -0.45483001],
+		       [-0.14392748,  0.88793093,  0.30539822],
+		       [-0.45483001,  0.30539822,  0.97785614]])
         """
 
         if file_Cg is None and file_Cn is None:
@@ -535,17 +512,17 @@ class ReadData(object):
                     "be specified")
         if file_samplelist is not None or samplelist is not None:
 	    if file_samplelist is not None:
+                verboseprint("Read sample list from file", verbose=self.verbose)
                 try:
-		    samplelist = np.array(pd.io.parsers.read_csv(
-		    file_samplelist, header=None))
-                    verboseprint("Read sample list from file", 
-                        verbose=self.verbose)
+		    samplelist = pd.io.parsers.read_csv(
+		    file_samplelist, sep=" ", header=None, index_col=0)
                 except Exception:
                     raise IOError('{} could not be opened'.format(
                         file_samplelist))
+                samplelist = samplelist.index
 	    else:
-                verboseprint("Read sample list", verbose=self.verbose)
-		samplelist = np.array(samplelist.split(","))
+                verboseprint("Split sample string", verbose=self.verbose)
+		samplelist = samplelist.split(",")
 	    
             verboseprint("Number of samples in sample list: %s" %
 		len(samplelist), verbose=self.verbose)
