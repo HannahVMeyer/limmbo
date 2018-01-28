@@ -15,10 +15,11 @@ def entry_point():
     dataread = ReadData(verbose=options.verbose)
     dataread.getPhenotypes(file_pheno = options.file_pheno, delim =
                         options.pheno_delim)
-    dataread.getCovariates(file_covariates = options.file_covariates, delim =
-                        options.covariate_delim)
     dataread.getRelatedness(file_relatedness = options.file_relatedness, delim =
                         options.relatedness_delim)
+    if options.file_covariates is not None:
+        dataread.getCovariates(file_covariates = options.file_covariates, 
+            delim = options.covariate_delim)
     if options.samplelist is not None or options.file_samplelist is not None:
         samplelist = dataread.getSampleSubset(samplelist=options.samplelist,
                 file_samplelist=options.file_samplelist)
@@ -37,12 +38,15 @@ def entry_point():
                             pheno_samples = dataread.pheno_samples)
     datainput.addRelatedness(relatedness = dataread.relatedness,
                             relatedness_samples = dataread.relatedness_samples)
-    datainput.addCovariates(covariates = dataread.covariates,
+    if datainput.covariates is not None:
+        datainput.addCovariates(covariates = dataread.covariates,
                             covs_samples = dataread.covs_samples)
     datainput.commonSamples(samplelist=samplelist)
     datainput.subsetTraits(traitlist = traitlist)
-    datainput.regress(regress = options.regress)
-    datainput.transform(type = options.transform)
+    if options.regress is not None:
+        datainput.regress()
+    if options.transform is not None:
+        datainput.transform(type = options.transform)
 
     # set up variance decomposition via LiMMBo
     datalimmbo = LiMMBo(datainput=datainput,

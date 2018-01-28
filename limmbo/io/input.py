@@ -56,7 +56,7 @@ class InputData(object):
         self.snps = None
         self.genotypes = None
         self.geno_samples = None
-        self.position = None
+        self.genotypes_info = None
         self.Cg = None
         self.Cn = None
 
@@ -68,7 +68,9 @@ class InputData(object):
         Arguments:
             phenotypes (array-like):
                 [`N x `P`] phenotype matrix of `N` individuals and `P`
-                phenotypes
+                phenotypes; if pandas.DataFrame with pheno_samples as index and 
+                phenotypes_ID as columns, pheno_samples and phenotype_ID do not 
+                have to specified separately.
             pheno_samples (array-like):
                 [`N`] sample ID
             phenotype_ID (array-like):
@@ -78,8 +80,8 @@ class InputData(object):
             None:
                 updated the following attributes of the InputData instance:
         
-                - **self.phenotypes** (np.array):
-                  [`N` x `P`] phenotype matrix
+                - **self.phenotypes** (pd.DataFrame):
+                  [`N` x `P`] phenotype array
                 - **self.pheno_samples** (np.array):
                   [`N`] sample IDs
                 - **self.phenotype_ID** (np.array):
@@ -95,7 +97,7 @@ class InputData(object):
                 >>> import pandas as pd
                 >>> pheno = np.array(((1,2),(7,1),(3,4)))
                 >>> pheno_samples = ['S1','S2', 'S3']
-                >>> phenotype_ID = ['ID2','ID2']
+                >>> phenotype_ID = ['ID1','ID2']
                 >>> phenotypes = pd.DataFrame(pheno, index=pheno_samples,
                 ...     columns = phenotype_ID)
                 >>> indata = input.InputData(verbose=False)
@@ -107,33 +109,41 @@ class InputData(object):
                 >>> print indata.phenotype_ID.shape
                 (2,)
         """
-        if phenotypes is None:
-            raise MissingInput('No phenotypes specified')
-        self.phenotypes = phenotypes
         if pheno_samples is None:
-            self.pheno_samples = np.array(phenotypes.index)
+	    try:
+	        self.pheno_samples = np.array(phenotypes.index)
+	    except Exception:
+		raise TypeError(("pheno_samples are not provided and "
+		    "phenotypes has no index to retrieve pheno_samples from."))
         else:
             self.pheno_samples = np.array(pheno_samples)
+
         if phenotype_ID is None:
-            self.phenotype_ID = np.array(phenotypes.columns)
+	    try:
+                self.phenotype_ID = np.array(phenotypes.columns)
+	    except Exception:
+		raise TypeError(("phenotype_ID are not provided and phenotypes "
+		    "has no column names to retrieve phenotype_ID from."))
         else:
             self.phenotype_ID = np.array(phenotype_ID)
-        if self.phenotypes.shape[0] != self.pheno_samples.shape[0]:
+
+        if phenotypes.shape[0] != self.pheno_samples.shape[0]:
             raise DataMismatch(('Number of samples in phenotypes ({}) does '
                 'not match number of sample IDs ({}) provided').format(
-                    self.phenotypes.shape[0], self.pheno_samples.shape[0]))
-        if self.phenotypes.shape[1] != self.phenotype_ID.shape[0]:
+                    phenotypes.shape[0], self.pheno_samples.shape[0]))
+        if phenotypes.shape[1] != self.phenotype_ID.shape[0]:
             raise DataMismatch(('Number phenotypes ({}) does not match '
                 'number of phenotype IDs ({}) provided').format(
-                    self.phenotypes.shape[1], self.phenotype_ID.shape[0]))
+                    phenotypes.shape[1], self.phenotype_ID.shape[0]))
         if len(self.pheno_samples) != len(set(self.pheno_samples)):
             raise IOError("Duplicate sample names in phenotypes")    
         if len(self.phenotype_ID) != len(set(self.phenotype_ID)):
             raise IOError("Duplicate trait names in phenotypes")    
+        
         self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples,
             columns = self.phenotype_ID)
 
-    def addCovariates(self, covariates = None, covs_samples = None):
+    def addCovariates(self, covariates, covs_samples = None):
         """
         Add [`N` x `K`] covariate data with [`N`] samples and [`K`] covariates
         to InputData instance.
@@ -141,7 +151,8 @@ class InputData(object):
         Arguments:
             covariates (array-like):
                 [`N x `K`] covariate matrix of `N` individuals and `K`
-                covariates
+                covariates; if pandas.DataFrame with covs_samples as index, 
+                covs_samples do not have to specified separately.
             covs_samples (array-like):
                 [`N`] sample ID
         
@@ -149,7 +160,7 @@ class InputData(object):
             None:
                 updated the following attributes of the InputData instance:
         
-                - **self.covariates** (np.array):
+                - **self.covariates** (pd.DataFrame):
                   [`N` x `K`] covariates matrix
                 - **self.covs_samples** (np.array):
                   [`N`] sample IDs
@@ -173,30 +184,34 @@ class InputData(object):
                 (3,)
         
         """
-        if covariates is not None:
-            if covs_samples is None:
+        if covs_samples is None:
+            try:
                 self.covs_samples = np.array(covariates.index)
-            else:
-                self.covs_samples = np.array(covs_samples)
-            if np.array(covariates).shape[0] != np.array(self.covs_samples).shape[0]:
-                raise DataMismatch(('Number of samples in covariates ({}) does '
-                    'not match number of sample IDs ({}) provided').format(
-                        np.array(covariates).shape[0],
-                        np.array(self.covs_samples).shape[0]))
+            except Exception:
+                raise TypeError(("covs_samples are not provided and "
+                    "covariates has no index to retrieve covs_samples "
+                    "from."))
+        else:
+            self.covs_samples = np.array(covs_samples)
+        if np.array(covariates).shape[0] != np.array(self.covs_samples).shape[0]:
+            raise DataMismatch(('Number of samples in covariates ({}) does '
+                'not match number of sample IDs ({}) provided').format(
+                    np.array(covariates).shape[0],
+                    np.array(self.covs_samples).shape[0]))
         if len(self.covs_samples) != len(set(self.covs_samples)):
             raise IOError("Duplicate sample names in covariates")    
-            self.covariates = pd.DataFrame(covariates, index=self.covs_samples)
-        else:
-            verboseprint('No covariates set', verbose=self.verbose)
+        self.covariates = pd.DataFrame(covariates, index=self.covs_samples)
 
-    def addRelatedness(self, relatedness = None, relatedness_samples = None):
+    def addRelatedness(self, relatedness, relatedness_samples = None):
         """
         Add [`N` x `N`] pairwise relatedness estimates of [`N`] samples to the
         InputData instance
         
         Arguments:
             relatedness (array-like):
-                [`N x `N`] relatedness matrix of `N` individuals
+                [`N x `N`] relatedness matrix of `N` individuals;
+                if pandas.DataFrame with relatedness_samples as index,
+                relatedness_samples do not have to specified separately.
             relatedness_samples (array-like):
                 [`N`] sample IDs
         
@@ -204,7 +219,7 @@ class InputData(object):
             None:
                 updated the following attributes of the InputData instance:
         
-                - **self.relatedness** (np.array):
+                - **self.relatedness** (pd.DataFrame):
                   [`N` x `N`] relatedness matrix
                 - **self.relatedness_samples** (np.array):
                   [`N`] sample IDs
@@ -236,7 +251,12 @@ class InputData(object):
         
         """
         if relatedness_samples is None:
-            self.relatedness_samples = np.array(relatedness.index)
+            try:
+                self.relatedness_samples = np.array(relatedness.index)
+	    except Exception:
+		raise TypeError(("relatedness_samples are not provided and "
+                    "relatedness has no index to retrieve relatedness_samples "
+                    "from"))
         else:
             self.relatedness_samples = np.array(relatedness_samples)
         rel = np.array(relatedness)
@@ -258,7 +278,7 @@ class InputData(object):
         self.relatedness = pd.DataFrame(relatedness,
             index=self.relatedness_samples, columns=self.relatedness_samples)
 
-    def addGenotypes(self, genotypes = None, geno_samples = None, 
+    def addGenotypes(self, genotypes, geno_samples = None, 
             genotypes_info = None):
         """
         Add [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
@@ -268,7 +288,8 @@ class InputData(object):
         Arguments:
             genotypes (array-like):
                 [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
-                genotypes
+                genotypes; if pandas.DataFrame with geno_samples as index,
+                geno_samples do not have to specified separately.
             geno_samples (array-like):
                 [`N`] vector of `N` sample IDs
             genotypes_info (dataframe):
@@ -279,11 +300,11 @@ class InputData(object):
             None:
                 updated the following attributes of the InputData instance:
         
-                - **self.genotypes** (np.array):
+                - **self.genotypes** (pd.DataFrame):
                   [`N` x `NrSNPs`] genotype matrix
                 - **self.geno_samples** (np.array):
                   [`N`] sample IDs
-                - **self.genotypes_info** (pd.dataframe):
+                - **self.genotypes_info** (pd.DataFrame):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
                   rsIDs as index
         
@@ -320,7 +341,11 @@ class InputData(object):
 		rs55770986     7   2087823
         """
         if geno_samples is None:
-            self.geno_samples = np.array(genotypes.index)
+            try:
+                self.geno_samples = np.array(genotypes.index)
+	    except Exception:
+		raise TypeError(("geno_samples are not provided and genotypes "
+                    "has no index to retrieve geno_samples from"))
         else:
             self.geno_samples = np.array(geno_samples)
         if genotypes_info is None:
@@ -339,7 +364,7 @@ class InputData(object):
         if len(self.geno_samples) != len(set(self.geno_samples)):
             raise IOError("Duplicate sample names in genotypes")    
 
-    def addVarianceComponents(self, Cg = None, Cn = None):
+    def addVarianceComponents(self, Cg, Cn,):
         """
         Add [`P` x `P`] matrices of [`P`] trait covariance estimates
         of the genetic trait variance component (Cg) and the non-genetic (noise)
@@ -359,7 +384,7 @@ class InputData(object):
         
                 - **self.Cg** (np.array):
                   [`P x `P`] matrix of `P` trait covariance estimates of the
-                  genetic trait covaraince component
+                  genetic trait covariance component
                 - **self.Cn** (np.array):
                   [`P x `P`] matrix of `P` trait covariance estimates of the
                   non-genetic trait covaraince component
@@ -424,7 +449,7 @@ class InputData(object):
                     'not match number of traits ({}) in phenotypes').format(
                         self.Cn.shape[0], self.phenotypes.shape[1]))
 
-    def addPCs(self, pcs = None, pc_samples = None):
+    def addPCs(self, pcs, pc_samples = None):
         """
         Add [`N` x `PC`] matrix of [`PC`] principal components from the
         genotypes of [`N`] samples to InputData instance.
@@ -432,7 +457,8 @@ class InputData(object):
         Arguments:
             pcs (array-like):
                 [`N x `PCs`] principal component matrix of `N` individuals and
-                `PCs` principal components
+                `PCs` principal components; if pandas.DataFrame with pc_samples 
+		as index, covs_samples do not have to specified separately.
             pc_samples (array-like):
                 [`N`] sample IDs
         
@@ -440,7 +466,7 @@ class InputData(object):
             None:
                 updated the following attributes of the InputData instance:
         
-                - **self.pcs** (np.array):
+                - **self.pcs** (pd.DataFrame):
                   [`N` x `PCs`] principal component matrix
                 - **self.pc_samples** (np.array):
                   [`N`] sample IDs
@@ -464,21 +490,22 @@ class InputData(object):
                 (1000,)
         
         """
-        if pcs is not None:
-            if pc_samples is None:
+        if pc_samples is None:
+            try:
                 self.pc_samples = np.array(pcs.index)
-            else:
-                self.pc_samples = np.array(pc_samples)
-            if np.array(pcs).shape[0] != np.array(self.pc_samples).shape[0]:
-                raise DataMismatch(('Number of samples in pcs ({}) does'
-                        'not match number of sample IDs ({}) provided').format(
-                            np.array(pcs).shape[0], 
-                            np.array(pc_samples).shape[0]))
-            if len(self.pc_samples) != len(set(self.pc_samples)):
-                raise IOError("Duplicate sample names for principle components")    
-            self.pcs = pd.DataFrame(pcs, index=self.pc_samples)
+            except Exception:
+                raise TypeError(("pc_samples are not provided and pcs has "
+                    "no index to retrieve pc_samples from"))
         else:
-            verboseprint('No principal components set', verbose=self.verbose)
+            self.pc_samples = np.array(pc_samples)
+        if np.array(pcs).shape[0] != np.array(self.pc_samples).shape[0]:
+            raise DataMismatch(('Number of samples in pcs ({}) does'
+                    'not match number of sample IDs ({}) provided').format(
+                        np.array(pcs).shape[0], 
+                        np.array(pc_samples).shape[0]))
+        if len(self.pc_samples) != len(set(self.pc_samples)):
+            raise IOError("Duplicate sample names for principle components")    
+        self.pcs = pd.DataFrame(pcs, index=self.pc_samples)
 
 
     def subsetTraits(self, traitlist = None):
@@ -495,7 +522,7 @@ class InputData(object):
         
                 - **self.traitlist** (list):
                   of [`t`] trait numbers (int) to choose for analysis
-                - **self.phenotypes** (np.array):
+                - **self.phenotypes** (pd.DataFrame):
                   reduced set of [`N` x `t`] phenotypes
                 - **self.phenotype.ID** (np.array):
                   reduced set of [`t`] phenotype IDs
@@ -525,10 +552,7 @@ class InputData(object):
                 >>> print indata.phenotype_ID.shape
                 (4,)
         """
-        if traitlist is None:
-            verboseprint('No trait subset chosen', verbose=self.verbose)
-        else:
-            self.traitlist = np.array(traitlist)
+        self.traitlist = np.array(traitlist)
         if len(self.traitlist) != len(set(self.traitlist)):
             raise IOError("Duplicate trait names in traitlist")    
         try:
@@ -554,23 +578,23 @@ class InputData(object):
             None:
                 updated the following attributes of the InputData instance:
         
-                - **self.phenotypes** (np.array):
+                - **self.phenotypes** (pd.DataFrame):
                   [`M` x `P`] phenotype matrix
                 - **self.pheno_samples** (np.array):
                   [`M`] sample IDs
-                - **self.relatedness** (np.array):
+                - **self.relatedness** (pd.DataFrame):
                   [`M x M`] relatedness matrix
                 - **self.relatedness_samples** (np.array):
                   [`M`] sample IDs of relatedness matrix
-                - **self.covariates** (np.array):
+                - **self.covariates** (pd.DataFrame):
                   [`M` x `K`] covariates matrix
                 - **self.covs_samples** (np.array):
                   [`M`] sample IDs
-                - **self.genotypes** (np.array):
+                - **self.genotypes** (pd.DataFrame):
                   [`M` x `NrSNPs`] genotypes matrix
                 - **self.geno_samples** (np.array):
                   [`M`] sample IDs
-                - **self.pcs** (np.array):
+                - **self.pcs** (pd.DataFrame):
                   [`M` x `PCs`] principal component matrix
                 - **self.pc_samples** (np.array):
                   [`M`] sample IDs
@@ -685,14 +709,9 @@ class InputData(object):
             self.pcs = self.pcs.loc[self.samples,:]
             self.pc_samples = np.array(self.pcs.index)
 
-    def regress(self, regress = False):
+    def regress(self):
         """
         Regress out covariates (optional).
-        
-        Arguments:
-            regress (bool):
-                if True, covariates are regressed from phenotypes prior to 
-                association analyses.
         
         Returns:
             None:
@@ -733,24 +752,23 @@ class InputData(object):
                 array([[ 0.44122749, -0.33087015,  2.43077119],
                        [ 1.58248112, -0.9092324 , -0.59163666],
                        [-1.19276461, -0.20487651, -0.35882895]])
-                >>> indata.regress(regress=True)
+                >>> indata.regress()
                 >>> indata.phenotypes.values[:3, :3]
                 array([[ 0.34421705, -0.01470998,  2.25710966],
                        [ 1.69886647, -1.41756814, -0.55614649],
                        [-1.10700674, -0.66017713, -0.22201814]])
         """
-        if regress:
-            if np.array_equal(self.phenotypes, self.covariates):
-                raise DataMismatch(('Phenotype and covariate arrays are '
-                        'identical'))
-            verboseprint('Regress covariates', verbose=self.verbose)
-            phenotypes = regressOut(np.array(self.phenotypes),
-                    np.array(self.covariates))
-            self.phenotypes = pd.DataFrame(phenotypes,
-                index=self.phenotypes.index, columns=self.phenotypes.columns)
-            self.covariates = None
+        if np.array_equal(self.phenotypes, self.covariates):
+            raise DataMismatch(('Phenotype and covariate arrays are '
+                    'identical'))
+        verboseprint('Regress covariates', verbose=self.verbose)
+        phenotypes = regressOut(np.array(self.phenotypes),
+                np.array(self.covariates))
+        self.phenotypes = pd.DataFrame(phenotypes,
+            index=self.phenotypes.index, columns=self.phenotypes.columns)
+        self.covariates = None
 
-    def transform(self, transform = None):
+    def transform(self, transform):
         """
         Transform phenotypes
         
@@ -762,8 +780,6 @@ class InputData(object):
                       mean center, divide by sd
                     - gaussian:
                       inverse normalisation
-                    - None:
-                      no transformation
         
         Returns:
             None:
@@ -811,21 +827,21 @@ class InputData(object):
                        [-1.55977999,  0.01240937, -0.62091817]])
         """
         if transform == 'scale':
-            verboseprint('Use %s as transformation' % transform, verbose=self.verbose)
+            verboseprint('Use %s as transformation' % transform, 
+                verbose=self.verbose)
             phenotypes = scale(self.phenotypes)
             self.phenotypes = pd.DataFrame(phenotypes,
                 index=self.phenotypes.index, columns=self.phenotypes.columns)
         elif transform == 'gaussian':
-            verboseprint('Use %s as transformation' % transform, verbose=self.verbose)
+            verboseprint('Use %s as transformation' % transform, 
+                verbose=self.verbose)
             phenotypes = np.apply_along_axis(quantile_gaussianize, 0, 
                     self.phenotypes)
             self.phenotypes = pd.DataFrame(phenotypes,
                 index=self.phenotypes.index, columns=self.phenotypes.columns)
-        elif transform != None:
-            raise TypeError(('Possible transformation methods are: scale, '
-                    'gaussian or None but {} provided').format(transform))
         else:
-            verboseprint('Data will not be transformed', verbose=self.verbose)
+            raise TypeError(('Possible transformation methods are: scale, '
+                    'and gaussian but {} provided').format(transform))
 
     def standardiseGenotypes(self):
         r"""

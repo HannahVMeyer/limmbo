@@ -19,15 +19,18 @@ def entry_point():
     dataread = ReadData(verbose=options.verbose)
     dataread.getPhenotypes(file_pheno = options.file_pheno, delim =
             options.pheno_delim)
-    dataread.getCovariates(file_covariates = options.file_covariates, delim =
-                        options.covariate_delim)
-    dataread.getRelatedness(file_relatedness = options.file_relatedness,
-            delim = options.relatedness_delim)
     dataread.getGenotypes(file_genotypes = options.file_genotypes, delim =
                         options.genotypes_delim)
-    dataread.getVarianceComponents(file_Cg = options.file_cg, delim_cg =
-            options.cg_delim, file_Cn = options.file_cn, delim_cn =
-                        options.cn_delim)
+    if options.file_covariates is not None:
+        dataread.getCovariates(file_covariates = options.file_covariates, 
+            delim = options.covariate_delim)
+    if options.file_relatedness is not None:
+        dataread.getRelatedness(file_relatedness = options.file_relatedness,
+            delim = options.relatedness_delim)
+    if options.file_cg is not None:
+        dataread.getVarianceComponents(file_Cg = options.file_cg, delim_cg =
+            options.cg_delim, file_Cn = options.file_cn, 
+            delim_cn = options.cn_delim)
     if options.samplelist is not None or options.file_samplelist is not None:
         samplelist = dataread.getSampleSubset(samplelist=options.samplelist, 
                 file_samplelist=options.file_samplelist)
@@ -43,15 +46,21 @@ def entry_point():
     datainput.addPhenotypes(phenotypes = dataread.phenotypes,
                             phenotype_ID = dataread.phenotype_ID,
                             pheno_samples = dataread.pheno_samples)
-    datainput.subsetTraits(traitlist = traitlist)
     datainput.addGenotypes(genotypes = dataread.genotypes,
                             genotypes_info = dataread.genotypes_info)
-    datainput.addRelatedness(relatedness = dataread.relatedness)
-    datainput.addCovariates(covariates = dataread.covariates)
-    datainput.addVarianceComponents(Cg = dataread.Cg, Cn = dataread.Cn)
+    if traitlist is not None:
+        datainput.subsetTraits(traitlist = traitlist)
+    if dataread.relatedness is not None:
+        datainput.addRelatedness(relatedness = dataread.relatedness)
+    if dataread.covariates is not None:
+        datainput.addCovariates(covariates = dataread.covariates)
+    if dataread.cg is not None:
+        datainput.addVarianceComponents(Cg = dataread.Cg, Cn = dataread.Cn)
     datainput.commonSamples(samplelist=samplelist)
-    datainput.regress(regress = options.regress)
-    datainput.transform(transform = options.transform)
+    if options.regress is not None:
+        datainput.regress()
+    if options.transform is not None:
+        datainput.transform(transform = options.transform)
 
     # set up variance decomposition via LiMMBo
     gwas = GWAS(datainput=datainput,

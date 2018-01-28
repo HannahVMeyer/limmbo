@@ -13,7 +13,7 @@ class Input(unittest.TestCase):
         self.datainput = InputData()
         self.phenotypes = np.array(((1,2),(1,3)))
         self.pheno_samples = np.array(('S1','S2'))
-        self.phenotype_ID = np.array(('ID2','ID2'))
+        self.phenotype_ID = np.array(('ID1','ID2'))
     
         self.covariates = np.array((1,2))
         self.covs_samples = np.array(('S1','S2'))
@@ -72,7 +72,7 @@ class Input(unittest.TestCase):
  
     def test_traitstring_with_traitnumber_gt_number_of_phenotypes(self):
         phenotypes = np.array(((1,2,1,3), (1,3,1,3)))
-        phenotype_ID = np.array(('ID2','ID2', 'ID3','ID4'))
+        phenotype_ID = np.array(('ID1','ID2', 'ID3','ID4'))
         pheno_samples = np.array(('S1','S2'))
         self.datainput = InputData(verbose=False)
         self.datainput.addPhenotypes(phenotypes=phenotypes, 
@@ -124,7 +124,7 @@ class Input(unittest.TestCase):
 
     def test_passing_of_transformation_method(self):
         phenotypes = np.array(((1,2,1,3), (1,3,1,3)))
-        phenotype_ID = np.array(('ID2','ID2', 'ID3','ID4'))
+        phenotype_ID = np.array(('ID1','ID2', 'ID3','ID4'))
         pheno_samples = np.array(('S1','S2'))
         covariates = np.array(((1,3), (3,1)))
         covs_samples = np.array(('S1','S2'))
@@ -138,7 +138,7 @@ class Input(unittest.TestCase):
 
     def test_regress_phenotypes_and_covs_are_different(self):
         phenotypes = np.array(((1,2,1,3), (1,3,1,3)))
-        phenotype_ID = np.array(('ID2','ID2', 'ID3','ID4'))
+        phenotype_ID = np.array(('ID1','ID2', 'ID3','ID4'))
         pheno_samples = np.array(('S1','S2'))
         covariates = phenotypes
         covs_samples = np.array(('S1','S2'))
@@ -148,7 +148,7 @@ class Input(unittest.TestCase):
         self.datainputFromOptions.addCovariates(covariates=covariates, 
                     covs_samples=covs_samples)
         with self.assertRaises(DataMismatch):
-            self.datainputFromOptions.regress(regress=True)
+            self.datainputFromOptions.regress()
 
         self.datainputFromOptions.addCovariates(covariates=self.covariates, 
                     covs_samples=self.covs_samples)

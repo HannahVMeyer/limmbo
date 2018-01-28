@@ -146,8 +146,8 @@ class GWAS(object):
                 ...                     genotypes_info=data.genotypes_info)
                 >>> indata.addVarianceComponents(Cg = data.Cg, Cn=data.Cn)
                 >>> indata.commonSamples()
-                >>> indata.regress(regress=True)
-                >>> indata.transform(type="scale")
+                >>> indata.regress()
+                >>> indata.transform(transform="scale")
                 >>> gwas = GWAS(datainput=indata, seed=10, verbose=False)
                 >>>
                 >>>
