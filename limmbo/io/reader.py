@@ -4,7 +4,6 @@ import numpy as np
 import re
 
 from limix.io import read_plink
-from limix.io import read_gen
 
 from limmbo.utils.utils import verboseprint
 from limmbo.io.utils import file_type
@@ -90,9 +89,9 @@ class ReadData(object):
                 >>> data.phenotypes.columns[:3]
                 Index([u'trait_1', u'trait_2', u'trait_3'], dtype='object')
                 >>> data.phenotypes.values[:3,:3]
-		array([[-1.56760036, -1.5324513 ,  1.17789321],
-		       [-0.85655034,  0.48358151,  1.35664966],
-		       [ 0.10772832, -0.02262884, -0.27963328]])
+                array([[-1.56760036, -1.5324513 ,  1.17789321],
+                       [-0.85655034,  0.48358151,  1.35664966],
+                       [ 0.10772832, -0.02262884, -0.27963328]])
         """
 
         if file_pheno is None:
@@ -142,9 +141,9 @@ class ReadData(object):
                 >>> data.covariates.index[:3]
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
                 >>> data.covariates.values[:3,:3]
-		array([[ 0.92734699,  1.59767659, -0.67263682],
-		       [ 0.57061985, -0.84679736, -1.11037123],
-		       [ 0.44201204, -1.61499228,  0.23302345]])
+                array([[ 0.92734699,  1.59767659, -0.67263682],
+                       [ 0.57061985, -0.84679736, -1.11037123],
+                       [ 0.44201204, -1.61499228,  0.23302345]])
         """
 
         if file_covariates is not None:
@@ -198,9 +197,9 @@ class ReadData(object):
                 >>> data.relatedness.columns[:3]
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
                 >>> data.relatedness.values[:3,:3]
-		array([[1.00892922e+00, 2.00758504e-04, 4.30499103e-03],
-		       [2.00758504e-04, 9.98944885e-01, 4.86487318e-03],
-		       [4.30499103e-03, 4.86487318e-03, 9.85787665e-01]])
+                array([[1.00892922e+00, 2.00758504e-04, 4.30499103e-03],
+                       [2.00758504e-04, 9.98944885e-01, 4.86487318e-03],
+                       [4.30499103e-03, 4.86487318e-03, 9.85787665e-01]])
         """
 
         if file_relatedness is None:
@@ -277,10 +276,10 @@ class ReadData(object):
 
         Arguments:
             file_geno (string):
-                path to phenotype file in .plink, .gen or .csv format
+                path to phenotype file in .plink or .csv format
                 - **plink format**:
-
-                - **gen format**:
+                  as specified in the plink `user manual <>`_, binary plink format
+                  with .bed, .fam and .bim file
 
                 - **.csv format**:
 
@@ -308,29 +307,47 @@ class ReadData(object):
             .. doctest::
 
                 >>> from pkg_resources import resource_filename
-                >>> from limmbo.io.reader import ReadData
+                >>> from limmbo.io import reader
                 >>> from limmbo.io.utils import file_type
-                >>> data = ReadData(verbose=False)
+                >>> data = reader.ReadData(verbose=False)
+                >>> # Read genotypes in delim-format
                 >>> file_geno = resource_filename('limmbo',
-                ...                                'io/test/data/genotypes.csv')
+                ...     'io/test/data/genotypes.csv')
                 >>> data.getGenotypes(file_genotypes=file_geno)
                 >>> data.genotypes.index[:4]
                 Index([u'ID_1', u'ID_2', u'ID_3', u'ID_4'], dtype='object')
                 >>> data.genotypes.shape
                 (1000, 20)
                 >>> data.genotypes.values[:5,:5]
-		array([[0., 0., 0., 0., 0.],
-		       [0., 0., 0., 0., 0.],
-		       [0., 0., 0., 0., 0.],
-		       [2., 1., 0., 0., 0.],
-		       [1., 0., 0., 0., 0.]])
+                array([[0., 0., 0., 0., 0.],
+                       [0., 0., 0., 0., 0.],
+                       [0., 0., 0., 0., 0.],
+                       [2., 1., 0., 0., 0.],
+                       [1., 0., 0., 0., 0.]])
                 >>> data.genotypes_info[:5]
-			   chrom       pos
-		rs1601111      3  88905003
-		rs13270638     8  20286021
-		rs75132935     8  76564608
-		rs72668606     8  79733124
-		rs55770986     7   2087823
+                           chrom       pos
+                rs1601111      3  88905003
+                rs13270638     8  20286021
+                rs75132935     8  76564608
+                rs72668606     8  79733124
+                rs55770986     7   2087823
+                >>> ### read genotypes in plink format
+                >>> file_geno = resource_filename('limmbo',
+                ...     'io/test/data/genotypes')
+                >>> data.getGenotypes(file_genotypes=file_geno)
+                >>> data.genotypes.values[:5,:5]
+                array([[0., 0., 0., 0., 0.],
+                       [0., 0., 0., 0., 0.],
+                       [0., 0., 0., 0., 0.],
+                       [2., 1., 0., 0., 0.],
+                       [1., 0., 0., 0., 0.]])
+                >>> data.genotypes_info[:5]
+                           chrom       pos
+                rs1601111      3  88905003
+                rs13270638     8  20286021
+                rs75132935     8  76564608
+                rs72668606     8  79733124
+                rs55770986     7   2087823
         """
 
         if file_genotypes is None:
@@ -366,7 +383,7 @@ class ReadData(object):
         
         if file_type(file_genotypes) is 'bed':
             try:
-                (bim, fam, bed) = read_plink(file_genotypes, 
+                (bim, fam, bed) = read_plink(file_genotypes,
                         verbose=self.verbose)
             except Exception:
                 raise IOError('{} could not be opened'.format(file_genotypes))
@@ -377,7 +394,8 @@ class ReadData(object):
                 np.array([bim.chrom, bim.pos]).T,
                 columns=['chrom', 'pos'],
                 index=bim.snp)
-                
+            self.genotypes_info.index.name = None
+
     def getVarianceComponents(self, file_Cg=None, file_Cn=None, delim_cg=",",
             delim_cn=","):
         r"""
@@ -420,13 +438,13 @@ class ReadData(object):
                 >>> data.Cn.shape
                 (10, 10)
                 >>> data.Cg[:3,:3]
-		array([[ 0.45446454, -0.21084613,  0.01440468],
-		       [-0.21084613,  0.11443656,  0.01250233],
-		       [ 0.01440468,  0.01250233,  0.02347906]])
+                array([[ 0.45446454, -0.21084613,  0.01440468],
+                       [-0.21084613,  0.11443656,  0.01250233],
+                       [ 0.01440468,  0.01250233,  0.02347906]])
                 >>> data.Cn[:3,:3]
-		array([[ 0.53654803, -0.14392748, -0.45483001],
-		       [-0.14392748,  0.88793093,  0.30539822],
-		       [-0.45483001,  0.30539822,  0.97785614]])
+                array([[ 0.53654803, -0.14392748, -0.45483001],
+                       [-0.14392748,  0.88793093,  0.30539822],
+                       [-0.45483001,  0.30539822,  0.97785614]])
         """
 
         if file_Cg is None and file_Cn is None:
@@ -511,19 +529,19 @@ class ReadData(object):
            raise IOError("Only one of file_samplelist or samplelist can "
                     "be specified")
         if file_samplelist is not None or samplelist is not None:
-	    if file_samplelist is not None:
+            if file_samplelist is not None:
                 verboseprint("Read sample list from file", verbose=self.verbose)
                 try:
-		    samplelist = pd.io.parsers.read_csv(
-		    file_samplelist, sep=" ", header=None, index_col=0)
+                    samplelist = pd.io.parsers.read_csv(
+                        file_samplelist, sep=" ", header=None, index_col=0)
                 except Exception:
                     raise IOError('{} could not be opened'.format(
                         file_samplelist))
                 samplelist = samplelist.index
-	    else:
+            else:
                 verboseprint("Split sample string", verbose=self.verbose)
-		samplelist = samplelist.split(",")
-	    
+                samplelist = samplelist.split(",")
+
             verboseprint("Number of samples in sample list: %s" %
-		len(samplelist), verbose=self.verbose)
+                len(samplelist), verbose=self.verbose)
             return samplelist

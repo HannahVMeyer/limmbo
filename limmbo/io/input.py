@@ -110,20 +110,20 @@ class InputData(object):
                 (2,)
         """
         if pheno_samples is None:
-	    try:
-	        self.pheno_samples = np.array(phenotypes.index)
-	    except Exception:
-		raise TypeError(("pheno_samples are not provided and "
-		    "phenotypes has no index to retrieve pheno_samples from."))
+            try:
+                self.pheno_samples = np.array(phenotypes.index)
+            except Exception:
+                raise TypeError(("pheno_samples are not provided and "
+                    "phenotypes has no index to retrieve pheno_samples from."))
         else:
             self.pheno_samples = np.array(pheno_samples)
 
         if phenotype_ID is None:
-	    try:
+            try:
                 self.phenotype_ID = np.array(phenotypes.columns)
-	    except Exception:
-		raise TypeError(("phenotype_ID are not provided and phenotypes "
-		    "has no column names to retrieve phenotype_ID from."))
+            except Exception:
+                raise TypeError(("phenotype_ID are not provided and phenotypes "
+                    "has no column names to retrieve phenotype_ID from."))
         else:
             self.phenotype_ID = np.array(phenotype_ID)
 
@@ -253,14 +253,14 @@ class InputData(object):
         if relatedness_samples is None:
             try:
                 self.relatedness_samples = np.array(relatedness.index)
-	    except Exception:
-		raise TypeError(("relatedness_samples are not provided and "
+            except Exception:
+                raise TypeError(("relatedness_samples are not provided and "
                     "relatedness has no index to retrieve relatedness_samples "
                     "from"))
         else:
             self.relatedness_samples = np.array(relatedness_samples)
         rel = np.array(relatedness)
-	if rel.shape[0] != rel.shape[1]:
+        if rel.shape[0] != rel.shape[1]:
             raise FormatError(('Relatedness has to be a square matrix, but '
                 'number of rows {} is not equal to number of columns '
                 '{}').format(rel.shape[0], rel.shape[1]))
@@ -327,24 +327,24 @@ class InputData(object):
                 >>> indata.genotypes.shape
                 (1000, 20)
                 >>> indata.genotypes.values[:5,:5]
-		array([[0., 0., 0., 0., 0.],
-		       [0., 0., 0., 0., 0.],
-		       [0., 0., 0., 0., 0.],
-		       [2., 1., 0., 0., 0.],
-		       [1., 0., 0., 0., 0.]])                
+                array([[0., 0., 0., 0., 0.],
+                       [0., 0., 0., 0., 0.],
+                       [0., 0., 0., 0., 0.],
+                       [2., 1., 0., 0., 0.],
+                       [1., 0., 0., 0., 0.]])
                 >>> indata.genotypes_info[:5]
-			   chrom       pos
-		rs1601111      3  88905003
-		rs13270638     8  20286021
-		rs75132935     8  76564608
-		rs72668606     8  79733124
-		rs55770986     7   2087823
+                           chrom       pos
+                rs1601111      3  88905003
+                rs13270638     8  20286021
+                rs75132935     8  76564608
+                rs72668606     8  79733124
+                rs55770986     7   2087823
         """
         if geno_samples is None:
             try:
                 self.geno_samples = np.array(genotypes.index)
-	    except Exception:
-		raise TypeError(("geno_samples are not provided and genotypes "
+            except Exception:
+                raise TypeError(("geno_samples are not provided and genotypes "
                     "has no index to retrieve geno_samples from"))
         else:
             self.geno_samples = np.array(geno_samples)
@@ -457,8 +457,8 @@ class InputData(object):
         Arguments:
             pcs (array-like):
                 [`N x `PCs`] principal component matrix of `N` individuals and
-                `PCs` principal components; if pandas.DataFrame with pc_samples 
-		as index, covs_samples do not have to specified separately.
+                `PCs` principal components; if pandas.DataFrame with pc_samples
+                as index, covs_samples do not have to specified separately.
             pc_samples (array-like):
                 [`N`] sample IDs
         
@@ -679,18 +679,18 @@ class InputData(object):
                 raise DataMismatch(('No common samples between phenotypes,'
                         'and pcs'))
             self.samples = np.intersect1d(self.samples, test_pheno_pcs)
-	
+
         if samplelist is not None:
             if len(samplelist) != len(set(samplelist)):
-                raise IOError("Duplicate sample names in samplelist")    
-	    test_samples_samplelist = np.intersect1d(self.samples, samplelist)
+                raise IOError("Duplicate sample names in samplelist")
+            test_samples_samplelist = np.intersect1d(self.samples, samplelist)
             if len(test_samples_samplelist) == 0:
                 raise DataMismatch(('No samples between common samples in, '
                         'datasets and samplelist'))
             if len(test_samples_samplelist) < len(samplelist):
                 raise DataMismatch(('Not all Ids in samplelist are contained '
                     'in common samples from provided datasets'))
-	    self.samples = samplelist
+            self.samples = samplelist
     
         self.phenotypes = self.phenotypes.loc[self.samples,:]
         self.pheno_samples = np.array(self.phenotypes.index)
@@ -882,12 +882,12 @@ class InputData(object):
                 ...                     genotypes_info=data.genotypes_info)
                 >>> geno_sd = indata.standardiseGenotypes()
                 >>> geno_sd.iloc[:5,:3]
-			     0         1       2
-		ID_1 -2.201123 -2.141970 -8.9622
-		ID_2 -2.201123 -2.141970 -8.9622
-		ID_3 -2.201123 -2.141970 -8.9622
-		ID_4  0.908627 -0.604125 -8.9622
-		ID_5 -0.646248 -2.141970 -8.9622
+                             0         1       2
+                ID_1 -2.201123 -2.141970 -8.9622
+                ID_2 -2.201123 -2.141970 -8.9622
+                ID_3 -2.201123 -2.141970 -8.9622
+                ID_4  0.908627 -0.604125 -8.9622
+                ID_5 -0.646248 -2.141970 -8.9622
         """
         self.genotypes_sd = np.zeros(self.genotypes.shape)
         for snp in range(self.genotypes.shape[1]):
@@ -933,12 +933,12 @@ class InputData(object):
                 ...                     geno_samples=data.geno_samples)
                 >>> freqs = indata.getAlleleFrequencies()
                 >>> freqs.iloc[:5,:]
-				   p         q
-		rs1601111   0.292186  0.707814
-		rs13270638  0.303581  0.696419
-		rs75132935  0.024295  0.975705
-		rs72668606  0.119091  0.880909
-		rs55770986  0.169338  0.830662
+                                   p         q
+                rs1601111   0.292186  0.707814
+                rs13270638  0.303581  0.696419
+                rs75132935  0.024295  0.975705
+                rs72668606  0.119091  0.880909
+                rs55770986  0.169338  0.830662
         """
         verboseprint('Get allele frequencies of %s snps'.format(
             self.genotypes.shape[1]), verbose=self.verbose)
@@ -955,6 +955,6 @@ class InputData(object):
     def _is_positive_definite(matrix):
         try: 
             chol_matrix = np.linalg.cholesky(matrix)
-	    return(True)
+            return(True)
         except np.linalg.linalg.LinAlgError:
-	    return(False)
+            return(False)
