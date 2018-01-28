@@ -33,7 +33,7 @@ def getGWASargs():
         required=False, 
         default=None,
         help=('Genotype file: either [S x N].csv file (first column: SNP id, '
-             'first row: sample IDs) or plink formated genotypes '
+            'first row: sample IDs) or  `plink formated <https://www.cog-genomics.org/plink/1.9/input>`_ genotypes '
              '(.bim/.fam/.bed). Default: %(default)s'))
     required.add_argument(
         '--geno_delim',
@@ -41,8 +41,8 @@ def getGWASargs():
         dest="genotypes_delim",
         required=False,
         default=",",
-        help=('Delimiter of genotype file (if not in plink format). '
-             'g Default: %(default)s'))
+        help=('Delimiter of genotype file (if not in `plink format <https://www.cog-genomics.org/plink/1.9/input>`_). '
+             'Default: %(default)s'))
     required.add_argument(
         '-o',
         '--outdir',

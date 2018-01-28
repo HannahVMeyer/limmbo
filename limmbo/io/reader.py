@@ -272,14 +272,15 @@ class ReadData(object):
     def getGenotypes(self, file_genotypes=None, delim = ','):
         r"""
         Reads genotype file in the following formats: plink (.bed, .bim, .fam),  
-        gen (.gen, .sample) or comma-separated values (.csv) file
+        gen (.gen, .sample) or comma-separated values (.csv) file.
 
         Arguments:
             file_geno (string):
                 path to phenotype file in .plink or .csv format
                 - **plink format**:
-                  as specified in the plink `user manual <>`_, binary plink format
-                  with .bed, .fam and .bim file
+                  
+                  as specified in the plink `user manual <https://www.cog-genomics.org/plink/1.9/input>`_, 
+                  binary plink format with .bed, .fam and .bim file
 
                 - **.csv format**:
 
