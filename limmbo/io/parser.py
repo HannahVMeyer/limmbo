@@ -1,7 +1,7 @@
 import argparse
 
 def getGWASargs():
-    parser = argparse.ArgumentParser(prog="runGWAS", 
+    parser = argparse.ArgumentParser(prog="runAssociation", 
             description=('Models the association between phenotypes and '
                 'genotypes, accepting additional covariates and parameters '
                 'to account for population structure and relatedness between '

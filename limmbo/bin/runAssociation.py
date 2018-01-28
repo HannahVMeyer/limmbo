@@ -49,8 +49,6 @@ def entry_point():
     datainput.addRelatedness(relatedness = dataread.relatedness)
     datainput.addCovariates(covariates = dataread.covariates)
     datainput.addVarianceComponents(Cg = dataread.Cg, Cn = dataread.Cn)
-    import pdb
-    pdb.set_trace()
     datainput.commonSamples(samplelist=samplelist)
     datainput.regress(regress = options.regress)
     datainput.transform(transform = options.transform)
