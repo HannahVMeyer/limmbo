@@ -126,6 +126,10 @@ class InputData(object):
             raise DataMismatch(('Number phenotypes ({}) does not match '
                 'number of phenotype IDs ({}) provided').format(
                     self.phenotypes.shape[1], self.phenotype_ID.shape[0]))
+        if len(self.pheno_samples) != len(set(self.pheno_samples)):
+            raise IOError("Duplicate sample names in phenotypes")    
+        if len(self.phenotype_ID) != len(set(self.phenotype_ID)):
+            raise IOError("Duplicate trait names in phenotypes")    
         self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples,
             columns = self.phenotype_ID)
 
@@ -179,6 +183,8 @@ class InputData(object):
                     'not match number of sample IDs ({}) provided').format(
                         np.array(covariates).shape[0],
                         np.array(self.covs_samples).shape[0]))
+        if len(self.covs_samples) != len(set(self.covs_samples)):
+            raise IOError("Duplicate sample names in covariates")    
             self.covariates = pd.DataFrame(covariates, index=self.covs_samples)
         else:
             verboseprint('No covariates set', verbose=self.verbose)
@@ -247,6 +253,8 @@ class InputData(object):
             raise DataMismatch(('Number of samples in relatedness ({}) does '
                     'not match number of sample IDs ({}) provided').format(
                     rel.shape[0], self.relatedness_samples.shape[0]))
+        if len(self.relatedness_samples) != len(set(self.relatedness_samples)):
+            raise IOError("Duplicate sample names in relatedness")    
         self.relatedness = pd.DataFrame(relatedness,
             index=self.relatedness_samples, columns=self.relatedness_samples)
 
@@ -328,6 +336,8 @@ class InputData(object):
             raise DataMismatch(('Number of genotypes in genotypes ({}) does '
                 'not match number of genotypes in genotypes_info ({})').format(
                     self.genotypes.shape[1], self.genotypes_info.shape[0]))
+        if len(self.geno_samples) != len(set(self.geno_samples)):
+            raise IOError("Duplicate sample names in genotypes")    
 
     def addVarianceComponents(self, Cg = None, Cn = None):
         """
@@ -464,6 +474,8 @@ class InputData(object):
                         'not match number of sample IDs ({}) provided').format(
                             np.array(pcs).shape[0], 
                             np.array(pc_samples).shape[0]))
+            if len(self.pc_samples) != len(set(self.pc_samples)):
+                raise IOError("Duplicate sample names for principle components")    
             self.pcs = pd.DataFrame(pcs, index=self.pc_samples)
         else:
             verboseprint('No principal components set', verbose=self.verbose)
@@ -517,6 +529,8 @@ class InputData(object):
             verboseprint('No trait subset chosen', verbose=self.verbose)
         else:
             self.traitlist = np.array(traitlist)
+        if len(self.traitlist) != len(set(self.traitlist)):
+            raise IOError("Duplicate trait names in traitlist")    
         try:
             self.phenotypes = self.phenotypes.iloc[:, self.traitlist]
             self.phenotype_ID = self.phenotype_ID[self.traitlist]
@@ -643,6 +657,8 @@ class InputData(object):
             self.samples = np.intersect1d(self.samples, test_pheno_pcs)
 	
         if samplelist is not None:
+            if len(samplelist) != len(set(samplelist)):
+                raise IOError("Duplicate sample names in samplelist")    
 	    test_samples_samplelist = np.intersect1d(self.samples, samplelist)
             if len(test_samples_samplelist) == 0:
                 raise DataMismatch(('No samples between common samples in, '
