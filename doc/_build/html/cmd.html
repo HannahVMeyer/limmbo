@@ -1,0 +1,660 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Command-line interface &mdash; LiMMBo b documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="LiMMBo b documentation" href="index.html"/>
+        <link rel="next" title="Additional functions" href="utils.html"/>
+        <link rel="prev" title="Association analysis" href="gwas.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> LiMMBo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Data input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vd.html">Variance decomposition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gwas.html">Association analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command-line interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#association-analysis">Association analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Basic required arguments">Basic required arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Output arguments">Output arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Optional files">Optional files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Optional association parameters">Optional association parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Optional data processing parameters">Optional data processing parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Optional subsetting options">Optional subsetting options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Plot arguments">Plot arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Version">Version</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#variance-decomposition">Variance decomposition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Basic required arguments">Basic required arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Optional files">Optional files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Bootstrapping parameters">Bootstrapping parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Optional data processing parameters">Optional data processing parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Optional subsetting options">Optional subsetting options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Output arguments">Output arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Version">Version</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Additional functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LiMMBo</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Command-line interface</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/cmd.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="command-line-interface">
+<h1>Command-line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="association-analysis">
+<span id="rungwas"></span><h2>Association analysis<a class="headerlink" href="#association-analysis" title="Permalink to this headline">¶</a></h2>
+<p>Models the association between phenotypes and genotypes, accepting additional covariates and parameters to account for population structure and relatedness between samples. Users can choose between single-trait and multi-trait models, simple linear or linear mixed model set-ups.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">runAssociation</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">FILE_PHENO</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">pheno_delim</span> <span class="n">PHENO_DELIM</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">FILE_GENOTYPES</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">geno_delim</span> <span class="n">GENOTYPES_DELIM</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span>
+                      <span class="n">OUTDIR</span> <span class="p">(</span><span class="o">-</span><span class="n">st</span> <span class="o">|</span> <span class="o">-</span><span class="n">mt</span><span class="p">)</span> <span class="p">(</span><span class="o">-</span><span class="n">lm</span> <span class="o">|</span> <span class="o">-</span><span class="n">lmm</span><span class="p">)</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">k</span> <span class="n">FILE_RELATEDNESS</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">kinship_delim</span> <span class="n">RELATEDNESS_DELIM</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cg</span> <span class="n">FILE_CG</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">cg_delim</span> <span class="n">CG_DELIM</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cn</span> <span class="n">FILE_CN</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">cn_delim</span> <span class="n">CN_DELIM</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">pcs</span> <span class="n">FILE_PCS</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">pcs_delim</span> <span class="n">PCS_DELIM</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">FILE_COVARIATES</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">covariate_delim</span> <span class="n">COVARIATE_DELIM</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">adjustP</span> <span class="p">{</span><span class="n">bonferroni</span><span class="p">,</span><span class="n">effective</span><span class="p">,</span><span class="kc">None</span><span class="p">}]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">nrpermutations</span> <span class="n">NRPERMUTATIONS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">fdr</span> <span class="n">FDR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">seed</span> <span class="n">SEED</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">tr</span> <span class="p">{</span><span class="n">scale</span><span class="p">,</span><span class="n">gaussian</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">reg</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">traitset</span> <span class="n">TRAITSTRING</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">nrpcs</span> <span class="n">NRPCS</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">file_samplelist</span> <span class="n">FILE_SAMPLELIST</span> <span class="o">|</span> <span class="o">--</span><span class="n">samplelist</span> <span class="n">SAMPLELIST</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">plot</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">colourS</span> <span class="n">COLOURS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">colourNS</span> <span class="n">COLOURNS</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">alphaS</span> <span class="n">ALPHAS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">alphaNS</span> <span class="n">ALPHANS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">thr</span> <span class="n">THR</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Basic required arguments">
+<h3>Basic required arguments<a class="headerlink" href="#Basic required arguments" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --file_pheno</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path [string] to [(N+1) x (P+1)] .csv file of [P] phenotypes with [N] samples (first column: sample IDs, first row: phenotype IDs). Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--pheno_delim</kbd></td>
+<td>Delimiter of phenotype file.  g Default: “,”</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-g, --file_geno</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Genotype file: either [S x N].csv file (first column: SNP id, first row: sample IDs) or  <a class="reference external" href="https://www.cog-genomics.org/plink/1.9/input">plink formated</a> genotypes (.bim/.fam/.bed). Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--geno_delim</kbd></td>
+<td>Delimiter of genotype file (if not in <a class="reference external" href="https://www.cog-genomics.org/plink/1.9/input">plink format</a>). Default: “,”</td></tr>
+<tr><td class="option-group">
+<kbd>-o, --outdir</kbd></td>
+<td>Path [string] of output directory; user needs writing permission. Default: None</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-st, --singletrait</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set flag to conduct a single-trait association analysesDefault: False</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-mt, --multitrait</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set flag to conduct a multi-trait association analysesDefault: False</td></tr>
+<tr><td class="option-group">
+<kbd>-lm, --lm</kbd></td>
+<td>Set flag to use a simple linear model for the associationanalysis</td></tr>
+<tr><td class="option-group">
+<kbd>-lmm, --lmm</kbd></td>
+<td>Set flag to use a linear mixed model for the associationanalysis</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Output arguments">
+<h3>Output arguments<a class="headerlink" href="#Output arguments" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-n, --name</kbd></td>
+<td>Name (used for output file naming). Default:</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td>[bool]: should analysis progress be displayed. Default: False</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Optional files">
+<h3>Optional files<a class="headerlink" href="#Optional files" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-k, --file_kinship</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path [string] to [N x (N+1)] file of kinship/relatedness matrix with [N] samples (first row: sample IDs). Required when –lmm/-lm. Default: None</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--kinship_delim</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Delimiter of kinship file. Default: “,”</td></tr>
+<tr><td class="option-group">
+<kbd>-cg, --file_cg</kbd></td>
+<td>Required for large phenotype sizes when –lmm/-lm; computed via runLiMMBo; specifies file name for genetic trait covariance  matrix (rows: traits, columns: traits). Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--cg_delim</kbd></td>
+<td>Delimiter of Cg file. Default: “,”</td></tr>
+<tr><td class="option-group">
+<kbd>-cn, --file_cn</kbd></td>
+<td>Required for large phenotype sizeswhen –lmm/-lm; computed via runLiMMBo; specifies file name for non-genetic trait covariance  matrix (rows: traits, columns: traits). Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--cn_delim</kbd></td>
+<td>Delimiter of Cn file. g Default: “,”</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-pcs, --file_pcs</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path to [N x PCs] file of principal components from genotypes to be included as covariates (first column: sample IDs, first row: PC IDs); Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--pcs_delim</kbd></td>
+<td>Delimiter of PCs file. g Default: “,”</td></tr>
+<tr><td class="option-group">
+<kbd>-c, --file_cov</kbd></td>
+<td>Path [string] to [(N+1) x C] file of covariates matrix with [N] samples and [K] covariates (first column: sample IDs, first row: phenotype IDs). Default: None</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--covariate_delim</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Delimiter of covariates file. g Default: “,”</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Optional association parameters">
+<h3>Optional association parameters<a class="headerlink" href="#Optional association parameters" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-adjustP, --adjustP</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: bonferroni, effective, None</p>
+<p class="last">Method to adjust single-trait p-values formultiple hypothesis testing when runningmultiple single-trait GWAS: bonferroni/effective number of tests <a class="reference external" href="http://onlinelibrary.wiley.com/doi/10.1002/gepi.20408/abstract">(Galwey,2009)</a> Default: None</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nrpermutations, --nrpermutations</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Number of permutations for computing empirical p-values; 1/nrpermutations is maximum level of testing for significance. Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>-fdr, --fdr</kbd></td>
+<td>FDR threshold for computing empirical FDR. Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>-seed, --seed</kbd></td>
+<td>Seed [int] to inittiate random number generation for permutations. Default: 256</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Optional data processing parameters">
+<h3>Optional data processing parameters<a class="headerlink" href="#Optional data processing parameters" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-tr, --transform_method</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: scale, gaussian</p>
+<p class="last">Choose type [string] of data preprocessing: scale (mean center, divide by sd) or gaussian (inverse normalise). Default: “scale”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-reg, --reg_covariates</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>[bool]: should covariates be regressed out? Default: False</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Optional subsetting options">
+<h3>Optional subsetting options<a class="headerlink" href="#Optional subsetting options" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-traitset, --traitset</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Comma- (for list of traits) or hyphen- (for trait range) or comma and hyphen-separated list [string] of traits (trait columns) to choose; default: None (=all traits). Default: None</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-nrpcs, --nrpcs</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>First PCs to chose. Default: 10</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--file_samplelist</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path [string] to file with samplelist for sample selection, with one sample ID per line. Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--samplelist</kbd></td>
+<td>Comma-separated list [string] of samples IDs to restrict analysis to, e.g. ID1,ID2,ID5,ID9,ID10. Default: None</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Plot arguments">
+<h3>Plot arguments<a class="headerlink" href="#Plot arguments" title="Permalink to this headline">¶</a></h3>
+<p>Arguments for depicting GWAS results as manhattan plot</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--plot</kbd></td>
+<td>Set flag if results of association analysis should be depicted as manhattan and quantile-quantile plot</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-colourS, --colourS</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Colour of significant points in manhattan plot</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-colourNS, --colourNS</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Colour of non-significant points in manhattan plot</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-alphaS, --alphaS</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Transparency of significant points in manhattan plot</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-alphaNS, --alphaNS</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Transparency of non-significant points in manhattan plot</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-thr, --threshold</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Significance threshold; when –fdr specified, empirical fdr used as threshold</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Version">
+<h3>Version<a class="headerlink" href="#Version" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--version</kbd></td>
+<td>show program’s version number and exit</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="variance-decomposition">
+<span id="runvarianceestimation"></span><h2>Variance decomposition<a class="headerlink" href="#variance-decomposition" title="Permalink to this headline">¶</a></h2>
+<p>Estimates the genetic and non-genetic traitcovariance matrix parameters of a linear mixed model with random genetic and non-genetic effect via a bootstrapping-based approach.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">runVarianceEstimation</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">FILE_PHENO</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">pheno_delim</span> <span class="n">PHENO_DELIM</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">-</span><span class="n">k</span> <span class="n">FILE_RELATEDNESS</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">--</span><span class="n">kinship_delim</span> <span class="n">RELATEDNESS_DELIM</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">OUTDIR</span>
+                             <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">FILE_COVARIATES</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">--</span><span class="n">covariate_delim</span> <span class="n">COVARIATE_DELIM</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">seed</span> <span class="n">SEED</span><span class="p">]</span>
+                             <span class="o">-</span><span class="n">sp</span> <span class="n">S</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RUNS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">--</span><span class="n">minCooccurrence</span> <span class="n">MINCOOCCURRENCE</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">ITERATIONS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">-</span><span class="n">tr</span> <span class="p">{</span><span class="n">scale</span><span class="p">,</span><span class="n">gaussian</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">reg</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">-</span><span class="n">traitset</span> <span class="n">TRAITSTRING</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">--</span><span class="n">file_samplelist</span> <span class="n">FILE_SAMPLELIST</span> <span class="o">|</span> <span class="o">--</span><span class="n">samplelist</span> <span class="n">SAMPLELIST</span><span class="p">]</span>
+                             <span class="p">[</span><span class="o">-</span><span class="n">dontSaveIntermediate</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Basic required arguments">
+<h3>Basic required arguments<a class="headerlink" href="#Basic required arguments" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-p, --file_pheno</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path [string] to [(N+1) x (P+1)] .csv file of [P] phenotypes with [N] samples (first column: sample IDs, first row: phenotype IDs). Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--pheno_delim</kbd></td>
+<td>Delimiter of phenotype file. Default: “,”</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-k, --file_kinship</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path [string] to [N x (N+1)] file of kinship/relatedness matrix with [N] samples (first row: sample IDs). Required when –lmm/-lm. Default: None</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--kinship_delim</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Delimiter of kinship file. Default: “,”</td></tr>
+<tr><td class="option-group">
+<kbd>-o, --outdir</kbd></td>
+<td>Path [string] of output directory; user needs writing permission. Default: None</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Optional files">
+<h3>Optional files<a class="headerlink" href="#Optional files" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-c, --file_cov</kbd></td>
+<td>Path [string] to [(N+1) x C] file of covariates matrix with [N] samples and [K] covariates (first column: sample IDs, first row: phenotype IDs). Default: None</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--covariate_delim</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Delimiter of covariates file. Default: “,”</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Bootstrapping parameters">
+<h3>Bootstrapping parameters<a class="headerlink" href="#Bootstrapping parameters" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>-seed, --seed</kbd></td>
+<td>seed [int] used to generate bootstrap matrix. Default: 234</td></tr>
+<tr><td class="option-group">
+<kbd>-sp, --smallp</kbd></td>
+<td>Size [int] of phenotype subsamples used for variance decomposition. Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>-r, --runs</kbd></td>
+<td>Total number [int] of bootstrap runs. Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>-t, --timing</kbd></td>
+<td>[bool]: should variance decomposition be timed. Default: False</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--minCooccurrence</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Minimum count [int] of the pairwise sampling of any given trait pair. Default: 3</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-i, --iterations</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Number [int] of iterations for variance decomposition attempts. Default: 10</td></tr>
+<tr><td class="option-group">
+<kbd>-cpus, --cpus</kbd></td>
+<td>Number [int] of available CPUs for parallelisation of variance decomposition steps. Default: None</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Optional data processing parameters">
+<h3>Optional data processing parameters<a class="headerlink" href="#Optional data processing parameters" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-tr, --transform_method</kbd></td>
+</tr>
+<tr><td>&#160;</td><td><p class="first">Possible choices: scale, gaussian</p>
+<p class="last">Choose type [string] of data preprocessing: scale (mean center, divide by sd) or gaussian (inverse normalise). Default: “scale”</p>
+</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>-reg, --reg_covariates</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>[bool]: should covariates be regressed out? Default: False</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Optional subsetting options">
+<h3>Optional subsetting options<a class="headerlink" href="#Optional subsetting options" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-traitset, --traitset</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Comma- (for list of traits) or hyphen- (for trait range) or comma and hyphen-separated list [string] of traits (trait columns) to choose; default: None (=all traits). Default: None</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd>--file_samplelist</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path [string] to file with samplelist for sample selection, with one sample ID per line.Default: None</td></tr>
+<tr><td class="option-group">
+<kbd>--samplelist</kbd></td>
+<td>Comma-separated list [string] of samples IDs to restrict analysis to, e.g. ID1,ID2,ID5,ID9,ID10. Default: None</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Output arguments">
+<h3>Output arguments<a class="headerlink" href="#Output arguments" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd>-dontSaveIntermediate, --dontSaveIntermediate</kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Set to suppress saving intermediate variance components. Default: True</td></tr>
+<tr><td class="option-group">
+<kbd>-v, --verbose</kbd></td>
+<td>[bool]: should analysis step description be printed. Default: False</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="Version">
+<h3>Version<a class="headerlink" href="#Version" title="Permalink to this headline">¶</a></h3>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd>--version</kbd></td>
+<td>show program’s version number and exit</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="utils.html" class="btn btn-neutral float-right" title="Additional functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="gwas.html" class="btn btn-neutral" title="Association analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Hannah V. Meyer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'b',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,322 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>limmbo.core.vdsimple &mdash; LiMMBo b documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="LiMMBo b documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> LiMMBo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input.html">Data input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vd.html">Variance decomposition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gwas.html">Association analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cmd.html">Command-line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Additional functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">LiMMBo</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>limmbo.core.vdsimple</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for limmbo.core.vdsimple</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">limmbo.utils.utils</span> <span class="k">import</span> <span class="n">verboseprint</span>
+<span class="kn">from</span> <span class="nn">limmbo.utils.utils</span> <span class="k">import</span> <span class="n">regularize</span>
+<span class="kn">from</span> <span class="nn">limix.mtset</span> <span class="k">import</span> <span class="n">MTSet</span> <span class="k">as</span> <span class="n">MTST</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<div class="viewcode-block" id="vd_reml"><a class="viewcode-back" href="../../../vd.html#limmbo.core.vdsimple.vd_reml">[docs]</a><span class="k">def</span> <span class="nf">vd_reml</span><span class="p">(</span><span class="n">datainput</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute variance decomposition of phenotypes into genetic and noise</span>
+<span class="sd">    covariance via standard REML: approach implemented in LIMIX</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        datainput (:class:`InputData`):</span>
+<span class="sd">            object with ID-matched [`N` x `P`] phenotypes with [`N`]</span>
+<span class="sd">            individuals and [`P`] phenotypes and [`N` x `N`] relatedness</span>
+<span class="sd">            estimates</span>
+<span class="sd">        output (string, optional):</span>
+<span class="sd">            output directory with user-writing permissions; needed if</span>
+<span class="sd">            caching is True</span>
+<span class="sd">        cache (bool, optional):</span>
+<span class="sd">            should results be cached</span>
+<span class="sd">        verbose (bool, optional):</span>
+<span class="sd">            should messages be printed to stdout</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (tuple):</span>
+<span class="sd">            tuple containing:</span>
+
+<span class="sd">            - **Cg** (numpy.array):</span>
+<span class="sd">              [`P` x `P`] genetic variance component</span>
+<span class="sd">            - **Cn** (numpy.array):</span>
+<span class="sd">              [`P` x `P`] noise variance component</span>
+<span class="sd">            - **process_time** (double):</span>
+<span class="sd">              cpu time of variance decomposition</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">    .. doctest::</span>
+
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; from numpy.random import RandomState</span>
+<span class="sd">        &gt;&gt;&gt; from numpy.linalg import cholesky as chol</span>
+<span class="sd">        &gt;&gt;&gt; from limmbo.core.vdsimple import vd_reml</span>
+<span class="sd">        &gt;&gt;&gt; from limmbo.io.input import InputData</span>
+<span class="sd">        &gt;&gt;&gt; random = RandomState(10)</span>
+<span class="sd">        &gt;&gt;&gt; N = 100</span>
+<span class="sd">        &gt;&gt;&gt; S = 1000</span>
+<span class="sd">        &gt;&gt;&gt; P = 5</span>
+<span class="sd">        &gt;&gt;&gt; snps = (random.rand(N, S) &lt; 0.2).astype(float)</span>
+<span class="sd">        &gt;&gt;&gt; kinship = numpy.dot(snps, snps.T) / float(10)</span>
+<span class="sd">        &gt;&gt;&gt; y  = random.randn(N, P)</span>
+<span class="sd">        &gt;&gt;&gt; pheno = numpy.dot(chol(kinship), y)</span>
+<span class="sd">        &gt;&gt;&gt; pheno_ID = [ &#39;PID{}&#39;.format(x+1) for x in range(P)]</span>
+<span class="sd">        &gt;&gt;&gt; samples = [ &#39;SID{}&#39;.format(x+1) for x in range(N)]</span>
+<span class="sd">            &gt;&gt;&gt; datainput = InputData()</span>
+<span class="sd">        &gt;&gt;&gt; datainput.addPhenotypes(phenotypes = pheno,</span>
+<span class="sd">        ...                         phenotype_ID = pheno_ID,</span>
+<span class="sd">        ...                         pheno_samples = samples)</span>
+<span class="sd">        &gt;&gt;&gt; datainput.addRelatedness(relatedness = kinship,</span>
+<span class="sd">        ...                          relatedness_samples = samples)</span>
+<span class="sd">        &gt;&gt;&gt; Cg, Cn, ptime = vd_reml(datainput, verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt; Cg.shape</span>
+<span class="sd">        (5, 5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">verboseprint</span><span class="p">(</span>
+        <span class="s2">&quot;Estimate covariance matrices based on standard REML&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="c1"># time variance decomposition</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+    <span class="n">vd</span> <span class="o">=</span> <span class="n">MTST</span><span class="p">(</span><span class="n">Y</span><span class="o">=</span><span class="n">datainput</span><span class="o">.</span><span class="n">phenotypes</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="n">datainput</span><span class="o">.</span><span class="n">relatedness</span><span class="p">)</span>
+    <span class="n">vd_result</span> <span class="o">=</span> <span class="n">vd</span><span class="o">.</span><span class="n">fitNull</span><span class="p">(</span><span class="n">n_times</span><span class="o">=</span><span class="n">iterations</span><span class="p">,</span> <span class="n">rewrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">vd_result</span><span class="p">[</span><span class="s1">&#39;conv&#39;</span><span class="p">]:</span>
+        <span class="n">verboseprint</span><span class="p">(</span>
+            <span class="s2">&quot;Variance decomposition via REML converged&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">Cg</span> <span class="o">=</span> <span class="n">vd_result</span><span class="p">[</span><span class="s1">&#39;Cg&#39;</span><span class="p">]</span>
+        <span class="n">Cn</span> <span class="o">=</span> <span class="n">vd_result</span><span class="p">[</span><span class="s1">&#39;Cn&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verboseprint</span><span class="p">(</span>
+            <span class="s2">&quot;Variance decomposition via REML did not converge&quot;</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">processtime</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span>
+
+    <span class="c1"># ensure that matrices are true positive semi-definite matrices</span>
+    <span class="n">Cg</span><span class="p">,</span> <span class="n">Cg_ev_min</span> <span class="o">=</span> <span class="n">regularize</span><span class="p">(</span><span class="n">Cg</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">Cn</span><span class="p">,</span> <span class="n">Cn_ev_min</span> <span class="o">=</span> <span class="n">regularize</span><span class="p">(</span><span class="n">Cn</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Cg</span><span class="p">,</span> <span class="n">Cn</span><span class="p">,</span> <span class="n">processtime</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Hannah V. Meyer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'b',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

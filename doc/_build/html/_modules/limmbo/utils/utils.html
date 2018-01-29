@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>limmbo.utils.utils &mdash; LiMMBo b documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="LiMMBo b documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> LiMMBo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../input.html">Data input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vd.html">Variance decomposition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gwas.html">Association analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cmd.html">Command-line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Additional functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">LiMMBo</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>limmbo.utils.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for limmbo.utils.utils</h1><div class="highlight"><pre>
+<span></span><span class="c1">######################</span>
+<span class="c1">### import modules ###</span>
+<span class="c1">######################</span>
+
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="k">as</span> <span class="nn">la</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">stats</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">distutils.util</span> <span class="k">import</span> <span class="n">strtobool</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">sqrt</span>
+
+<div class="viewcode-block" id="boolanize"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.boolanize">[docs]</a><span class="k">def</span> <span class="nf">boolanize</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert command line parameter &quot;True&quot;/&quot;False&quot; into boolean</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        string (string):</span>
+<span class="sd">        &quot;False&quot; or &quot;True&quot;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (bool):</span>
+
+<span class="sd">            False/True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">strtobool</span><span class="p">(</span><span class="n">string</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="nans"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.nans">[docs]</a><span class="k">def</span> <span class="nf">nans</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create numpy array of NaNs</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        shape (tuple):</span>
+<span class="sd">            shape of the empty array</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (numpy array):</span>
+<span class="sd">            numpy array of NaNs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="scale"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.scale">[docs]</a><span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mean center and unit variance input array</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        x (array-like):</span>
+<span class="sd">            array to be scaled by column</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (numpy array):</span>
+<span class="sd">            mean-centered, unit-variance array of x</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">-=</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">/=</span> <span class="n">x</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="getEigen"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.getEigen">[docs]</a><span class="k">def</span> <span class="nf">getEigen</span><span class="p">(</span><span class="n">covMatrix</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Get eigenvectors and values of hermitian matrix:</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        covMatrix (array-like):</span>
+<span class="sd">            hermitian matrix</span>
+<span class="sd">        reverse (bool):</span>
+<span class="sd">            if True (default): order eigenvalues (and vectors) in</span>
+<span class="sd">            decreasing order</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (tuple):</span>
+<span class="sd">            tuple containing:</span>
+
+<span class="sd">            - eigenvectors</span>
+<span class="sd">            - eigenvalues</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">covMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">covMatrix</span><span class="p">)</span>
+
+    <span class="n">S</span><span class="p">,</span> <span class="n">U</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">covMatrix</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">reverse</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">S</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">U</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getVariance"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.getVariance">[docs]</a><span class="k">def</span> <span class="nf">getVariance</span><span class="p">(</span><span class="n">eigenvalue</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based on input eigenvalue computes cumulative sum and normalizes to overall</span>
+<span class="sd">    sum to obtain variance explained</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        eigenvalue (array-like):</span>
+<span class="sd">            eigenvalues</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (float):</span>
+<span class="sd">            variance explained</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eigenvalue</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">v</span> <span class="o">/=</span> <span class="n">v</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="regularize"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.regularize">[docs]</a><span class="k">def</span> <span class="nf">regularize</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make matrix positive-semi definite by ensuring minimum eigenvalue &gt;= 0:</span>
+<span class="sd">    add absolute value of minimum eigenvalue and 1e-4 (for numerical stability</span>
+<span class="sd">    of abs(min(eigenvalue) &lt; 1e-4 to diagonal of matrix</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        m (array-like):</span>
+<span class="sd">            symmetric matrix</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">       (tuple):</span>
+<span class="sd">            Returns tuple containing:</span>
+
+<span class="sd">            - positive, semi-definite matrix from input m (numpy array)</span>
+<span class="sd">            - minimum eigenvalue of input m</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">S</span><span class="p">,</span> <span class="n">U</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">minS</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">minS</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">verboseprint</span><span class="p">(</span>
+            <span class="s2">&quot;Regularizing: minimum Eigenvalue </span><span class="si">%6.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">S</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">+</span> <span class="mf">1e-4</span><span class="p">)</span> <span class="o">*</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">minS</span> <span class="o">&lt;</span> <span class="mf">1e-4</span><span class="p">:</span>
+        <span class="n">verboseprint</span><span class="p">(</span><span class="s2">&quot;Make numerically stable: minimum Eigenvalue </span><span class="si">%6.4f</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                <span class="n">S</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">+=</span> <span class="mf">1e-4</span> <span class="o">*</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verboseprint</span><span class="p">(</span><span class="s2">&quot;Minimum Eigenvalue </span><span class="si">%6.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">S</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">minS</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_permutation"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.generate_permutation">[docs]</a><span class="k">def</span> <span class="nf">generate_permutation</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12321</span><span class="p">,</span> <span class="n">exclude_zero</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate permutation.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        seed (int):</span>
+<span class="sd">            used as seed for pseudo-random numbers generation; default: 12321</span>
+<span class="sd">        n (int):</span>
+<span class="sd">            number of permutations to generated</span>
+<span class="sd">        P (int):</span>
+<span class="sd">            total number of traits</span>
+<span class="sd">        S (int):</span>
+<span class="sd">            subsampling size</span>
+<span class="sd">        exclude_zero (bool):</span>
+<span class="sd">            should zero be in set to draw from</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (list):</span>
+<span class="sd">            Returns list of length n containing [np.arrays] of length [`S`]</span>
+<span class="sd">            with subsets/permutations of numbers range(P)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rand_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">return_list</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="k">if</span> <span class="n">exclude_zero</span><span class="p">:</span>
+        <span class="n">rangeP</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rangeP</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">perm_dic</span> <span class="o">=</span> <span class="n">rand_state</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">rangeP</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">return_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">perm_dic</span>
+    <span class="k">return</span> <span class="n">return_list</span></div>
+
+
+<div class="viewcode-block" id="inflate_matrix"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.inflate_matrix">[docs]</a><span class="k">def</span> <span class="nf">inflate_matrix</span><span class="p">(</span><span class="n">bootstrap_traits</span><span class="p">,</span> <span class="n">bootstrap</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">zeros</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Project small matrix into large matrix using indeces provided:</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        bootstrap_traits (array-like):</span>
+<span class="sd">            [`S` x `S`] covariance matrix estimates</span>
+<span class="sd">        bootstrap (array-like):</span>
+<span class="sd">            [`S` x 1] array with indices to project [`S` x `S`] matrix values</span>
+<span class="sd">            into [`P` x `P`] matrix</span>
+<span class="sd">        P (int):</span>
+<span class="sd">            total number of dimensions</span>
+<span class="sd">        zeros (bool):</span>
+<span class="sd">            fill void spaces in large matrix with zeros (True,</span>
+<span class="sd">            default) or nans (False)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (numpy array):</span>
+<span class="sd">            Returns [`P` x `P`] matrix containing [`S` x `S`] matrix values at</span>
+<span class="sd">            bootstrap indeces and zeros/nans elswhere</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bootstrap</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bootstrap</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">zeros</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">all_traits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">P</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">all_traits</span> <span class="o">=</span> <span class="n">nans</span><span class="p">((</span><span class="n">P</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span>
+    <span class="n">all_traits</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">bootstrap_traits</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">all_traits</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="verboseprint"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.verboseprint">[docs]</a><span class="k">def</span> <span class="nf">verboseprint</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print message if verbose option is True.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        message (string):</span>
+<span class="sd">            text to print</span>
+<span class="sd">        verbose (bool):</span>
+<span class="sd">            flag whether to print message (True) or not (False)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="n">message</span></div>
+
+
+<div class="viewcode-block" id="match"><a class="viewcode-back" href="../../../utils.html#limmbo.utils.utils.match">[docs]</a><span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="n">samples_ref</span><span class="p">,</span> <span class="n">data_compare</span><span class="p">,</span> <span class="n">samples_compare</span><span class="p">,</span> <span class="n">squarematrix</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Match the order of data and ID matrices to a reference sample order,</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        samples_ref (array-like):</span>
+<span class="sd">            [`M`] sammple Ids used as reference</span>
+<span class="sd">        data_compare (array-like):</span>
+<span class="sd">            [`N` x `L`] data matrix with [`N`] samples and [`L`] columns</span>
+<span class="sd">        samples_compare (array-like):</span>
+<span class="sd">            [`N`] sample IDs to be matched to samples_ref</span>
+<span class="sd">        squarematrix (bool):</span>
+<span class="sd">            is data_compare a square matrix i.e. samples in cols and rows</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (tuple):</span>
+<span class="sd">            tuple containing:</span>
+
+<span class="sd">            - data_compare (numpy array):</span>
+<span class="sd">              [`M` x `L`] data matrix of input data_compare</span>
+<span class="sd">            - samples_compare (numpy array):</span>
+<span class="sd">              [`M`] sample IDs of input samples_compare</span>
+<span class="sd">            - samples_before (int):</span>
+<span class="sd">              number of samples in data_compare/samples_compare before matching</span>
+<span class="sd">              to samples_ref</span>
+<span class="sd">            - samples_after (int):</span>
+<span class="sd">              number of samples in data_compare/samples_compare after matching</span>
+<span class="sd">              to samples_ref</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">samples_before</span> <span class="o">=</span> <span class="n">samples_compare</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">subset</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">samples_ref</span><span class="p">,</span> <span class="n">samples_compare</span><span class="p">)</span>
+
+    <span class="n">data_compare</span> <span class="o">=</span> <span class="n">data_compare</span><span class="p">[</span><span class="n">subset</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">if</span> <span class="n">squarematrix</span><span class="p">:</span>
+        <span class="n">data_compare</span> <span class="o">=</span> <span class="n">data_compare</span><span class="p">[:,</span> <span class="n">subset</span><span class="p">]</span>
+    <span class="n">samples_compare</span> <span class="o">=</span> <span class="n">samples_compare</span><span class="p">[</span><span class="n">subset</span><span class="p">]</span>
+    <span class="n">samples_after</span> <span class="o">=</span> <span class="n">samples_compare</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span>
+        <span class="n">samples_ref</span><span class="p">,</span>
+        <span class="n">samples_compare</span><span class="p">,</span>
+        <span class="n">err_msg</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Col order does not match. These&quot;</span>
+                 <span class="s2">&quot;are the differing columns:</span><span class="se">\t</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">%</span>
+        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">samples_ref</span><span class="p">,</span> <span class="n">samples_compare</span><span class="p">))))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">data_compare</span><span class="p">,</span> <span class="n">samples_compare</span><span class="p">,</span> <span class="n">samples_before</span><span class="p">,</span> <span class="n">samples_after</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">AlleleFrequencies</span><span class="p">(</span><span class="n">snp</span><span class="p">):</span>
+    <span class="n">hc_snps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">makeHardCalledGenotypes</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">snp</span><span class="p">])</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">hc_snps</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">frequencies</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hc_snps</span><span class="p">))</span>
+    <span class="n">major_a</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">frequencies</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="n">minor_a</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">major_a</span>
+    <span class="k">return</span> <span class="n">minor_a</span><span class="p">,</span> <span class="n">major_a</span>
+
+
+<span class="k">def</span> <span class="nf">makeHardCalledGenotypes</span><span class="p">(</span><span class="n">snp</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">snp</span> <span class="o">&lt;=</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">snp</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+
+<span class="k">def</span> <span class="nf">effectiveTests</span><span class="p">(</span><span class="n">test</span><span class="p">):</span>
+    <span class="c1"># 1. get correlation matrix</span>
+    <span class="n">corr_matrix</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">spearmanr</span><span class="p">(</span><span class="n">test</span><span class="p">)</span><span class="o">.</span><span class="n">correlation</span>
+    <span class="c1"># 2. Get eigenvalues of correlation matrix:</span>
+    <span class="n">eigenval</span><span class="p">,</span> <span class="n">eigenvec</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">corr_matrix</span><span class="p">)</span>
+    <span class="c1"># 3. Determine effective number of tests:</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">eigenval</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">eigenval</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">t</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Hannah V. Meyer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'b',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,1405 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Data input &mdash; LiMMBo b documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="LiMMBo b documentation" href="index.html"/>
+        <link rel="next" title="Variance decomposition" href="vd.html"/>
+        <link rel="prev" title="Install" href="install.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> LiMMBo
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data input</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parse-command-line-arguments">Parse command-line arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#read-data">Read data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#check-data">Check data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vd.html">Variance decomposition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gwas.html">Association analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmd.html">Command-line interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Additional functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LiMMBo</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Data input</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/input.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-limmbo.io"></span><div class="section" id="data-input">
+<h1>Data input<a class="headerlink" href="#data-input" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="parse-command-line-arguments">
+<h2>Parse command-line arguments<a class="headerlink" href="#parse-command-line-arguments" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="limmbo.io.parser.getGWASargs">
+<code class="descclassname">limmbo.io.parser.</code><code class="descname">getGWASargs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/parser.html#getGWASargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.parser.getGWASargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>A detailed list of the command-line options for <cite>getGWASargs</cite> can be found in
+<a class="reference internal" href="cmd.html#rungwas"><span class="std std-ref">Association analysis</span></a>.</p>
+<dl class="function">
+<dt id="limmbo.io.parser.getVarianceEstimationArgs">
+<code class="descclassname">limmbo.io.parser.</code><code class="descname">getVarianceEstimationArgs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/parser.html#getVarianceEstimationArgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.parser.getVarianceEstimationArgs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>A detailed list of the command-line options for <cite>getVarianceEstimationArgs</cite> can be
+found in <a class="reference internal" href="cmd.html#runvarianceestimation"><span class="std std-ref">Variance decomposition</span></a>.</p>
+</div>
+<div class="section" id="read-data">
+<h2>Read data<a class="headerlink" href="#read-data" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="limmbo.io.reader.ReadData">
+<em class="property">class </em><code class="descclassname">limmbo.io.reader.</code><code class="descname">ReadData</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate object containing all datasets relevant for the analysis.
+For variance decomposition, at least phenotypes and relatedness estimates
+need to be specified.
+For association testing with LMM, at least phenotype, relatedness estimates
+and genotypes need to be read.</p>
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getCovariates">
+<code class="descname">getCovariates</code><span class="sig-paren">(</span><em>file_covariates=None</em>, <em>delim='</em>, <em>'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getCovariates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getCovariates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads [<cite>N</cite> x <cite>K</cite>] covariate matrix with [<cite>N</cite>] samples and [<cite>K</cite>]
+covariates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_covariates</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – [<cite>N</cite> x (<cite>K</cite> +1)] covariates file with [<cite>N</cite>] sample IDs in the
+first column</li>
+<li><strong>delim</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – delimiter of covariates file, one of ” “, “,”, “t”</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the ReadData instance:</p>
+<ul class="simple">
+<li><strong>self.covariates</strong> (np.array):
+[<cite>N</cite> x <cite>K</cite>] covariates matrix</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.reader</span> <span class="k">import</span> <span class="n">ReadData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.utils</span> <span class="k">import</span> <span class="n">file_type</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_covs</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                              <span class="s1">&#39;io/test/data/covs.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getCovariates</span><span class="p">(</span><span class="n">file_covariates</span><span class="o">=</span><span class="n">file_covs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">covariates</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">Index([u&#39;ID_1&#39;, u&#39;ID_2&#39;, u&#39;ID_3&#39;], dtype=&#39;object&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">covariates</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[ 0.92734699,  1.59767659, -0.67263682],</span>
+<span class="go">       [ 0.57061985, -0.84679736, -1.11037123],</span>
+<span class="go">       [ 0.44201204, -1.61499228,  0.23302345]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getGenotypes">
+<code class="descname">getGenotypes</code><span class="sig-paren">(</span><em>file_genotypes=None</em>, <em>delim='</em>, <em>'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getGenotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getGenotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads genotype file in the following formats: plink (.bed, .bim, .fam),
+gen (.gen, .sample) or comma-separated values (.csv) file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_geno</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – <p>path to phenotype file in .plink or .csv format
+- <strong>plink format</strong>:</p>
+<blockquote>
+<div>as specified in the plink <a class="reference external" href="https://www.cog-genomics.org/plink/1.9/input">user manual</a>,
+binary plink format with .bed, .fam and .bim file</div></blockquote>
+<ul>
+<li><strong>.csv format</strong>:<ul>
+<li>[(<cite>NrSNP</cite> + 1) x (<cite>N`+1)] .csv file with: [`N</cite>] sample IDs
+in the first row and [<cite>NrSNP</cite>] genotype IDs in the first
+column</li>
+<li>sample IDs should be of type: chrom-pos-rsID for instance
+22-50714616-rs6010226</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>delim</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – delimiter of genotype file (when text format), one of ” “, “,”,
+“t”</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the ReadData instance:</p>
+<ul class="simple">
+<li><strong>self.genotypes</strong> (np.array):
+[<cite>N</cite> x <cite>NrSNPs</cite>] genotype matrix</li>
+<li><strong>self.genotypes_info</strong> (pd.dataframe):
+[<cite>NrSNPs</cite> x 2] dataframe with columns ‘chrom’ and ‘pos’, and
+rsIDs as index</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.utils</span> <span class="k">import</span> <span class="n">file_type</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Read genotypes in delim-format</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_geno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;io/test/data/genotypes.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getGenotypes</span><span class="p">(</span><span class="n">file_genotypes</span><span class="o">=</span><span class="n">file_geno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">genotypes</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">Index([u&#39;ID_1&#39;, u&#39;ID_2&#39;, u&#39;ID_3&#39;, u&#39;ID_4&#39;], dtype=&#39;object&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">genotypes</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(1000, 20)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">genotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">5</span><span class="p">,:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">array([[0., 0., 0., 0., 0.],</span>
+<span class="go">       [0., 0., 0., 0., 0.],</span>
+<span class="go">       [0., 0., 0., 0., 0.],</span>
+<span class="go">       [2., 1., 0., 0., 0.],</span>
+<span class="go">       [1., 0., 0., 0., 0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">genotypes_info</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">           chrom       pos</span>
+<span class="go">rs1601111      3  88905003</span>
+<span class="go">rs13270638     8  20286021</span>
+<span class="go">rs75132935     8  76564608</span>
+<span class="go">rs72668606     8  79733124</span>
+<span class="go">rs55770986     7   2087823</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">### read genotypes in plink format</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_geno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">&#39;io/test/data/genotypes&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getGenotypes</span><span class="p">(</span><span class="n">file_genotypes</span><span class="o">=</span><span class="n">file_geno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">genotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">5</span><span class="p">,:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">array([[0., 0., 0., 0., 0.],</span>
+<span class="go">       [0., 0., 0., 0., 0.],</span>
+<span class="go">       [0., 0., 0., 0., 0.],</span>
+<span class="go">       [2., 1., 0., 0., 0.],</span>
+<span class="go">       [1., 0., 0., 0., 0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">genotypes_info</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">           chrom       pos</span>
+<span class="go">rs1601111      3  88905003</span>
+<span class="go">rs13270638     8  20286021</span>
+<span class="go">rs75132935     8  76564608</span>
+<span class="go">rs72668606     8  79733124</span>
+<span class="go">rs55770986     7   2087823</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getPCs">
+<code class="descname">getPCs</code><span class="sig-paren">(</span><em>file_pcs=None</em>, <em>nrpcs=None</em>, <em>delim='</em>, <em>'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getPCs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getPCs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads file with [<cite>N</cite> x <cite>PC</cite>] matrix of [<cite>PC</cite>] principal components from
+the genotypes of [<cite>N</cite>] samples.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_pcs</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – [<cite>N</cite> x (<cite>PC</cite> +1)] PCA file with [<cite>N</cite>] sample IDs in the first
+column</li>
+<li><strong>delim</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – delimiter of PCA file, one of ” “, “,”, “t”</li>
+<li><strong>nrpcs</strong> (<em>integer</em>) – Number of PCs to use (uses first nrpcs  principal components)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the ReadData instance:</p>
+<ul class="simple">
+<li><strong>self.pcs</strong> (np.array):
+[<cite>N</cite> x <cite>PC</cite>] principal component matrix</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.reader</span> <span class="k">import</span> <span class="n">ReadData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.utils</span> <span class="k">import</span> <span class="n">file_type</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_pcs</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/pcs.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getPCs</span><span class="p">(</span><span class="n">file_pcs</span><span class="o">=</span><span class="n">file_pcs</span><span class="p">,</span> <span class="n">nrpcs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">pcs</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">Index([u&#39;ID_1&#39;, u&#39;ID_2&#39;, u&#39;ID_3&#39;], dtype=&#39;object&#39;, name=0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">pcs</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[-0.02632738, -0.05791269, -0.03619099],</span>
+<span class="go">       [ 0.00761785,  0.00538956,  0.00624196],</span>
+<span class="go">       [ 0.01069307, -0.0205066 ,  0.02299996]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getPhenotypes">
+<code class="descname">getPhenotypes</code><span class="sig-paren">(</span><em>file_pheno=None</em>, <em>delim='</em>, <em>'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getPhenotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getPhenotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads [<cite>N</cite> x <cite>P</cite>] phenotype file; file ending must be either .txt or
+.csv</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_pheno</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – path to [(<cite>N`+1) x (`P`+1)] phenotype file with: [`N</cite>] sample
+IDs in the first column and [<cite>P</cite>] phenotype IDs in the first row</li>
+<li><strong>delim</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – delimiter of phenotype file, one of ” “, “,”, “t”</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the ReadData instance:</p>
+<ul class="simple">
+<li><strong>self.phenotypes</strong> (np.array):
+[<cite>N</cite> x <cite>P</cite>] phenotype matrix</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.reader</span> <span class="k">import</span> <span class="n">ReadData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.utils</span> <span class="k">import</span> <span class="n">file_type</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_pheno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                               <span class="s1">&#39;io/test/data/pheno.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getPhenotypes</span><span class="p">(</span><span class="n">file_pheno</span><span class="o">=</span><span class="n">file_pheno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">Index([u&#39;ID_1&#39;, u&#39;ID_2&#39;, u&#39;ID_3&#39;], dtype=&#39;object&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">columns</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">Index([u&#39;trait_1&#39;, u&#39;trait_2&#39;, u&#39;trait_3&#39;], dtype=&#39;object&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[-1.56760036, -1.5324513 ,  1.17789321],</span>
+<span class="go">       [-0.85655034,  0.48358151,  1.35664966],</span>
+<span class="go">       [ 0.10772832, -0.02262884, -0.27963328]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getRelatedness">
+<code class="descname">getRelatedness</code><span class="sig-paren">(</span><em>file_relatedness</em>, <em>delim='</em>, <em>'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getRelatedness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getRelatedness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read file of [<cite>N</cite> x <cite>N</cite>] pairwise relatedness estimates of [<cite>N</cite>]
+samples.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_relatedness</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – [(<cite>N</cite> + <cite>1</cite>) x N] .csv file with: [<cite>N</cite>] sample IDs in the first
+row</li>
+<li><strong>delim</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – delimiter of covariate file, one of ” “, “,”, ” “</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the ReadData instance:</p>
+<ul class="simple">
+<li><strong>self.relatedness</strong> (np.array):
+[<cite>N</cite> x <cite>N</cite>] relatedness matrix</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.reader</span> <span class="k">import</span> <span class="n">ReadData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.utils</span> <span class="k">import</span> <span class="n">file_type</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_relatedness</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/relatedness.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getRelatedness</span><span class="p">(</span><span class="n">file_relatedness</span><span class="o">=</span><span class="n">file_relatedness</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">relatedness</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">Index([u&#39;ID_1&#39;, u&#39;ID_2&#39;, u&#39;ID_3&#39;], dtype=&#39;object&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">relatedness</span><span class="o">.</span><span class="n">columns</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">Index([u&#39;ID_1&#39;, u&#39;ID_2&#39;, u&#39;ID_3&#39;], dtype=&#39;object&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">relatedness</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[1.00892922e+00, 2.00758504e-04, 4.30499103e-03],</span>
+<span class="go">       [2.00758504e-04, 9.98944885e-01, 4.86487318e-03],</span>
+<span class="go">       [4.30499103e-03, 4.86487318e-03, 9.85787665e-01]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getSampleSubset">
+<code class="descname">getSampleSubset</code><span class="sig-paren">(</span><em>file_samplelist=None</em>, <em>samplelist=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getSampleSubset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getSampleSubset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read file or string with subset of sample IDs to analyse.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_samplelist</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – “path/to/file_samplelist”: file contains subset sample IDs with
+one ID per line, no header.</li>
+<li><strong>samplestring</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – comma-separated list of sample IDs e.g. “ID1,ID2,ID5,ID10”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
+<dt>(numpy array)</dt>
+<dd><p class="first last">array containing list of sample IDs</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getTraitSubset">
+<code class="descname">getTraitSubset</code><span class="sig-paren">(</span><em>traitstring=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getTraitSubset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getTraitSubset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Limit analysis to specific subset of traits</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>traitstring</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – comma-separated trait numbers (for single traits) or hyphen-
+separated trait numbers (for trait ranges) or combination of
+both for trait selection (1-based)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>(numpy array)</dt>
+<dd>array containing list of trait IDs</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">traitlist</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">getTraitSubset</span><span class="p">(</span><span class="s2">&quot;1,3,5,7-10&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">traitlist</span>
+<span class="go">[0 2 4 6 7 8 9]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.reader.ReadData.getVarianceComponents">
+<code class="descname">getVarianceComponents</code><span class="sig-paren">(</span><em>file_Cg=None</em>, <em>file_Cn=None</em>, <em>delim_cg='</em>, <em>'</em>, <em>delim_cn='</em>, <em>'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/reader.html#ReadData.getVarianceComponents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.reader.ReadData.getVarianceComponents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a comma-separated files with [<cite>P</cite> x <cite>P</cite>] matrices of [<cite>P</cite>] trait
+covariance estimates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_Cg</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – [<cite>P</cite> x <cite>P</cite>] .csv file with [<cite>P</cite>] trait covariance estimates of
+the genetic component</li>
+<li><strong>file_Cn</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – [<cite>P</cite> x <cite>P</cite>] .csv file with [<cite>P</cite>] trait covariance estimates of
+the non-genetic (noise) component</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the ReadData instance:</p>
+<ul class="simple">
+<li><strong>self.Cg</strong> (np.array):
+[<cite>P</cite> x <cite>P</cite>] matrix with trait covariance of the genetic
+component</li>
+<li><strong>self.Cn</strong> (np.array):
+[<cite>P</cite> x <cite>P</cite>] matrix with trait covariance of the non-genetic
+(noise) component</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.reader</span> <span class="k">import</span> <span class="n">ReadData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ReadData</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_Cg</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/Cg.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_Cn</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/Cn.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getVarianceComponents</span><span class="p">(</span><span class="n">file_Cg</span><span class="o">=</span><span class="n">file_Cg</span><span class="p">,</span> <span class="n">file_Cn</span><span class="o">=</span><span class="n">file_Cn</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">Cg</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">Cn</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">Cg</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[ 0.45446454, -0.21084613,  0.01440468],</span>
+<span class="go">       [-0.21084613,  0.11443656,  0.01250233],</span>
+<span class="go">       [ 0.01440468,  0.01250233,  0.02347906]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">Cn</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[ 0.53654803, -0.14392748, -0.45483001],</span>
+<span class="go">       [-0.14392748,  0.88793093,  0.30539822],</span>
+<span class="go">       [-0.45483001,  0.30539822,  0.97785614]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="check-data">
+<h2>Check data<a class="headerlink" href="#check-data" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="limmbo.io.input.InputData">
+<em class="property">class </em><code class="descclassname">limmbo.io.input.</code><code class="descname">InputData</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate object containing all datasets relevant for variance decomposition
+(phenotypes, relatedness estimates) and pre-processing steps (check for
+common samples and sample order, covariates regression and phenotype
+transformation)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – initialise verbose: should progress messages be printed to stdout</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="limmbo.io.input.InputData.addCovariates">
+<code class="descname">addCovariates</code><span class="sig-paren">(</span><em>covariates</em>, <em>covs_samples=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.addCovariates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.addCovariates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add [<cite>N</cite> x <cite>K</cite>] covariate data with [<cite>N</cite>] samples and [<cite>K</cite>] covariates
+to InputData instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>covariates</strong> (<em>array-like</em>) – [<cite>N x `K</cite>] covariate matrix of <cite>N</cite> individuals and <cite>K</cite>
+covariates; if pandas.DataFrame with covs_samples as index,
+covs_samples do not have to specified separately.</li>
+<li><strong>covs_samples</strong> (<em>array-like</em>) – [<cite>N</cite>] sample ID</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the InputData instance:</p>
+<ul class="simple">
+<li><strong>self.covariates</strong> (pd.DataFrame):
+[<cite>N</cite> x <cite>K</cite>] covariates matrix</li>
+<li><strong>self.covs_samples</strong> (np.array):
+[<cite>N</cite>] sample IDs</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covariates</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs_samples</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S3&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covariates</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">covariates</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">covs_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addCovariates</span><span class="p">(</span><span class="n">covariates</span> <span class="o">=</span> <span class="n">covariates</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">covs_samples</span> <span class="o">=</span> <span class="n">covs_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">covariates</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">covs_samples</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.addGenotypes">
+<code class="descname">addGenotypes</code><span class="sig-paren">(</span><em>genotypes</em>, <em>geno_samples=None</em>, <em>genotypes_info=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.addGenotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.addGenotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add [<cite>N</cite> x <cite>NrSNP</cite>] genotype array of [<cite>N</cite>] samples and [<cite>NrSNP</cite>]
+genotypes, [<cite>N</cite>] array of sample IDs and [<cite>NrSNP</cite> x 2] dataframe of
+genotype description to InputData instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>genotypes</strong> (<em>array-like</em>) – [<cite>N</cite> x <cite>NrSNP</cite>] genotype array of [<cite>N</cite>] samples and [<cite>NrSNP</cite>]
+genotypes; if pandas.DataFrame with geno_samples as index,
+geno_samples do not have to specified separately.</li>
+<li><strong>geno_samples</strong> (<em>array-like</em>) – [<cite>N</cite>] vector of <cite>N</cite> sample IDs</li>
+<li><strong>genotypes_info</strong> (<em>dataframe</em>) – [<cite>NrSNPs</cite> x 2] dataframe with columns ‘chrom’ and ‘pos’, and
+rsIDs as index</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the InputData instance:</p>
+<ul class="simple">
+<li><strong>self.genotypes</strong> (pd.DataFrame):
+[<cite>N</cite> x <cite>NrSNPs</cite>] genotype matrix</li>
+<li><strong>self.geno_samples</strong> (np.array):
+[<cite>N</cite>] sample IDs</li>
+<li><strong>self.genotypes_info</strong> (pd.DataFrame):
+[<cite>NrSNPs</cite> x 2] dataframe with columns ‘chrom’ and ‘pos’, and
+rsIDs as index</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_geno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                               <span class="s1">&#39;io/test/data/genotypes.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getGenotypes</span><span class="p">(</span><span class="n">file_genotypes</span><span class="o">=</span><span class="n">file_geno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addGenotypes</span><span class="p">(</span><span class="n">genotypes</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">genotypes</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">genotypes_info</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">genotypes_info</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">geno_samples</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">array([&#39;ID_1&#39;, &#39;ID_2&#39;, &#39;ID_3&#39;, &#39;ID_4&#39;, &#39;ID_5&#39;], dtype=object)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">genotypes</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(1000, 20)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">genotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">5</span><span class="p">,:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">array([[0., 0., 0., 0., 0.],</span>
+<span class="go">       [0., 0., 0., 0., 0.],</span>
+<span class="go">       [0., 0., 0., 0., 0.],</span>
+<span class="go">       [2., 1., 0., 0., 0.],</span>
+<span class="go">       [1., 0., 0., 0., 0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">genotypes_info</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">           chrom       pos</span>
+<span class="go">rs1601111      3  88905003</span>
+<span class="go">rs13270638     8  20286021</span>
+<span class="go">rs75132935     8  76564608</span>
+<span class="go">rs72668606     8  79733124</span>
+<span class="go">rs55770986     7   2087823</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.addPCs">
+<code class="descname">addPCs</code><span class="sig-paren">(</span><em>pcs</em>, <em>pc_samples=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.addPCs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.addPCs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add [<cite>N</cite> x <cite>PC</cite>] matrix of [<cite>PC</cite>] principal components from the
+genotypes of [<cite>N</cite>] samples to InputData instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pcs</strong> (<em>array-like</em>) – [<cite>N x `PCs</cite>] principal component matrix of <cite>N</cite> individuals and
+<cite>PCs</cite> principal components; if pandas.DataFrame with pc_samples
+as index, covs_samples do not have to specified separately.</li>
+<li><strong>pc_samples</strong> (<em>array-like</em>) – [<cite>N</cite>] sample IDs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the InputData instance:</p>
+<ul class="simple">
+<li><strong>self.pcs</strong> (pd.DataFrame):
+[<cite>N</cite> x <cite>PCs</cite>] principal component matrix</li>
+<li><strong>self.pc_samples</strong> (np.array):
+[<cite>N</cite>] sample IDs</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_pcs</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/pcs.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getPCs</span><span class="p">(</span><span class="n">file_pcs</span><span class="o">=</span><span class="n">file_pcs</span><span class="p">,</span> <span class="n">nrpcs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addPCs</span><span class="p">(</span><span class="n">pcs</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pcs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">pcs</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(1000, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">pc_samples</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(1000,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.addPhenotypes">
+<code class="descname">addPhenotypes</code><span class="sig-paren">(</span><em>phenotypes</em>, <em>pheno_samples=None</em>, <em>phenotype_ID=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.addPhenotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.addPhenotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add phenotypes, their phenotype ID and their sample IDs to
+InputData instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>phenotypes</strong> (<em>array-like</em>) – [<cite>N x `P</cite>] phenotype matrix of <cite>N</cite> individuals and <cite>P</cite>
+phenotypes; if pandas.DataFrame with pheno_samples as index and
+phenotypes_ID as columns, pheno_samples and phenotype_ID do not
+have to specified separately.</li>
+<li><strong>pheno_samples</strong> (<em>array-like</em>) – [<cite>N</cite>] sample ID</li>
+<li><strong>phenotype_ID</strong> (<em>array-like</em>) – [<cite>P</cite>] phenotype IDs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the InputData instance:</p>
+<ul class="simple">
+<li><strong>self.phenotypes</strong> (pd.DataFrame):
+[<cite>N</cite> x <cite>P</cite>] phenotype array</li>
+<li><strong>self.pheno_samples</strong> (np.array):
+[<cite>N</cite>] sample IDs</li>
+<li><strong>self.phenotype_ID</strong> (np.array):
+[<cite>P</cite>] phenotype IDs</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="mi">7</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno_samples</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S3&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phenotype_ID</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ID1&#39;</span><span class="p">,</span><span class="s1">&#39;ID2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pheno_samples</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">columns</span> <span class="o">=</span> <span class="n">phenotype_ID</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addPhenotypes</span><span class="p">(</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">phenotypes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">pheno_samples</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">phenotype_ID</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.addRelatedness">
+<code class="descname">addRelatedness</code><span class="sig-paren">(</span><em>relatedness</em>, <em>relatedness_samples=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.addRelatedness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.addRelatedness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add [<cite>N</cite> x <cite>N</cite>] pairwise relatedness estimates of [<cite>N</cite>] samples to the
+InputData instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>relatedness</strong> (<em>array-like</em>) – [<cite>N x `N</cite>] relatedness matrix of <cite>N</cite> individuals;
+if pandas.DataFrame with relatedness_samples as index,
+relatedness_samples do not have to specified separately.</li>
+<li><strong>relatedness_samples</strong> (<em>array-like</em>) – [<cite>N</cite>] sample IDs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the InputData instance:</p>
+<ul class="simple">
+<li><strong>self.relatedness</strong> (pd.DataFrame):
+[<cite>N</cite> x <cite>N</cite>] relatedness matrix</li>
+<li><strong>self.relatedness_samples</strong> (np.array):
+[<cite>N</cite>] sample IDs</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">RandomState</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">cholesky</span> <span class="k">as</span> <span class="n">chol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span> <span class="o">=</span> <span class="n">RandomState</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SNP</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">SNP</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.3</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relatedness</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">SNP</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relatedness_samples</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relatedness</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">relatedness</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">index</span><span class="o">=</span><span class="n">relatedness_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addRelatedness</span><span class="p">(</span><span class="n">relatedness</span> <span class="o">=</span> <span class="n">relatedness</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">relatedness</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(100, 100)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">relatedness_samples</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(100,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.addVarianceComponents">
+<code class="descname">addVarianceComponents</code><span class="sig-paren">(</span><em>Cg</em>, <em>Cn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.addVarianceComponents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.addVarianceComponents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add [<cite>P</cite> x <cite>P</cite>] matrices of [<cite>P</cite>] trait covariance estimates
+of the genetic trait variance component (Cg) and the non-genetic (noise)
+variance component (Cn) to InputData instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Cg</strong> (<em>array-like</em>) – [<cite>P x `P</cite>] matrix of <cite>P</cite> trait covariance estimates of the
+genetic trait covaraince component</li>
+<li><strong>Cn</strong> (<em>array-like</em>) – [<cite>P x `P</cite>] matrix of <cite>P</cite> trait covariance estimates of the
+non-genetic (noise) trait covaraince component</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>updated the following attributes of the InputData instance:</p>
+<ul class="simple">
+<li><strong>self.Cg</strong> (np.array):
+[<cite>P x `P</cite>] matrix of <cite>P</cite> trait covariance estimates of the
+genetic trait covariance component</li>
+<li><strong>self.Cn</strong> (np.array):
+[<cite>P x `P</cite>] matrix of <cite>P</cite> trait covariance estimates of the
+non-genetic trait covaraince component</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">RandomState</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">cholesky</span> <span class="k">as</span> <span class="n">chol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_pheno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/pheno.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getPhenotypes</span><span class="p">(</span><span class="n">file_pheno</span><span class="o">=</span><span class="n">file_pheno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_Cg</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/Cg.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_Cn</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="s1">&#39;io/test/data/Cn.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getVarianceComponents</span><span class="p">(</span><span class="n">file_Cg</span><span class="o">=</span><span class="n">file_Cg</span><span class="p">,</span>
+<span class="gp">... </span>                           <span class="n">file_Cn</span><span class="o">=</span><span class="n">file_Cn</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addPhenotypes</span><span class="p">(</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">phenotypes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addVarianceComponents</span><span class="p">(</span><span class="n">Cg</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Cg</span><span class="p">,</span> <span class="n">Cn</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">Cn</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">Cg</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">Cg</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 10)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.commonSamples">
+<code class="descname">commonSamples</code><span class="sig-paren">(</span><em>samplelist=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.commonSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.commonSamples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get [<cite>M]</cite> common samples out of phenotype, relatedness and optional
+covariates with [<cite>N</cite>] samples (if all samples present in all datasets
+[<cite>M</cite>] = [<cite>N</cite>]) and ensure that samples are in same order.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samplelist</strong> (<em>array-like</em>) – array of sample IDs to select from data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">updated the following attributes of the InputData instance:<ul class="simple">
+<li><strong>self.phenotypes</strong> (pd.DataFrame):
+[<cite>M</cite> x <cite>P</cite>] phenotype matrix</li>
+<li><strong>self.pheno_samples</strong> (np.array):
+[<cite>M</cite>] sample IDs</li>
+<li><strong>self.relatedness</strong> (pd.DataFrame):
+[<cite>M x M</cite>] relatedness matrix</li>
+<li><strong>self.relatedness_samples</strong> (np.array):
+[<cite>M</cite>] sample IDs of relatedness matrix</li>
+<li><strong>self.covariates</strong> (pd.DataFrame):
+[<cite>M</cite> x <cite>K</cite>] covariates matrix</li>
+<li><strong>self.covs_samples</strong> (np.array):
+[<cite>M</cite>] sample IDs</li>
+<li><strong>self.genotypes</strong> (pd.DataFrame):
+[<cite>M</cite> x <cite>NrSNPs</cite>] genotypes matrix</li>
+<li><strong>self.geno_samples</strong> (np.array):
+[<cite>M</cite>] sample IDs</li>
+<li><strong>self.pcs</strong> (pd.DataFrame):
+[<cite>M</cite> x <cite>PCs</cite>] principal component matrix</li>
+<li><strong>self.pc_samples</strong> (np.array):
+[<cite>M</cite>] sample IDs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">RandomState</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">cholesky</span> <span class="k">as</span> <span class="n">chol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span> <span class="o">=</span> <span class="n">RandomState</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">K</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SNP</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phenotype_ID</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;ID</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pheno</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pheno_samples</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">columns</span><span class="o">=</span><span class="n">phenotype_ID</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">SNP</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.3</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relatedness</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">SNP</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relatedness_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covariates</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">K</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">2</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addPhenotypes</span><span class="p">(</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">pheno</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">pheno_samples</span> <span class="o">=</span> <span class="n">pheno_samples</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">phenotype_ID</span> <span class="o">=</span> <span class="n">phenotype_ID</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addRelatedness</span><span class="p">(</span><span class="n">relatedness</span> <span class="o">=</span> <span class="n">relatedness</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">relatedness_samples</span> <span class="o">=</span> <span class="n">relatedness_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addCovariates</span><span class="p">(</span><span class="n">covariates</span> <span class="o">=</span> <span class="n">covariates</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">covs_samples</span> <span class="o">=</span> <span class="n">covs_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">covariates</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(8, 4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">relatedness</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">commonSamples</span><span class="p">(</span><span class="n">samplelist</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;S4&quot;</span><span class="p">,</span> <span class="s2">&quot;S6&quot;</span><span class="p">,</span> <span class="s2">&quot;S5&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">covariates</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3, 4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">relatedness</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.getAlleleFrequencies">
+<code class="descname">getAlleleFrequencies</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.getAlleleFrequencies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.getAlleleFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute allele frequencies of genotypes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">updated the following attributes of the InputData instance:<ul class="simple">
+<li><strong>self.freqs</strong> (pandas DataFrame):
+[<cite>NrSNP</cite> x <cite>2</cite>] matrix of alt and ref allele frequencies;
+index: snp IDs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.utils.utils</span> <span class="k">import</span> <span class="n">makeHardCalledGenotypes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.utils.utils</span> <span class="k">import</span> <span class="n">AlleleFrequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_geno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                               <span class="s1">&#39;io/test/data/genotypes.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getGenotypes</span><span class="p">(</span><span class="n">file_genotypes</span><span class="o">=</span><span class="n">file_geno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addGenotypes</span><span class="p">(</span><span class="n">genotypes</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">genotypes</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">genotypes_info</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">genotypes_info</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">geno_samples</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">geno_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freqs</span> <span class="o">=</span> <span class="n">indata</span><span class="o">.</span><span class="n">getAlleleFrequencies</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">freqs</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">5</span><span class="p">,:]</span>
+<span class="go">                   p         q</span>
+<span class="go">rs1601111   0.292186  0.707814</span>
+<span class="go">rs13270638  0.303581  0.696419</span>
+<span class="go">rs75132935  0.024295  0.975705</span>
+<span class="go">rs72668606  0.119091  0.880909</span>
+<span class="go">rs55770986  0.169338  0.830662</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.regress">
+<code class="descname">regress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.regress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.regress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Regress out covariates (optional).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">updated the following attributes of the InputData instance:<ul class="simple">
+<li><strong>self.phenotypes</strong> (np.array):
+[<cite>M</cite> x <cite>P</cite>] phenotype matrix of residuals of linear model</li>
+<li><strong>self.covariates</strong>:
+None</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">RandomState</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">cholesky</span> <span class="k">as</span> <span class="n">chol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span> <span class="o">=</span> <span class="n">RandomState</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">K</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phenotype_ID</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;ID</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covariates</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">K</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">covs_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addPhenotypes</span><span class="p">(</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">pheno</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">pheno_samples</span> <span class="o">=</span> <span class="n">pheno_samples</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">phenotype_ID</span> <span class="o">=</span> <span class="n">phenotype_ID</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addCovariates</span><span class="p">(</span><span class="n">covariates</span> <span class="o">=</span> <span class="n">covariates</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">covs_samples</span> <span class="o">=</span> <span class="n">covs_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[ 0.44122749, -0.33087015,  2.43077119],</span>
+<span class="go">       [ 1.58248112, -0.9092324 , -0.59163666],</span>
+<span class="go">       [-1.19276461, -0.20487651, -0.35882895]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">regress</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[ 0.34421705, -0.01470998,  2.25710966],</span>
+<span class="go">       [ 1.69886647, -1.41756814, -0.55614649],</span>
+<span class="go">       [-1.10700674, -0.66017713, -0.22201814]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.standardiseGenotypes">
+<code class="descname">standardiseGenotypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.standardiseGenotypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.standardiseGenotypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standardise genotypes:</p>
+<div class="math">
+\[w_{ij} = \frac{x_{ij} -2p_i}{\sqrt{2p_i (1-p_i)}}\]</div>
+<p>where <span class="math">\(x_{ij}\)</span> is the number of copies of the reference allele for
+the <span class="math">\(i\)</span> th SNP of the <span class="math">\(j\)</span> th individual and <span class="math">\(p_i\)</span> is
+the frequency of the reference allele (as described in <a class="reference external" href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=3014363&amp;tool=pmcentrez&amp;rendertype=abstract">(Yang et al
+2011)</a>).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">updated the following attributes of the InputData instance:<ul class="simple">
+<li><strong>self.genotypes_sd</strong> (numpy array):
+[<cite>N</cite> x <cite>NrSNP</cite>] matrix of <cite>NrSNP</cite> standardised genotypes for
+<cite>N</cite> samples.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.utils.utils</span> <span class="k">import</span> <span class="n">makeHardCalledGenotypes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.utils.utils</span> <span class="k">import</span> <span class="n">AlleleFrequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_geno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                               <span class="s1">&#39;io/test/data/genotypes.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getGenotypes</span><span class="p">(</span><span class="n">file_genotypes</span><span class="o">=</span><span class="n">file_geno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addGenotypes</span><span class="p">(</span><span class="n">genotypes</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">genotypes</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">genotypes_info</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">genotypes_info</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">geno_sd</span> <span class="o">=</span> <span class="n">indata</span><span class="o">.</span><span class="n">standardiseGenotypes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">geno_sd</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="mi">5</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">             0         1       2</span>
+<span class="go">ID_1 -2.201123 -2.141970 -8.9622</span>
+<span class="go">ID_2 -2.201123 -2.141970 -8.9622</span>
+<span class="go">ID_3 -2.201123 -2.141970 -8.9622</span>
+<span class="go">ID_4  0.908627 -0.604125 -8.9622</span>
+<span class="go">ID_5 -0.646248 -2.141970 -8.9622</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.subsetTraits">
+<code class="descname">subsetTraits</code><span class="sig-paren">(</span><em>traitlist=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.subsetTraits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.subsetTraits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Limit analysis to specific subset of traits</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>traitlist</strong> (<em>array-like</em>) – array of trait numbers to select from phenotypes</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">updated the following attributes of the InputData instance:<ul class="simple">
+<li><strong>self.traitlist</strong> (list):
+of [<cite>t</cite>] trait numbers (int) to choose for analysis</li>
+<li><strong>self.phenotypes</strong> (pd.DataFrame):
+reduced set of [<cite>N</cite> x <cite>t</cite>] phenotypes</li>
+<li><strong>self.phenotype.ID</strong> (np.array):
+reduced set of [<cite>t</cite>] phenotype IDs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.reader</span> <span class="k">import</span> <span class="n">ReadData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.input</span> <span class="k">import</span> <span class="n">InputData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io.utils</span> <span class="k">import</span> <span class="n">file_type</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ReadData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_pheno</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;limmbo&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                               <span class="s1">&#39;io/test/data/pheno.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">getPhenotypes</span><span class="p">(</span><span class="n">file_pheno</span><span class="o">=</span><span class="n">file_pheno</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">traitlist</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">getTraitSubset</span><span class="p">(</span><span class="n">traitstring</span><span class="o">=</span><span class="s2">&quot;1-3,5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addPhenotypes</span><span class="p">(</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">phenotypes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(1000, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">phenotype_ID</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">subsetTraits</span><span class="p">(</span><span class="n">traitlist</span><span class="o">=</span><span class="n">traitlist</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(1000, 4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">indata</span><span class="o">.</span><span class="n">phenotype_ID</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(4,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="limmbo.io.input.InputData.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>transform</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/limmbo/io/input.html#InputData.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#limmbo.io.input.InputData.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform phenotypes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transform</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) – <p>transformation method for phenotype data:</p>
+<blockquote>
+<div><ul class="simple">
+<li>scale:
+mean center, divide by sd</li>
+<li>gaussian:
+inverse normalisation</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">updated the following attributes of the InputData instance:<ul class="simple">
+<li><strong>self.phenotypes</strong> (np.array):
+[<cite>N</cite> x <cite>P</cite>] (transformed) phenotype matrix</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">limmbo.io</span> <span class="k">import</span> <span class="nb">input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">RandomState</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">cholesky</span> <span class="k">as</span> <span class="n">chol</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">random</span> <span class="o">=</span> <span class="n">RandomState</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">K</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pheno_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phenotype_ID</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;ID</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">P</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SNP</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">SNP</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.3</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relatedness</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">SNP</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">relatedness_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">InputData</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addPhenotypes</span><span class="p">(</span><span class="n">phenotypes</span> <span class="o">=</span> <span class="n">pheno</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">pheno_samples</span> <span class="o">=</span> <span class="n">pheno_samples</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="n">phenotype_ID</span> <span class="o">=</span> <span class="n">phenotype_ID</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">addRelatedness</span><span class="p">(</span><span class="n">relatedness</span> <span class="o">=</span> <span class="n">relatedness</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">relatedness_samples</span> <span class="o">=</span> <span class="n">relatedness_samples</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[ 0.44122749, -0.33087015,  2.43077119],</span>
+<span class="go">       [ 1.58248112, -0.9092324 , -0.59163666],</span>
+<span class="go">       [-1.19276461, -0.20487651, -0.35882895]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">transform</span><span class="o">=</span><span class="s1">&#39;gaussian&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indata</span><span class="o">.</span><span class="n">phenotypes</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[ 0.23799988, -0.11191464,  2.05785598],</span>
+<span class="go">       [ 1.41041953, -0.81365681, -0.92217818],</span>
+<span class="go">       [-1.55977999,  0.01240937, -0.62091817]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="vd.html" class="btn btn-neutral float-right" title="Variance decomposition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="install.html" class="btn btn-neutral" title="Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Hannah V. Meyer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'b',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
