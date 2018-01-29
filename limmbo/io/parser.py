@@ -126,7 +126,7 @@ def getGWASargs():
         dest="relatedness_delim",
         required=False,
         default=",",
-        help=('Delimiter of kinship file. g '
+        help=('Delimiter of kinship file. '
              'Default: %(default)s'))
     optionalfiles.add_argument(
         '-cg', 
@@ -144,7 +144,7 @@ def getGWASargs():
         dest="cg_delim",
         required=False,
         default=",",
-        help=('Delimiter of Cg file. g Default: %(default)s'))
+        help=('Delimiter of Cg file. Default: %(default)s'))
     optionalfiles.add_argument(
         '-cn', 
         '--file_cn',
@@ -212,8 +212,8 @@ def getGWASargs():
         help=('Method to adjust single-trait p-values for'
               'multiple hypothesis testing when running'
               'multiple single-trait GWAS: bonferroni/effective number of '
-              'tests `(Galwey,2009) <http://onlinelibrary.wiley.com/doi/10.1002/gepi.20408/abstract>`_'
-              'Default: %(default)s'))
+              'tests `(Galwey,2009) <http://onlinelibrary.wiley.com/doi/10.1002/gepi.20408/abstract>`_ '
+              '. Default: %(default)s'))
 
     optional.add_argument(
         '-nrpermutations',
@@ -390,7 +390,7 @@ def getVarianceEstimationArgs():
         dest="pheno_delim",
         required=False,
         default=",",
-        help=('Delimiter of phenotype file. g '
+        help=('Delimiter of phenotype file. '
              'Default: %(default)s'))
     required.add_argument(
         '-k',
@@ -409,7 +409,7 @@ def getVarianceEstimationArgs():
         dest="relatedness_delim",
         required=False,
         default=",",
-        help=('Delimiter of kinship file. g '
+        help=('Delimiter of kinship file. '
              'Default: %(default)s'))
     required.add_argument(
         '-o',
@@ -437,7 +437,7 @@ def getVarianceEstimationArgs():
         dest="covariate_delim",
         required=False,
         default=",",
-        help=('Delimiter of covariates file. g '
+        help=('Delimiter of covariates file. '
              'Default: %(default)s'))
 
     limmbo = parser.add_argument_group('Bootstrapping parameters')

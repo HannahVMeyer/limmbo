@@ -1,5 +1,3 @@
-[![PyPI-License](https://img.shields.io/pypi/l/limix.svg?style=flat-square)](https://pypi.python.org/pypi/limix/)
-
 # LiMMBo
 
 LiMMBo enables multivariate analysis of high-dimensional phenotypes based on linear mixed models 
