@@ -1,7 +1,3 @@
-######################
-### import modules ###
-######################
-
 import scipy as sp
 import scipy.linalg as la
 import scipy.stats as stats
@@ -9,6 +5,7 @@ import numpy as np
 import pandas as pd
 from distutils.util import strtobool
 from math import sqrt
+
 
 def boolanize(string):
     r"""
@@ -81,7 +78,7 @@ def getEigen(covMatrix, reverse=True):
     covMatrix = np.array(covMatrix)
 
     S, U = la.eigh(covMatrix)
-    if reverse == True:
+    if reverse:
         S = S[::-1]
         U = U[:, ::-1]
     return (S, U)
@@ -130,8 +127,8 @@ def regularize(m, verbose=True):
             verbose=verbose)
         m += (abs(S.min()) + 1e-4) * sp.eye(m.shape[0])
     elif minS < 1e-4:
-        verboseprint("Make numerically stable: minimum Eigenvalue %6.4f" % \
-                S.min(), verbose=verbose)
+        verboseprint("Make numerically stable: minimum Eigenvalue %6.4f" %
+                     S.min(), verbose=verbose)
         m += 1e-4 * sp.eye(m.shape[0])
     else:
         verboseprint("Minimum Eigenvalue %6.4f" % S.min(), verbose=verbose)
@@ -167,7 +164,7 @@ def generate_permutation(P, S, n, seed=12321, exclude_zero=False):
     else:
         rangeP = range(P)
     for i in xrange(n):
-        perm_dic = rand_state.choice(a=rangeP, size=p, replace=False)
+        perm_dic = rand_state.choice(a=rangeP, size=S, replace=False)
         return_list[i] = perm_dic
     return return_list
 

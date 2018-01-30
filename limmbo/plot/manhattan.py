@@ -1,6 +1,6 @@
 from __future__ import division
 
-from numpy import arange, asarray, cumsum, flipud, log10, mean, logical_and
+from numpy import arange, asarray, cumsum, flipud, log10, logical_and
 
 
 def plot_manhattan(df,
@@ -9,7 +9,7 @@ def plot_manhattan(df,
                    alt_style=dict(alpha=1.0, color='DarkBlue'),
                    ax=None):
     r"""Produce a manhattan plot.
-    
+
     Arguments:
         df : :class:`pandas.DataFrame`
             A Pandas DataFrame containing columns pv for p-values, pos for
@@ -18,12 +18,13 @@ def plot_manhattan(df,
             Threshold for significance. Defaults to 0.01 significance level
             (bonferroni-adjusted).
         ax : :class:`matplotlib.axes.AxesSubplot`:
-            The target handle for this figure. If None, the current axes is set.
-    
+            The target handle for this figure. If None, the current axes is
+            set.
+
     Returns:
         (:class:`matplotlib.axes.AxesSubplot`)
             Axes object.
-    
+
     Examples:
 
     .. plot::
@@ -47,12 +48,12 @@ def plot_manhattan(df,
 
     ax = plt.gca() if ax is None else ax
     df['chrom'] = df['chrom'].astype(int)
-    
+
     if 'pos' not in df:
         df['pos'] = arange(df.shape[0])
     else:
         df['pos'] = df['pos'].astype(int)
-		
+
     df = df.sort_values(['chrom', 'pos'])
     if 'label' not in df:
         chrom = df['chrom'].astype(int).astype(str)
@@ -105,11 +106,11 @@ def _plot_chrom_strips(ax, df, ytop):
     chrom_bounds = _chrom_bounds(df)
     for i in range(0, len(uchroms), 2):
         ax.fill_between(
-            x = chrom_bounds,
-            y1 = 0,
-            y2 = ytop,
+            x=chrom_bounds,
+            y1=0,
+            y2=ytop,
             where=logical_and(chrom_bounds >= chrom_bounds[i],
-                chrom_bounds <= chrom_bounds[i+1]),
+                              chrom_bounds <= chrom_bounds[i + 1]),
             facecolor='LightGray',
             linewidth=0,
             alpha=0.5)
@@ -145,9 +146,9 @@ def _chrom_bounds(df):
     uchroms = df['chrom'].unique()
     min_pos = [df['abs_pos'][df['chrom'] == c].min() for c in uchroms]
     max_pos = [df['abs_pos'][df['chrom'] == c].max() for c in uchroms]
-    v =[]
+    v = []
     for i in range(len(uchroms) - 1):
-        v.append((max_pos[i] + min_pos[i+1])/2)
+        v.append((max_pos[i] + min_pos[i + 1]) / 2)
     return asarray([min_pos[0]] + v + [max_pos[len(v)]])
 
 
@@ -162,4 +163,4 @@ def _annotate(ax, x, y, text):
         va='bottom',
         bbox=dict(boxstyle='round,pad=0.2', fc='yellow', alpha=0.3),
         arrowprops=dict(
-            arrowstyle='->', connectionstyle='arc3,rad=0.5', color='red'))
+           arrowstyle='->', connectionstyle='arc3,rad=0.5', color='red'))

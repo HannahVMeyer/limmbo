@@ -8,6 +8,7 @@ from limix.io import read_plink
 from limmbo.utils.utils import verboseprint
 from limmbo.io.utils import file_type
 
+
 class MissingInput(Exception):
     """Raised when no appropriate input is given"""
     pass
@@ -56,14 +57,15 @@ class ReadData(object):
 
     def getPhenotypes(self, file_pheno=None, delim=","):
         r"""
-        Reads [`N` x `P`] phenotype file; file ending must be either .txt or 
+        Reads [`N` x `P`] phenotype file; file ending must be either .txt or
         .csv
 
         Arguments:
             file_pheno (string):
-                path to [(`N`+1) x (`P`+1)] phenotype file with: [`N`] sample 
-                IDs in the first column and [`P`] phenotype IDs in the first row
-            delim (string): 
+                path to [(`N`+1) x (`P`+1)] phenotype file with: [`N`] sample
+                IDs in the first column and [`P`] phenotype IDs in the first
+                row
+            delim (string):
                 delimiter of phenotype file, one of " ", ",", "\t"
 
         Returns:
@@ -88,20 +90,17 @@ class ReadData(object):
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
                 >>> data.phenotypes.columns[:3]
                 Index([u'trait_1', u'trait_2', u'trait_3'], dtype='object')
-                >>> data.phenotypes.values[:3,:3]
-                array([[-1.56760036, -1.5324513 ,  1.17789321],
-                       [-0.85655034,  0.48358151,  1.35664966],
-                       [ 0.10772832, -0.02262884, -0.27963328]])
         """
 
         if file_pheno is None:
             raise MissingInput('No phenotype file specified')
         else:
-            if file_type(file_pheno) is not "delim": 
-                raise FormatError('Supplied phenotype file is neither .csv ' 
-                        'nor .txt')
+            if file_type(file_pheno) is not "delim":
+                raise FormatError('Supplied phenotype file is neither .csv '
+                                  'nor .txt')
             verboseprint(
-                "Reading phenotypes from %s" % file_pheno, verbose=self.verbose)
+                "Reading phenotypes from %s" % file_pheno,
+                verbose=self.verbose)
             try:
                 self.phenotypes = pd.io.parsers.read_csv(
                     file_pheno, index_col=0, sep=delim)
@@ -110,14 +109,14 @@ class ReadData(object):
 
     def getCovariates(self, file_covariates=None, delim=','):
         r"""
-        Reads [`N` x `K`] covariate matrix with [`N`] samples and [`K`] 
+        Reads [`N` x `K`] covariate matrix with [`N`] samples and [`K`]
         covariates.
 
         Arguments:
             file_covariates (string):
-                [`N` x (`K` +1)] covariates file with [`N`] sample IDs in the 
+                [`N` x (`K` +1)] covariates file with [`N`] sample IDs in the
                 first column
-            delim (string): 
+            delim (string):
                 delimiter of covariates file, one of " ", ",", "\t"
 
         Returns:
@@ -140,39 +139,37 @@ class ReadData(object):
                 >>> data.getCovariates(file_covariates=file_covs)
                 >>> data.covariates.index[:3]
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
-                >>> data.covariates.values[:3,:3]
-                array([[ 0.92734699,  1.59767659, -0.67263682],
-                       [ 0.57061985, -0.84679736, -1.11037123],
-                       [ 0.44201204, -1.61499228,  0.23302345]])
         """
 
         if file_covariates is not None:
             if file_type(file_covariates) is not 'delim':
-                raise FormatError('Supplied covariate file is not .csv or .txt')
+                raise FormatError(
+                    'Supplied covariate file is not .csv or .txt')
             try:
-                self.covariates = pd.io.parsers.read_csv(file_covariates, 
-                        sep=delim, index_col=0)
+                self.covariates = pd.io.parsers.read_csv(file_covariates,
+                                                         sep=delim,
+                                                         index_col=0)
                 verboseprint("Reading covariates file", verbose=self.verbose)
             except Exception:
                 raise IOError('{} could not be opened'.format(file_covariates))
             # append column of 1's to adjust for mean of covariates
             self.covariates = pd.concat([self.covariates, pd.DataFrame(sp.ones(
                 self.covariates.shape[0]), index=self.covariates.index)],
-                 axis=1)
+                axis=1)
         else:
             verboseprint("No covariates set", verbose=self.verbose)
             self.covariates = None
 
     def getRelatedness(self, file_relatedness, delim=","):
         """
-        Read file of [`N` x `N`] pairwise relatedness estimates of [`N`] 
+        Read file of [`N` x `N`] pairwise relatedness estimates of [`N`]
         samples.
 
         Arguments:
             file_relatedness (string):
                 [(`N` + `1`) x N] .csv file with: [`N`] sample IDs in the first
                 row
-            delim (string): 
+            delim (string):
                 delimiter of covariate file, one of " ", ",", "\t"
 
         Returns:
@@ -196,10 +193,6 @@ class ReadData(object):
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
                 >>> data.relatedness.columns[:3]
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
-                >>> data.relatedness.values[:3,:3]
-                array([[1.00892922e+00, 2.00758504e-04, 4.30499103e-03],
-                       [2.00758504e-04, 9.98944885e-01, 4.86487318e-03],
-                       [4.30499103e-03, 4.86487318e-03, 9.85787665e-01]])
         """
 
         if file_relatedness is None:
@@ -207,8 +200,8 @@ class ReadData(object):
         if file_type(file_relatedness) is not 'delim':
             raise FormatError('Supplied relatedness file is not .csv or .txt')
         try:
-            self.relatedness = pd.io.parsers.read_csv(file_relatedness, 
-                    sep=delim)
+            self.relatedness = pd.io.parsers.read_csv(file_relatedness,
+                                                      sep=delim)
             self.relatedness.index = self.relatedness.columns
         except Exception:
             raise IOError('{} could not be opened'.format(file_relatedness))
@@ -216,14 +209,14 @@ class ReadData(object):
 
     def getPCs(self, file_pcs=None, nrpcs=None, delim=","):
         r"""
-        Reads file with [`N` x `PC`] matrix of [`PC`] principal components from 
+        Reads file with [`N` x `PC`] matrix of [`PC`] principal components from
         the genotypes of [`N`] samples.
 
         Arguments:
             file_pcs (string):
                 [`N` x (`PC` +1)] PCA file with [`N`] sample IDs in the first
                 column
-            delim (string): 
+            delim (string):
                 delimiter of PCA file, one of " ", ",", "\t"
             nrpcs (integer):
                 Number of PCs to use (uses first nrpcs  principal components)
@@ -259,8 +252,8 @@ class ReadData(object):
 
         if file_pcs is not None:
             verboseprint("Reading PCs", verbose=self.verbose)
-            self.pcs = pd.io.parsers.read_csv(file_pcs, index_col=0, 
-                            sep=delim, header=None)
+            self.pcs = pd.io.parsers.read_csv(file_pcs, index_col=0,
+                                              sep=delim, header=None)
             if nrpcs is not None:
                 verboseprint(
                     "Extracting first %s pcs" % nrpcs, verbose=self.verbose)
@@ -269,18 +262,19 @@ class ReadData(object):
             verboseprint("No pcs set", verbose=self.verbose)
             self.pcs = None
 
-    def getGenotypes(self, file_genotypes=None, delim = ','):
+    def getGenotypes(self, file_genotypes=None, delim=','):
         r"""
-        Reads genotype file in the following formats: plink (.bed, .bim, .fam),  
+        Reads genotype file in the following formats: plink (.bed, .bim, .fam),
         gen (.gen, .sample) or comma-separated values (.csv) file.
 
         Arguments:
             file_geno (string):
                 path to phenotype file in .plink or .csv format
                 - **plink format**:
-                  
-                  as specified in the plink `user manual <https://www.cog-genomics.org/plink/1.9/input>`_, 
-                  binary plink format with .bed, .fam and .bim file
+
+                  as specified in the plink `user manual <https://www.cog-
+                  genomics.org/plink/1.9/input>`_, binary plink format with
+                  .bed, .fam and .bim file.
 
                 - **.csv format**:
 
@@ -289,8 +283,8 @@ class ReadData(object):
                     column
                   - sample IDs should be of type: chrom-pos-rsID for instance
                     22-50714616-rs6010226
-            delim (string): 
-                delimiter of genotype file (when text format), one of " ", ",", 
+            delim (string):
+                delimiter of genotype file (when text format), one of " ", ",",
                 "\t"
 
         Returns:
@@ -319,12 +313,6 @@ class ReadData(object):
                 Index([u'ID_1', u'ID_2', u'ID_3', u'ID_4'], dtype='object')
                 >>> data.genotypes.shape
                 (1000, 20)
-                >>> data.genotypes.values[:5,:5]
-                array([[0., 0., 0., 0., 0.],
-                       [0., 0., 0., 0., 0.],
-                       [0., 0., 0., 0., 0.],
-                       [2., 1., 0., 0., 0.],
-                       [1., 0., 0., 0., 0.]])
                 >>> data.genotypes_info[:5]
                            chrom       pos
                 rs1601111      3  88905003
@@ -336,12 +324,6 @@ class ReadData(object):
                 >>> file_geno = resource_filename('limmbo',
                 ...     'io/test/data/genotypes')
                 >>> data.getGenotypes(file_genotypes=file_geno)
-                >>> data.genotypes.values[:5,:5]
-                array([[0., 0., 0., 0., 0.],
-                       [0., 0., 0., 0., 0.],
-                       [0., 0., 0., 0., 0.],
-                       [2., 1., 0., 0., 0.],
-                       [1., 0., 0., 0., 0.]])
                 >>> data.genotypes_info[:5]
                            chrom       pos
                 rs1601111      3  88905003
@@ -354,12 +336,11 @@ class ReadData(object):
         if file_genotypes is None:
             raise MissingInput('No genotypes data specified')
         if file_type(file_genotypes) not in ['delim', 'bed']:
-            raise FormatError(('Supplied genotype file is neither in plink nor '
-                    '.csv/.txt format'))
-        verboseprint("Reading genotypes from %s" % file_genotypes, 
-                verbose=self.verbose)
-        
-        
+            raise FormatError(('Supplied genotype file is neither in plink '
+                               'nor .csv/.txt format'))
+        verboseprint("Reading genotypes from %s" % file_genotypes,
+                     verbose=self.verbose)
+
         if file_type(file_genotypes) is 'delim':
             try:
                 genotypes = pd.io.parsers.read_csv(
@@ -381,14 +362,14 @@ class ReadData(object):
                 np.array(genotypes_info),
                 columns=['chrom', 'pos'],
                 index=snp_ID)
-        
+
         if file_type(file_genotypes) is 'bed':
             try:
                 (bim, fam, bed) = read_plink(file_genotypes,
-                        verbose=self.verbose)
+                                             verbose=self.verbose)
             except Exception:
                 raise IOError('{} could not be opened'.format(file_genotypes))
-            
+
             self.genotypes = pd.DataFrame(bed.compute()).astype(float).T
             self.genotypes.index = fam.iid
             self.genotypes_info = pd.DataFrame(
@@ -398,7 +379,7 @@ class ReadData(object):
             self.genotypes_info.index.name = None
 
     def getVarianceComponents(self, file_Cg=None, file_Cn=None, delim_cg=",",
-            delim_cn=","):
+                              delim_cn=","):
         r"""
         Reads a comma-separated files with [`P` x `P`] matrices of [`P`] trait
         covariance estimates.
@@ -429,11 +410,12 @@ class ReadData(object):
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
                 >>> data = ReadData()
-                >>> file_Cg = resource_filename('limmbo',
-                ...                     'io/test/data/Cg.csv')
-                >>> file_Cn = resource_filename('limmbo',
-                ...                     'io/test/data/Cn.csv')
-                >>> data.getVarianceComponents(file_Cg=file_Cg, file_Cn=file_Cn)
+                >>> file_Cg = resource_filename(
+                ...     'limmbo', 'io/test/data/Cg.csv')
+                >>> file_Cn = resource_filename(
+                ...     'limmbo', 'io/test/data/Cn.csv')
+                >>> data.getVarianceComponents(file_Cg=file_Cg,
+                ...                            file_Cn=file_Cn)
                 >>> data.Cg.shape
                 (10, 10)
                 >>> data.Cn.shape
@@ -450,9 +432,8 @@ class ReadData(object):
 
         if file_Cg is None and file_Cn is None:
             verboseprint(
-                ("No variance components supplied, estimate variance components "
-                 "before lmm test"),
-                verbose=self.verbose)
+                ("No variance components supplied, estimate variance "
+                 "components before lmm test"), verbose=self.verbose)
         elif file_Cg is None or file_Cn is None:
             raise IOError('Both variant components need to be supplied:',
                           'Cg is %s and Cn is %s') % (file_Cg, file_Cn)
@@ -467,25 +448,25 @@ class ReadData(object):
                     pd.io.parsers.read_csv(file_Cn, header=None, sep=delim_cn))
             except Exception:
                 raise IOError('{} could not be opened'.format(file_Cn))
-    
-    def getTraitSubset(self, traitstring = None):
+
+    def getTraitSubset(self, traitstring=None):
         """
         Limit analysis to specific subset of traits
-        
+
         Arguments:
             traitstring (string):
                 comma-separated trait numbers (for single traits) or hyphen-
                 separated trait numbers (for trait ranges) or combination of
                 both for trait selection (1-based)
-        
+
         Returns:
             (numpy array)
                 array containing list of trait IDs
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from limmbo.io import reader
                 >>> data = reader.ReadData(verbose=False)
                 >>> traitlist = data.getTraitSubset("1,3,5,7-10")
@@ -495,20 +476,21 @@ class ReadData(object):
         if traitstring is None:
             verboseprint('No trait subset chosen', verbose=self.verbose)
         else:
-            verboseprint('Chose subset of {} traits'.format(traitstring), 
-                    verbose=self.verbose)
+            verboseprint('Chose subset of {} traits'.format(traitstring),
+                         verbose=self.verbose)
             search = re.compile('[^0-9,-]').search
             if bool(search(traitstring)):
                 raise FormatError(('Traitstring can only contain integers '
-                        '(0-9), comma (,) and hyphen (-), but {}'
-                        'provided').format(traitstring))
-            traitslist = [x.split('-') for x in traitstring.split(',') ]
+                                   '(0-9), comma (,) and hyphen (-), but {}'
+                                   'provided').format(traitstring))
+            traitslist = [x.split('-') for x in traitstring.split(',')]
             traitsarray = []
             for t in traitslist:
                 if len(t) == 1:
                     traitsarray.append(int(t[0]) - 1)
                 else:
-                    [traitsarray.append(x) for x in range(int(t[0]) - 1, int(t[1])) ]
+                    [traitsarray.append(x)
+                     for x in range(int(t[0]) - 1, int(t[1]))]
             return np.array(traitsarray)
 
     def getSampleSubset(self, file_samplelist=None, samplelist=None):
@@ -519,7 +501,7 @@ class ReadData(object):
             file_samplelist (string):
                 "path/to/file_samplelist": file contains subset sample IDs with
                 one ID per line, no header.
-            samplestring (string): 
+            samplestring (string):
                 comma-separated list of sample IDs e.g. "ID1,ID2,ID5,ID10".
 
         Returns:
@@ -527,11 +509,12 @@ class ReadData(object):
                 array containing list of sample IDs
         """
         if file_samplelist is not None and samplelist is not None:
-           raise IOError("Only one of file_samplelist or samplelist can "
-                    "be specified")
+            raise IOError("Only one of file_samplelist or samplelist can "
+                          "be specified")
         if file_samplelist is not None or samplelist is not None:
             if file_samplelist is not None:
-                verboseprint("Read sample list from file", verbose=self.verbose)
+                verboseprint("Read sample list from file",
+                             verbose=self.verbose)
                 try:
                     samplelist = pd.io.parsers.read_csv(
                         file_samplelist, sep=" ", header=None, index_col=0)
@@ -544,5 +527,5 @@ class ReadData(object):
                 samplelist = samplelist.split(",")
 
             verboseprint("Number of samples in sample list: %s" %
-                len(samplelist), verbose=self.verbose)
+                         len(samplelist), verbose=self.verbose)
             return samplelist

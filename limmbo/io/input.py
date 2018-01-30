@@ -1,17 +1,15 @@
 from limix.util.preprocess import regressOut
 
 from limmbo.utils.utils import verboseprint
-from limmbo.utils.utils import match
 from limmbo.utils.utils import scale
-from limmbo.utils.utils import makeHardCalledGenotypes
 from limmbo.utils.utils import AlleleFrequencies
 
 import pandas as pd
 import numpy as np
-import re
 
 from scipy_sugar.stats import quantile_gaussianize
 from math import sqrt
+
 
 class MissingInput(Exception):
     """Raised when no appropriate input is given"""
@@ -41,7 +39,7 @@ class InputData(object):
             initialise verbose: should progress messages be printed to stdout
     """
 
-    def __init__(self, verbose = True):
+    def __init__(self, verbose=True):
         self.verbose = verbose
         self.samples = None
         self.phenotypes = None
@@ -64,34 +62,34 @@ class InputData(object):
         """
         Add phenotypes, their phenotype ID and their sample IDs to
         InputData instance
-        
+
         Arguments:
             phenotypes (array-like):
                 [`N x `P`] phenotype matrix of `N` individuals and `P`
-                phenotypes; if pandas.DataFrame with pheno_samples as index and 
-                phenotypes_ID as columns, pheno_samples and phenotype_ID do not 
+                phenotypes; if pandas.DataFrame with pheno_samples as index and
+                phenotypes_ID as columns, pheno_samples and phenotype_ID do not
                 have to specified separately.
             pheno_samples (array-like):
                 [`N`] sample ID
             phenotype_ID (array-like):
                 [`P`] phenotype IDs
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.phenotypes** (pd.DataFrame):
                   [`N` x `P`] phenotype array
                 - **self.pheno_samples** (np.array):
                   [`N`] sample IDs
                 - **self.phenotype_ID** (np.array):
                   [`P`] phenotype IDs
-        
-        
+
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from limmbo.io import input
                 >>> import numpy as np
                 >>> import pandas as pd
@@ -114,7 +112,8 @@ class InputData(object):
                 self.pheno_samples = np.array(phenotypes.index)
             except Exception:
                 raise TypeError(("pheno_samples are not provided and "
-                    "phenotypes has no index to retrieve pheno_samples from."))
+                                 "phenotypes has no index to retrieve "
+                                 "pheno_samples from."))
         else:
             self.pheno_samples = np.array(pheno_samples)
 
@@ -122,53 +121,56 @@ class InputData(object):
             try:
                 self.phenotype_ID = np.array(phenotypes.columns)
             except Exception:
-                raise TypeError(("phenotype_ID are not provided and phenotypes "
-                    "has no column names to retrieve phenotype_ID from."))
+                raise TypeError(("phenotype_ID are not provided and "
+                                 "phenotypes has no column names to retrieve "
+                                 "phenotype_ID from."))
         else:
             self.phenotype_ID = np.array(phenotype_ID)
 
         if phenotypes.shape[0] != self.pheno_samples.shape[0]:
             raise DataMismatch(('Number of samples in phenotypes ({}) does '
-                'not match number of sample IDs ({}) provided').format(
-                    phenotypes.shape[0], self.pheno_samples.shape[0]))
+                                'not match number of sample IDs ({}) provided'
+                                ).format(
+                phenotypes.shape[0], self.pheno_samples.shape[0]))
         if phenotypes.shape[1] != self.phenotype_ID.shape[0]:
             raise DataMismatch(('Number phenotypes ({}) does not match '
-                'number of phenotype IDs ({}) provided').format(
-                    phenotypes.shape[1], self.phenotype_ID.shape[0]))
+                                'number of phenotype IDs ({}) provided'
+                                ).format(phenotypes.shape[1],
+                                         self.phenotype_ID.shape[0]))
         if len(self.pheno_samples) != len(set(self.pheno_samples)):
-            raise IOError("Duplicate sample names in phenotypes")    
+            raise IOError("Duplicate sample names in phenotypes")
         if len(self.phenotype_ID) != len(set(self.phenotype_ID)):
-            raise IOError("Duplicate trait names in phenotypes")    
-        
-        self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples,
-            columns = self.phenotype_ID)
+            raise IOError("Duplicate trait names in phenotypes")
 
-    def addCovariates(self, covariates, covs_samples = None):
+        self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples,
+                                       columns=self.phenotype_ID)
+
+    def addCovariates(self, covariates, covs_samples=None):
         """
         Add [`N` x `K`] covariate data with [`N`] samples and [`K`] covariates
         to InputData instance.
-        
+
         Arguments:
             covariates (array-like):
                 [`N x `K`] covariate matrix of `N` individuals and `K`
-                covariates; if pandas.DataFrame with covs_samples as index, 
+                covariates; if pandas.DataFrame with covs_samples as index,
                 covs_samples do not have to specified separately.
             covs_samples (array-like):
                 [`N`] sample ID
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.covariates** (pd.DataFrame):
                   [`N` x `K`] covariates matrix
                 - **self.covs_samples** (np.array):
                   [`N`] sample IDs
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from limmbo.io import input
                 >>> import numpy as np
                 >>> import pandas as pd
@@ -182,31 +184,33 @@ class InputData(object):
                 (3, 3)
                 >>> print indata.covs_samples.shape
                 (3,)
-        
+
         """
         if covs_samples is None:
             try:
                 self.covs_samples = np.array(covariates.index)
             except Exception:
                 raise TypeError(("covs_samples are not provided and "
-                    "covariates has no index to retrieve covs_samples "
-                    "from."))
+                                 "covariates has no index to retrieve "
+                                 "covs_samples from."))
         else:
             self.covs_samples = np.array(covs_samples)
-        if np.array(covariates).shape[0] != np.array(self.covs_samples).shape[0]:
+        if np.array(covariates).shape[0] != np.array(self.covs_samples
+                                                     ).shape[0]:
             raise DataMismatch(('Number of samples in covariates ({}) does '
-                'not match number of sample IDs ({}) provided').format(
-                    np.array(covariates).shape[0],
-                    np.array(self.covs_samples).shape[0]))
+                                'not match number of sample IDs ({}) provided'
+                                ).format(
+                np.array(covariates).shape[0],
+                np.array(self.covs_samples).shape[0]))
         if len(self.covs_samples) != len(set(self.covs_samples)):
-            raise IOError("Duplicate sample names in covariates")    
+            raise IOError("Duplicate sample names in covariates")
         self.covariates = pd.DataFrame(covariates, index=self.covs_samples)
 
-    def addRelatedness(self, relatedness, relatedness_samples = None):
+    def addRelatedness(self, relatedness, relatedness_samples=None):
         """
         Add [`N` x `N`] pairwise relatedness estimates of [`N`] samples to the
         InputData instance
-        
+
         Arguments:
             relatedness (array-like):
                 [`N x `N`] relatedness matrix of `N` individuals;
@@ -214,20 +218,20 @@ class InputData(object):
                 relatedness_samples do not have to specified separately.
             relatedness_samples (array-like):
                 [`N`] sample IDs
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.relatedness** (pd.DataFrame):
                   [`N` x `N`] relatedness matrix
                 - **self.relatedness_samples** (np.array):
                   [`N`] sample IDs
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from limmbo.io import input
                 >>> import numpy
                 >>> import pandas as pd
@@ -248,43 +252,48 @@ class InputData(object):
                 (100, 100)
                 >>> print indata.relatedness_samples.shape
                 (100,)
-        
+
         """
         if relatedness_samples is None:
             try:
                 self.relatedness_samples = np.array(relatedness.index)
             except Exception:
                 raise TypeError(("relatedness_samples are not provided and "
-                    "relatedness has no index to retrieve relatedness_samples "
-                    "from"))
+                                 "relatedness has no index to retrieve "
+                                 "relatedness_samples from"))
         else:
             self.relatedness_samples = np.array(relatedness_samples)
         rel = np.array(relatedness)
         if rel.shape[0] != rel.shape[1]:
             raise FormatError(('Relatedness has to be a square matrix, but '
-                'number of rows {} is not equal to number of columns '
-                '{}').format(rel.shape[0], rel.shape[1]))
+                               'number of rows {} is not equal to number of '
+                               'columns {}').format(
+                                   rel.shape[0],
+                                   rel.shape[1]))
 
         if not np.all(np.array(rel) - np.array(rel).T == 0):
             raise FormatError('Relatedness matrix is not symmetric')
         if not self._is_positive_definite(rel):
-            raise FormatError('Relatedness matrix is not positive-semi definite')
+            raise FormatError(
+                'Relatedness matrix is not positive-semi definite')
         if rel.shape[0] != self.relatedness_samples.shape[0]:
             raise DataMismatch(('Number of samples in relatedness ({}) does '
-                    'not match number of sample IDs ({}) provided').format(
-                    rel.shape[0], self.relatedness_samples.shape[0]))
+                                'not match number of sample IDs ({}) provided'
+                                ).format(
+                rel.shape[0], self.relatedness_samples.shape[0]))
         if len(self.relatedness_samples) != len(set(self.relatedness_samples)):
-            raise IOError("Duplicate sample names in relatedness")    
+            raise IOError("Duplicate sample names in relatedness")
         self.relatedness = pd.DataFrame(relatedness,
-            index=self.relatedness_samples, columns=self.relatedness_samples)
+                                        index=self.relatedness_samples,
+                                        columns=self.relatedness_samples)
 
-    def addGenotypes(self, genotypes, geno_samples = None, 
-            genotypes_info = None):
+    def addGenotypes(self, genotypes, geno_samples=None,
+                     genotypes_info=None):
         """
         Add [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
         genotypes, [`N`] array of sample IDs and [`NrSNP` x 2] dataframe of
         genotype description to InputData instance.
-        
+
         Arguments:
             genotypes (array-like):
                 [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
@@ -295,11 +304,11 @@ class InputData(object):
             genotypes_info (dataframe):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
                   rsIDs as index
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.genotypes** (pd.DataFrame):
                   [`N` x `NrSNPs`] genotype matrix
                 - **self.geno_samples** (np.array):
@@ -307,17 +316,17 @@ class InputData(object):
                 - **self.genotypes_info** (pd.DataFrame):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
                   rsIDs as index
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io import reader
                 >>> from limmbo.io import input
                 >>> data = reader.ReadData(verbose=False)
-                >>> file_geno = resource_filename('limmbo',
-                ...                                'io/test/data/genotypes.csv')
+                >>> file_geno = resource_filename(
+                ...     'limmbo', 'io/test/data/genotypes.csv')
                 >>> data.getGenotypes(file_genotypes=file_geno)
                 >>> indata = input.InputData(verbose=False)
                 >>> indata.addGenotypes(genotypes=data.genotypes,
@@ -326,12 +335,6 @@ class InputData(object):
                 array(['ID_1', 'ID_2', 'ID_3', 'ID_4', 'ID_5'], dtype=object)
                 >>> indata.genotypes.shape
                 (1000, 20)
-                >>> indata.genotypes.values[:5,:5]
-                array([[0., 0., 0., 0., 0.],
-                       [0., 0., 0., 0., 0.],
-                       [0., 0., 0., 0., 0.],
-                       [2., 1., 0., 0., 0.],
-                       [1., 0., 0., 0., 0.]])
                 >>> indata.genotypes_info[:5]
                            chrom       pos
                 rs1601111      3  88905003
@@ -345,31 +348,33 @@ class InputData(object):
                 self.geno_samples = np.array(genotypes.index)
             except Exception:
                 raise TypeError(("geno_samples are not provided and genotypes "
-                    "has no index to retrieve geno_samples from"))
+                                 "has no index to retrieve geno_samples from"))
         else:
             self.geno_samples = np.array(geno_samples)
         if genotypes_info is None:
             raise MissingInput(('Genotype info has to be specified via '
-                    'genotypes_info'))
+                                'genotypes_info'))
         self.genotypes = pd.DataFrame(genotypes, index=self.geno_samples)
         self.genotypes_info = genotypes_info
         if self.genotypes.shape[0] != self.geno_samples.shape[0]:
             raise DataMismatch(('Number of samples in genotypes ({}) does '
-                'not match number of sample IDs ({}) provided').format(
-                    self.genotypes.shape[0], self.geno_samples.shape[0]))
+                                'not match number of sample IDs ({}) provided'
+                                ).format(
+                self.genotypes.shape[0], self.geno_samples.shape[0]))
         if self.genotypes.shape[1] != self.genotypes_info.shape[0]:
             raise DataMismatch(('Number of genotypes in genotypes ({}) does '
-                'not match number of genotypes in genotypes_info ({})').format(
-                    self.genotypes.shape[1], self.genotypes_info.shape[0]))
+                                'not match number of genotypes in '
+                                'genotypes_info ({})').format(
+                self.genotypes.shape[1], self.genotypes_info.shape[0]))
         if len(self.geno_samples) != len(set(self.geno_samples)):
-            raise IOError("Duplicate sample names in genotypes")    
+            raise IOError("Duplicate sample names in genotypes")
 
     def addVarianceComponents(self, Cg, Cn,):
         """
         Add [`P` x `P`] matrices of [`P`] trait covariance estimates
-        of the genetic trait variance component (Cg) and the non-genetic (noise)
-        variance component (Cn) to InputData instance
-        
+        of the genetic trait variance component (Cg) and the non-genetic
+        (noise) variance component (Cn) to InputData instance.
+
         Arguments:
             Cg (array-like):
                 [`P x `P`] matrix of `P` trait covariance estimates of the
@@ -377,22 +382,22 @@ class InputData(object):
             Cn (array-like):
                 [`P x `P`] matrix of `P` trait covariance estimates of the
                 non-genetic (noise) trait covaraince component
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.Cg** (np.array):
                   [`P x `P`] matrix of `P` trait covariance estimates of the
                   genetic trait covariance component
                 - **self.Cn** (np.array):
                   [`P x `P`] matrix of `P` trait covariance estimates of the
                   non-genetic trait covaraince component
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io import reader
                 >>> from limmbo.io import input
@@ -420,25 +425,29 @@ class InputData(object):
         if Cg is not None and Cn is not None:
             if self.phenotypes is None:
                 raise FormatError(('Phenotypes have to be added before Cg/Cn '
-                        'can be added'))
+                                   'can be added'))
             self.Cg = np.array(Cg)
             self.Cn = np.array(Cn)
             if self.Cg.shape[0] != self.Cg.shape[1]:
                 raise FormatError(('Cg has to be a square matrix, but '
-                    'number of rows {} is not equal to number of columns '
-                    '{}').format(self.Cg.shape[0], self.Cg.shape[1]))
+                                   'number of rows {} is not equal to number '
+                                   'of columns {}').format(self.Cg.shape[0],
+                                                           self.Cg.shape[1]))
             if not np.all(self.Cg - self.Cg.T == 0):
                 raise FormatError('Cg is not symmetric')
             if not self._is_positive_definite(self.Cg):
                 raise FormatError('Cg is not positive-semi definite')
             if self.Cg.shape[0] != self.phenotypes.shape[1]:
                 raise DataMismatch(('Number of traits in Cg ({}) does '
-                    'not match number of traits ({}) in phenotypes').format(
-                        self.Cg.shape[0], self.phenotypes.shape[1]))
+                                    'not match number of traits ({}) in '
+                                    'phenotypes'
+                                    ).format(self.Cg.shape[0],
+                                             self.phenotypes.shape[1]))
             if self.Cn.shape[0] != self.Cn.shape[1]:
                 raise FormatError(('Cn has to be a square matrix, but '
-                    'number of rows {} is not equal to number of columns '
-                    '{}').format(self.Cn.shape[0], self.Cn.shape[1]))
+                                   'number of rows {} is not equal to number '
+                                   'of columns {}').format(self.Cn.shape[0],
+                                                           self.Cn.shape[1]))
 
             if not np.all(self.Cn - self.Cn.T == 0):
                 raise FormatError('Cn is not symmetric')
@@ -446,14 +455,17 @@ class InputData(object):
                 raise FormatError('Cn is not positive-semi definite')
             if self.Cn.shape[0] != self.phenotypes.shape[1]:
                 raise DataMismatch(('Number of traits in Cn ({}) does '
-                    'not match number of traits ({}) in phenotypes').format(
-                        self.Cn.shape[0], self.phenotypes.shape[1]))
+                                    'not match number of traits ({}) in '
+                                    'phenotypes').format(
+                                        self.Cn.shape[0],
+                                        self.phenotypes.shape[1])
+                                   )
 
-    def addPCs(self, pcs, pc_samples = None):
+    def addPCs(self, pcs, pc_samples=None):
         """
         Add [`N` x `PC`] matrix of [`PC`] principal components from the
         genotypes of [`N`] samples to InputData instance.
-        
+
         Arguments:
             pcs (array-like):
                 [`N x `PCs`] principal component matrix of `N` individuals and
@@ -461,20 +473,20 @@ class InputData(object):
                 as index, covs_samples do not have to specified separately.
             pc_samples (array-like):
                 [`N`] sample IDs
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.pcs** (pd.DataFrame):
                   [`N` x `PCs`] principal component matrix
                 - **self.pc_samples** (np.array):
                   [`N`] sample IDs
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io import reader
                 >>> from limmbo.io import input
@@ -488,49 +500,49 @@ class InputData(object):
                 (1000, 10)
                 >>> print indata.pc_samples.shape
                 (1000,)
-        
+
         """
         if pc_samples is None:
             try:
                 self.pc_samples = np.array(pcs.index)
             except Exception:
                 raise TypeError(("pc_samples are not provided and pcs has "
-                    "no index to retrieve pc_samples from"))
+                                 "no index to retrieve pc_samples from"))
         else:
             self.pc_samples = np.array(pc_samples)
         if np.array(pcs).shape[0] != np.array(self.pc_samples).shape[0]:
             raise DataMismatch(('Number of samples in pcs ({}) does'
-                    'not match number of sample IDs ({}) provided').format(
-                        np.array(pcs).shape[0], 
-                        np.array(pc_samples).shape[0]))
+                                'not match number of sample IDs ({}) provided'
+                                ).format(
+                np.array(pcs).shape[0],
+                np.array(pc_samples).shape[0]))
         if len(self.pc_samples) != len(set(self.pc_samples)):
-            raise IOError("Duplicate sample names for principle components")    
+            raise IOError("Duplicate sample names for principle components")
         self.pcs = pd.DataFrame(pcs, index=self.pc_samples)
 
-
-    def subsetTraits(self, traitlist = None):
+    def subsetTraits(self, traitlist=None):
         """
         Limit analysis to specific subset of traits
-        
+
         Arguments:
             traitlist (array-like):
                 array of trait numbers to select from phenotypes
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.traitlist** (list):
                   of [`t`] trait numbers (int) to choose for analysis
                 - **self.phenotypes** (pd.DataFrame):
                   reduced set of [`N` x `t`] phenotypes
                 - **self.phenotype.ID** (np.array):
                   reduced set of [`t`] phenotype IDs
-        
+
         Examples:
 
             .. doctest::
-            
+
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io.reader import ReadData
                 >>> from limmbo.io.input import InputData
@@ -554,30 +566,30 @@ class InputData(object):
         """
         self.traitlist = np.array(traitlist)
         if len(self.traitlist) != len(set(self.traitlist)):
-            raise IOError("Duplicate trait names in traitlist")    
+            raise IOError("Duplicate trait names in traitlist")
         try:
             self.phenotypes = self.phenotypes.iloc[:, self.traitlist]
             self.phenotype_ID = self.phenotype_ID[self.traitlist]
         except:
             raise DataMismatch(('Selected trait number {} is greater '
-                    'than number of phenotypes provided {}').format(
-                        max(self.traitlist) + 1, 
-                        self.phenotypes.shape[1]))
+                                'than number of phenotypes provided {}'
+                                ).format(max(self.traitlist) + 1,
+                                         self.phenotypes.shape[1]))
 
     def commonSamples(self, samplelist=None):
         """
         Get [`M]` common samples out of phenotype, relatedness and optional
         covariates with [`N`] samples (if all samples present in all datasets
         [`M`] = [`N`]) and ensure that samples are in same order.
-        
+
         Arguments:
             samplelist (array-like):
                 array of sample IDs to select from data
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.phenotypes** (pd.DataFrame):
                   [`M` x `P`] phenotype matrix
                 - **self.pheno_samples** (np.array):
@@ -598,11 +610,11 @@ class InputData(object):
                   [`M` x `PCs`] principal component matrix
                 - **self.pc_samples** (np.array):
                   [`M`] sample IDs
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from limmbo.io import input
                 >>> import numpy as np
                 >>> import pandas as pd
@@ -652,32 +664,32 @@ class InputData(object):
         self.samples = self.pheno_samples
 
         if self.relatedness is not None:
-            test_pheno_relatedness = np.intersect1d(self.pheno_samples, 
-                    self.relatedness_samples)
+            test_pheno_relatedness = np.intersect1d(self.pheno_samples,
+                                                    self.relatedness_samples)
             if len(test_pheno_relatedness) == 0:
                 raise DataMismatch(('No common samples between phenotypes and '
-                        'relatedness estimates'))
+                                    'relatedness estimates'))
             self.samples = test_pheno_relatedness
         if self.genotypes is not None:
-            test_pheno_geno = np.intersect1d(self.pheno_samples, 
-                    self.geno_samples)
+            test_pheno_geno = np.intersect1d(self.pheno_samples,
+                                             self.geno_samples)
             if len(test_pheno_geno) == 0:
                 raise DataMismatch(('No common samples between phenotypes,'
-                        'and genotypes'))
+                                    'and genotypes'))
             self.samples = np.intersect1d(self.samples, test_pheno_geno)
         if self.covariates is not None:
-            test_pheno_covs = np.intersect1d(self.pheno_samples, 
-                    self.covs_samples)
+            test_pheno_covs = np.intersect1d(self.pheno_samples,
+                                             self.covs_samples)
             if len(test_pheno_covs) == 0:
                 raise DataMismatch(('No common samples between phenotypes, '
-                        'and covariates'))
+                                    'and covariates'))
             self.samples = np.intersect1d(self.samples, test_pheno_covs)
         if self.pcs is not None:
-            test_pheno_pcs = np.intersect1d(self.pheno_samples, 
-                    self.pcs_samples)
+            test_pheno_pcs = np.intersect1d(self.pheno_samples,
+                                            self.pcs_samples)
             if len(test_pheno_pcs) == 0:
                 raise DataMismatch(('No common samples between phenotypes,'
-                        'and pcs'))
+                                    'and pcs'))
             self.samples = np.intersect1d(self.samples, test_pheno_pcs)
 
         if samplelist is not None:
@@ -686,46 +698,47 @@ class InputData(object):
             test_samples_samplelist = np.intersect1d(self.samples, samplelist)
             if len(test_samples_samplelist) == 0:
                 raise DataMismatch(('No samples between common samples in, '
-                        'datasets and samplelist'))
+                                    'datasets and samplelist'))
             if len(test_samples_samplelist) < len(samplelist):
                 raise DataMismatch(('Not all Ids in samplelist are contained '
-                    'in common samples from provided datasets'))
+                                    'in common samples from provided '
+                                    'datasets'))
             self.samples = samplelist
-    
-        self.phenotypes = self.phenotypes.loc[self.samples,:]
+
+        self.phenotypes = self.phenotypes.loc[self.samples, :]
         self.pheno_samples = np.array(self.phenotypes.index)
 
         if self.genotypes is not None:
-            self.genotypes = self.genotypes.loc[self.samples,:]
+            self.genotypes = self.genotypes.loc[self.samples, :]
             self.geno_samples = np.array(self.genotypes.index)
         if self.relatedness is not None:
-            self.relatedness = self.relatedness.loc[self.samples,:]
+            self.relatedness = self.relatedness.loc[self.samples, :]
             self.relatedness = self.relatedness[self.samples]
             self.relatedness_samples = np.array(self.relatedness.index)
         if self.covariates is not None:
-            self.covariates = self.covariates.loc[self.samples,:]
+            self.covariates = self.covariates.loc[self.samples, :]
             self.covs_samples = np.array(self.covariates.index)
         if self.pcs is not None:
-            self.pcs = self.pcs.loc[self.samples,:]
+            self.pcs = self.pcs.loc[self.samples, :]
             self.pc_samples = np.array(self.pcs.index)
 
     def regress(self):
         """
         Regress out covariates (optional).
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.phenotypes** (np.array):
                   [`M` x `P`] phenotype matrix of residuals of linear model
                 - **self.covariates**:
                   None
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from limmbo.io import input
                 >>> import numpy as np
                 >>> from numpy.random import RandomState
@@ -760,38 +773,39 @@ class InputData(object):
         """
         if np.array_equal(self.phenotypes, self.covariates):
             raise DataMismatch(('Phenotype and covariate arrays are '
-                    'identical'))
+                                'identical'))
         verboseprint('Regress covariates', verbose=self.verbose)
         phenotypes = regressOut(np.array(self.phenotypes),
-                np.array(self.covariates))
+                                np.array(self.covariates))
         self.phenotypes = pd.DataFrame(phenotypes,
-            index=self.phenotypes.index, columns=self.phenotypes.columns)
+                                       index=self.phenotypes.index,
+                                       columns=self.phenotypes.columns)
         self.covariates = None
 
     def transform(self, transform):
         """
         Transform phenotypes
-        
+
         Arguments:
             transform (string):
                 transformation method for phenotype data:
-        
+
                     - scale:
                       mean center, divide by sd
                     - gaussian:
                       inverse normalisation
-        
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.phenotypes** (np.array):
                   [`N` x `P`] (transformed) phenotype matrix
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from limmbo.io import input
                 >>> import numpy as np
                 >>> from numpy.random import RandomState
@@ -827,55 +841,57 @@ class InputData(object):
                        [-1.55977999,  0.01240937, -0.62091817]])
         """
         if transform == 'scale':
-            verboseprint('Use %s as transformation' % transform, 
-                verbose=self.verbose)
+            verboseprint('Use %s as transformation' % transform,
+                         verbose=self.verbose)
             phenotypes = scale(self.phenotypes)
             self.phenotypes = pd.DataFrame(phenotypes,
-                index=self.phenotypes.index, columns=self.phenotypes.columns)
+                                           index=self.phenotypes.index,
+                                           columns=self.phenotypes.columns)
         elif transform == 'gaussian':
-            verboseprint('Use %s as transformation' % transform, 
-                verbose=self.verbose)
-            phenotypes = np.apply_along_axis(quantile_gaussianize, 0, 
-                    self.phenotypes)
+            verboseprint('Use %s as transformation' % transform,
+                         verbose=self.verbose)
+            phenotypes = np.apply_along_axis(quantile_gaussianize, 0,
+                                             self.phenotypes)
             self.phenotypes = pd.DataFrame(phenotypes,
-                index=self.phenotypes.index, columns=self.phenotypes.columns)
+                                           index=self.phenotypes.index,
+                                           columns=self.phenotypes.columns)
         else:
             raise TypeError(('Possible transformation methods are: scale, '
-                    'and gaussian but {} provided').format(transform))
+                             'and gaussian but {} provided').format(transform))
 
     def standardiseGenotypes(self):
         r"""
         Standardise genotypes:
 
         .. math::
-           w_{ij} = \frac{x_{ij} -2p_i}{\sqrt{2p_i (1-p_i)}} 
-        
-        where :math:`x_{ij}` is the number of copies of the reference allele for 
-        the :math:`i` th SNP of the :math:`j` th individual and :math:`p_i` is 
-        the frequency of the reference allele (as described in `(Yang et al
-        2011)
-        <http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=3014363&tool=pmcentrez&rendertype=abstract>`_).
-        
+           w_{ij} = \frac{x_{ij} -2p_i}{\sqrt{2p_i (1-p_i)}}
+
+        where :math:`x_{ij}` is the number of copies of the reference allele
+        for the :math:`i` th SNP of the :math:`j` th individual and :math:`p_i`
+        is the frequency of the reference allele (as described in `(Yang et al
+        2011) <http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=
+        3014363&tool=pmcentrez&rendertype=abstract>`_).
+
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.genotypes_sd** (numpy array):
                   [`N` x `NrSNP`] matrix of `NrSNP` standardised genotypes for
                   `N` samples.
-        
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io import reader
                 >>> from limmbo.io import input
                 >>> from limmbo.utils.utils import makeHardCalledGenotypes
                 >>> from limmbo.utils.utils import AlleleFrequencies
                 >>> data = reader.ReadData(verbose=False)
-                >>> file_geno = resource_filename('limmbo',
-                ...                                'io/test/data/genotypes.csv')
+                >>> file_geno = resource_filename(
+                ...     'limmbo', 'io/test/data/genotypes.csv')
                 >>> data.getGenotypes(file_genotypes=file_geno)
                 >>> indata = input.InputData(verbose=False)
                 >>> indata.addGenotypes(genotypes=data.genotypes,
@@ -895,10 +911,10 @@ class InputData(object):
             var_snp = sqrt(2 * p * q)
             for n in range(self.genotypes.iloc[:, snp].shape[0]):
                 self.genotypes_sd[n, snp] = (np.array(self.genotypes)[n, snp] -
-                    2 * q) / var_snp
+                                             2 * q) / var_snp
 
         self.genotypes_sd = pd.DataFrame(self.genotypes_sd,
-                index=self.genotypes.index)
+                                         index=self.genotypes.index)
 
         return self.genotypes_sd
 
@@ -909,23 +925,23 @@ class InputData(object):
         Returns:
             None:
                 updated the following attributes of the InputData instance:
-        
+
                 - **self.freqs** (pandas DataFrame):
-                  [`NrSNP` x `2`] matrix of alt and ref allele frequencies; 
-                  index: snp IDs
-        
+                  [`NrSNP` x `2`] matrix of alt and ref allele frequencies;
+                  index: snp IDs.
+
         Examples:
-        
+
             .. doctest::
-        
+
                 >>> from pkg_resources import resource_filename
                 >>> from limmbo.io import reader
                 >>> from limmbo.io import input
                 >>> from limmbo.utils.utils import makeHardCalledGenotypes
                 >>> from limmbo.utils.utils import AlleleFrequencies
                 >>> data = reader.ReadData(verbose=False)
-                >>> file_geno = resource_filename('limmbo',
-                ...                                'io/test/data/genotypes.csv')
+                >>> file_geno = resource_filename(
+                ...     'limmbo', 'io/test/data/genotypes.csv')
                 >>> data.getGenotypes(file_genotypes=file_geno)
                 >>> indata = input.InputData(verbose=False)
                 >>> indata.addGenotypes(genotypes=data.genotypes,
@@ -947,14 +963,14 @@ class InputData(object):
             self.freqs[snp, 0], self.freqs[snp, 1] = AlleleFrequencies(
                 np.array(self.genotypes)[:, snp])
 
-        self.freqs = pd.DataFrame(self.freqs, index=self.genotypes_info.index, 
-                columns=['p', 'q'])
+        self.freqs = pd.DataFrame(self.freqs, index=self.genotypes_info.index,
+                                  columns=['p', 'q'])
         return self.freqs
 
     @staticmethod
     def _is_positive_definite(matrix):
-        try: 
-            chol_matrix = np.linalg.cholesky(matrix)
+        try:
+            np.linalg.cholesky(matrix)
             return(True)
         except np.linalg.linalg.LinAlgError:
             return(False)

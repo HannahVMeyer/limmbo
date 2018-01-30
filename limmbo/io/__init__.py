@@ -6,13 +6,13 @@ Parse command-line arguments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: limmbo.io.parser.getGWASargs
 
-A detailed list of the command-line options for `getGWASargs` can be found in 
+A detailed list of the command-line options for `getGWASargs` can be found in
 :ref:`runGWAS`.
 
 .. autofunction:: limmbo.io.parser.getVarianceEstimationArgs
 
-A detailed list of the command-line options for `getVarianceEstimationArgs` can be 
-found in :ref:`runVarianceEstimation`.
+A detailed list of the command-line options for `getVarianceEstimationArgs` can
+be found in :ref:`runVarianceEstimation`.
 
 Read data
 ^^^^^^^^^
