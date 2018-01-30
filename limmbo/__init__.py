@@ -7,5 +7,6 @@ from . import core
 from . import io
 from . import utils
 from . import plot
+from . import bin
 
-__all__ = ['test', 'core', 'io', 'utils', 'plot']
+__all__ = ['test', 'core', 'io', 'utils', 'plot', 'bin']
