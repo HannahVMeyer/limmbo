@@ -541,15 +541,6 @@ def getVarianceEstimationArgs():
         help=('Choose type [string] of data preprocessing: scale (mean '
             'center, divide by sd) or gaussian (inverse normalise). '
             'Default: %(default)s'))
-    data.add_argument(
-        '-reg',
-        '--reg_covariates',
-        action="store_true",
-        dest="regress",
-        required=False,
-        help=('[bool]: should covariates be regressed out? Default: '
-            '%(default)s'))
-
 
     subset = parser.add_argument_group('Optional subsetting options')
     subset.add_argument(
