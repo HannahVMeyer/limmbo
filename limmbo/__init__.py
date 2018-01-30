@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
-#import core
-#import io
-#import util
+from .testit import test
+from . import core
+from . import io
+from . import utils
+from . import plot
 
-__all__ = ['core', 'io', 'util']
+__all__ = ['test', 'core', 'io', 'utils', 'plot']
