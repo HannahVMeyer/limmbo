@@ -54,7 +54,7 @@ def entry_point():
         datainput.addRelatedness(relatedness = dataread.relatedness)
     if dataread.covariates is not None:
         datainput.addCovariates(covariates = dataread.covariates)
-    if dataread.cg is not None:
+    if dataread.Cg is not None:
         datainput.addVarianceComponents(Cg = dataread.Cg, Cn = dataread.Cn)
     datainput.commonSamples(samplelist=samplelist)
     if options.regress is not None:
