@@ -13,6 +13,7 @@ import numpy as np
 import limix as limi
 import limix.qtl as qtl
 import limix.plot as plot
+import limmbo.plot.manhattan as mh
 import limix.mtset
 
 from limmbo.utils.utils import verboseprint
@@ -607,7 +608,7 @@ class GWAS(object):
             sys.exit("Variance decomposition did not converge")
 
     def manhattanQQ(self, results, colourS='DarkBLue', colourNS='Orange',
-            alphaS=0.5, alphaNS=0.1, thr_plotting=None, saveTo=None):
+            alphaS=1, alphaNS=0.1, thr_plotting=None, saveTo=None):
         r"""
 	Plot manhattan and quantile-quantile plot of association results.
 
@@ -638,9 +639,9 @@ class GWAS(object):
                 'chrom': np.array(self.genotypes_info['chrom']).astype('int'), 
                 'pos': np.array(self.genotypes_info['pos']).astype('int')})
             ax1 = fig.add_subplot(2,1,1)
-            plot.plot_manhattan(df=data, 
-                null_style={'alpha':alphaS, 'color':colourS}, 
-                alt_style = {'alpha':alphaNS, 'color':colourNS},
+            mh.plot_manhattan(df=data, 
+                null_style={'alpha':float(alphaNS), 'color':colourNS}, 
+                alt_style = {'alpha':float(alphaS), 'color':colourS},
                 alpha=thr_plotting)
             ax1.set_title('%s' % self.name)
             ax2 = fig.add_subplot(2,1,2)
@@ -655,17 +656,17 @@ class GWAS(object):
                     'chrom': np.array(self.genotypes_info['chrom']).astype('int'), 
                     'pos': np.array(self.genotypes_info['pos']).astype('int')})
 		ax1 = fig.add_subplot(4,1,1)
-                plot.plot_manhattan(df=data, 
-                    null_style={'alpha':alphaS, 'color':colourS}, 
-                    alt_style = {'alpha':alphaNS, 'color':colourNS},
+                mh.plot_manhattan(df=data, 
+                    null_style={'alpha':float(alphaNS), 'color':colourNS}, 
+                    alt_style = {'alpha':float(alphaS), 'color':colourS},
                     alpha=thr_plotting)
 		ax1.set_title('%s (p-values)' % self.name)
 		ax2 = fig.add_subplot(4,1,2)
 		plot.qqplot(results['pvalues'].ravel())
 		ax1 = fig.add_subplot(4,1,3)
-                plot.plot_manhattan(df=data_adjust, 
-                    null_style={'alpha':alphaS, 'color':colourS}, 
-                    alt_style = {'alpha':alphaNS, 'color':colourNS},
+                mh.plot_manhattan(df=data_adjust, 
+                    null_style={'alpha':float(alphaNS), 'color':colourNS}, 
+                    alt_style = {'alpha':float(alphaS), 'color':colourS},
                     alpha=thr_plotting)
 		ax1.set_title('%s (p-values adjust)' % self.name)
 		ax2 = fig.add_subplot(4,1,4)
@@ -679,9 +680,9 @@ class GWAS(object):
                 'pos': np.array(self.genotypes_info['pos']).astype('int')})
             fig = plt.figure(figsize=[12,4])
             ax1 = fig.add_subplot(2,1,1)
-            plot.plot_manhattan(df=data, 
-                null_style={'alpha':alphaS, 'color':colourS}, 
-                alt_style = {'alpha':alphaNS, 'color':colourNS},
+            mh.plot_manhattan(df=data, 
+                null_style={'alpha':float(alphaNS), 'color':colourNS}, 
+                alt_style = {'alpha':float(alphaS), 'color':colourS},
                 alpha=thr_plotting)
             ax1.set_title('%s' % self.name)
             ax2 = fig.add_subplot(2,1,2)
