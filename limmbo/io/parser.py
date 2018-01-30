@@ -343,7 +343,8 @@ def getGWASargs():
         action="store",
         dest="alphaS",
         required=False,
-        default=0.5,
+        default=1.0,
+        type=float,
         help=('Transparency of significant points in manhattan plot'))
     plotting.add_argument(
         '-alphaNS',
@@ -352,6 +353,7 @@ def getGWASargs():
         dest="alphaNS",
         required=False,
         default=0.1,
+        type=float,
         help=('Transparency of non-significant points in manhattan plot'))
     plotting.add_argument(
         '-thr',
@@ -375,6 +377,23 @@ def getVarianceEstimationArgs():
                 'with random genetic and non-genetic effect via a '
                 'bootstrapping-based approach.'))
     required = parser.add_argument_group('Basic required arguments')
+    vd = required.add_mutually_exclusive_group(required=True)
+    vd.add_argument(
+        '--limmbo',
+        action="store_true",
+        dest="limmbo",
+        required=False,
+        default=False,
+        help=('Set to run covariance estimation with LiMMBo, recommended for '
+              'trait sizes larger than 20; Default: %(default)s'))
+    vd.add_argument(
+        '--reml',
+        action="store_true",
+        dest="reml",
+        required=False,
+        default=False,
+        help=('Set to run covariance estimation with simple reml, recommended ' 
+              'for trait sizes less than 20. Default: %(default)s'))
     required.add_argument(
         '-p',
         '--file_pheno',
