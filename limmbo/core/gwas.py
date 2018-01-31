@@ -13,7 +13,6 @@ from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import effectiveTests
 
 import matplotlib as mpl
-import matplotlib.pyplot as plt
 mpl.use('Agg')
 
 
@@ -643,6 +642,7 @@ class GWAS(object):
         Returns:
             (None)
         """
+        import matplotlib.pyplot as plt
         if self.mode is 'singletrait':
             fig = plt.figure(figsize=[12, 4])
             pv_min = np.array(results['pvalues']).min(axis=0)
