@@ -18,26 +18,31 @@ import pp
 
 
 class DataMismatch(Exception):
-    """Raised when dimensions of sample/ID names do not match dimension of
+    r"""Raised when dimensions of sample/ID names do not match dimension of
     corresponding data"""
     pass
 
 
 class LiMMBo(object):
+    r"""
+    Class for variance decomposition.
+
+    Arguments:
+        datainput (:class:`limmbo.io.InputData`):
+           Object containing relevant data for variance decomposition,
+           at least phenotypes and relatedness matrix.
+        timing (bool):
+           if set to True, process time will be recorded
+        iterations (int):
+            number of iterations for paramter estimation steps
+        S (int):
+            subsampling size `S`
+        verbose (bool):
+            Set to true to print progress messages.
+
+    """
     def __init__(self, datainput, S, timing=False, iterations=10,
                  verbose=False):
-        r"""
-        Arguments:
-            datainput ():
-                fdas
-            timing (bool):
-                if set to True, process time will be recorded
-            iterations (int):
-
-            S (int):
-                subsampling size `S`
-
-        """
         self.phenotypes = datainput.phenotypes
         self.relatedness = datainput.relatedness
         self.S = S
