@@ -86,6 +86,7 @@ def entry_point():
 
     if options.nrpermutations is not None:
         pvalues_empirical = gwas.computeEmpiricalP(
+            pvalues=resultsAssociation['pvalues'],
             seed=options.seed,
             nrpermutations=options.nrpermutations)
     else:
@@ -102,7 +103,7 @@ def entry_point():
 
     if options.plot:
         if gwas.fdr_empirical is not None:
-            thr = gwas.fdr.empirical
+            thr = gwas.fdr_empirical
         else:
             thr = options.thr
 

@@ -440,7 +440,6 @@ class GWAS(object):
                 pempirical_df = pd.DataFrame(pvalues_empirical.T,
                                              index=self.genotypes_info.index,
                                              columns=self.phenotype_ID)
-                # index=SNP, columns=['Pempirical'])
                 pempirical_df = pd.concat([self.genotypes_info,
                                            pempirical_df], axis=1)
 
@@ -452,7 +451,7 @@ class GWAS(object):
                                                pempirical_raw_df], axis=1)
 
                 pempirical_raw_df.to_csv("%s/%s_pempirical_raw%s%s.csv" %
-                                         (outstring + (self.fdr,)),
+                                         (outstring + (self.nrpermutations,)),
                                          index=False)
 
         if self.mode is 'multitrait':
@@ -473,7 +472,8 @@ class GWAS(object):
 
         if pvalues_empirical is not None:
             pvalues_empirical_df.to_csv("%s/%s_pempirical%s%s.csv" %
-                                        (outstring + (self.fdr,)), index=False)
+                                        (outstring + (self.nrpermutations,)),
+                                        index=False)
 
         if self.estimate_vd:
             if self.timeVD is not None:
@@ -486,12 +486,12 @@ class GWAS(object):
             pd.DataFrame(self.Cn).to_csv("%s/Cn_REML.csv" % (outdir),
                                          index=False, header=False)
 
-            if self.fdr is not None:
-                pd.DataFrame(self.allppermute).to_csv("%s/%s_ppermute%s.csv" %
-                                                      outstring, index=False)
-                pd.DataFrame(['FDR', str(self.FDR)]).T.to_csv(
-                    "%s/%s_empiricalFDR_%s.csv" % outstring, header=False,
-                    index=False)
+        if self.fdr_empirical is not None:
+            pd.DataFrame(self.allppermute).to_csv("%s/%s_ppermute%s.csv" %
+                                                  outstring, index=False)
+            pd.DataFrame(['FDR', str(self.fdr_empirical)]).T.to_csv(
+                "%s/%s_empiricalFDR%s.csv" % outstring, header=False,
+                index=False)
 
     def computeEmpiricalP(self, pvalues, nrpermutations=1000, seed=10):
         r"""
@@ -531,7 +531,7 @@ class GWAS(object):
             count = np.zeros((nrpermutations, self.P, self.S))
 
         for ps in range(nrpermutations):
-            verboseprint("Permutation %s" % ps)
+            verboseprint("Permutation %s" % (ps+1))
             genotypes_permute = self.genotypes[np.random.choice(
                 self.N, self.N, replace=False), :]
             if self.mode is "multitrait":
@@ -583,12 +583,12 @@ class GWAS(object):
             if self.mode == "multitrait":
                 resultsFDR = self.__multiTraitAssociation_anyeffect(
                     genotypes=genotypes_permute, computeFDR=True)
-                ppermute[ps, :] = resultsFDR['pvalues_permute']
+                ppermute[ps, :] = resultsFDR['pvalues']
             if self.mode == "singletrait":
                 resultsFDR = self.__singleTraitAssociation(
                     genotypes=genotypes_permute, computeFDR=True,
                     adjustSingleTrait=self.adjustSingleTrait)
-                pvalues_adjust_min = resultsFDR['pvalues_permute_adjust'].min(
+                pvalues_adjust_min = resultsFDR['pvalues_adjust'].min(
                     axis=0)
                 ppermute[ps, :] = pvalues_adjust_min
 
