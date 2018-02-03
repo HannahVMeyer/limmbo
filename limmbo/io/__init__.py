@@ -1,7 +1,4 @@
 r"""
-Data input
-**********
-
 Parse command-line arguments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: limmbo.io.parser.getGWASargs
