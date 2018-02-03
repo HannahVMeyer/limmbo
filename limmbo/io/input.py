@@ -29,7 +29,7 @@ class DataMismatch(Exception):
 
 class InputData(object):
     """
-    Generate object containing all datasets relevant for variance decomposition
+    Class containing all datasets relevant for variance decomposition
     (phenotypes, relatedness estimates) and pre-processing steps (check for
     common samples and sample order, covariates regression and phenotype
     transformation)

@@ -27,7 +27,7 @@ class DataMismatch(Exception):
 
 class ReadData(object):
     r"""
-    Generate object containing all datasets relevant for the analysis.
+    Class reading all datasets relevant for the analysis.
     For variance decomposition, at least phenotypes and relatedness estimates
     need to be specified.
     For association testing with LMM, at least phenotype, relatedness estimates
