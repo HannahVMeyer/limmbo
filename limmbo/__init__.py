@@ -8,4 +8,4 @@ from . import plot
 from . import bin
 
 __all__ = ['test', 'core', 'io', 'utils', 'plot', 'bin']
-__version__ = "0.1.3"
+__version__ = "0.1.4"
