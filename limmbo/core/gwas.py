@@ -17,17 +17,21 @@ mpl.use('Agg')
 
 
 class GWAS(object):
-    """
-    """
+    r"""
+    Class to run association tests.
 
-    def __init__(self, datainput, seed=10, verbose=True,
-                 searchDelta=False):
-        '''
-        nothing to initialize
-        '''
+    Arguments:
+        datainput (:class:`limmbo.io.InputData`):
+           Object containing relevant data for association study,
+           at least phenotypes and genotypes matrix.
+        verbose (bool):
+            Set to true to print progress messages.
+
+    """
+    def __init__(self, datainput, verbose=True):
         self.verbose = verbose
-        self.seed = seed
-        self.searchDelta = searchDelta
+        self.seed = None
+        self.searchDelta = False
         self.genotypes = datainput.genotypes
         self.genotypes_info = datainput.genotypes_info
         self.phenotypes = datainput.phenotypes
@@ -152,7 +156,7 @@ class GWAS(object):
                 >>> indata.commonSamples()
                 >>> indata.regress()
                 >>> indata.transform(transform="scale")
-                >>> gwas = GWAS(datainput=indata, seed=10, verbose=False)
+                >>> gwas = GWAS(datainput=indata, verbose=False)
                 >>>
                 >>>
                 >>> # Example of multi-trait single-variant association testing
@@ -489,7 +493,7 @@ class GWAS(object):
                     "%s/%s_empiricalFDR_%s.csv" % outstring, header=False,
                     index=False)
 
-    def computeEmpiricalP(self, pvalues, nrpermutations=1000):
+    def computeEmpiricalP(self, pvalues, nrpermutations=1000, seed=10):
         r"""
         Compute empirical p-values: permute the genotypes, do the
         association test, record if permuted p-value of SNP is smaller than
@@ -504,6 +508,8 @@ class GWAS(object):
                 number of permutations; 1/nrpermutations is the maximum level
                 of significance (alpha)to test for, e.g.
                 nrpermuations=100 -> alpha=0.01
+            seed (int):
+                Seed to initiate random number generator
 
         Returns:
             (numpy array):
@@ -513,6 +519,7 @@ class GWAS(object):
 
         verboseprint("Computing empirical p-values", verbose=self.verbose)
 
+        self.seed = seed
         np.random.seed(seed=self.seed)
 
         self.nrpermutations = nrpermutations
@@ -540,7 +547,7 @@ class GWAS(object):
 
         return pvalues_empirical
 
-    def computeFDR(self, fdr):
+    def computeFDR(self, fdr, seed=10):
         r"""
         Create an empirical p-values distribution by permuting the genotypes
         and running the association test on these (10 random permuations).
@@ -550,6 +557,8 @@ class GWAS(object):
         Arguments:
             fdr (float):
                 desired fdr threshold
+            seed (int):
+                Seed to initiate random number generator
 
         Returns:
             (tuple):
@@ -561,7 +570,7 @@ class GWAS(object):
         """
 
         verboseprint("Computing empirical FDR", verbose=self.verbose)
-
+        self.seed = seed
         np.random.seed(seed=self.seed)
         # tests = int(1/self.options.fdr)
         tests = 10
