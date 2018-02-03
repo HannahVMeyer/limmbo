@@ -67,7 +67,6 @@ def entry_point():
 
     # set up variance decomposition via LiMMBo
     gwas = GWAS(datainput=datainput,
-                seed=options.seed,
                 verbose=options.verbose)
 
     if options.singletrait:
@@ -87,12 +86,15 @@ def entry_point():
 
     if options.nrpermutations is not None:
         pvalues_empirical = gwas.computeEmpiricalP(
+            seed=options.seed,
             nrpermutations=options.nrpermutations)
     else:
         pvalues_empirical = None
 
     if options.fdr is not None:
-        empirical_fdr, empirical_pvalue_dist = gwas.computeFDR(fdr=options.fdr)
+        empirical_fdr, empirical_pvalue_dist = gwas.computeFDR(
+            fdr=options.fdr,
+            seed=options.seed)
 
     gwas.saveAssociationResults(resultsAssociation, outdir=options.outdir,
                                 name=options.name,
