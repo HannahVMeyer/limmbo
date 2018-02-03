@@ -3,7 +3,7 @@
 LiMMBo enables multivariate analysis of high-dimensional phenotypes based on
 linear mixed models with bootstrapping (LiMMBo). LiMMBo is available as an open
 source Python module. It builds on and can be used in combination with
-[Limix](https://github.com/limix/limix), a flexible and efficient linear mixed
+[LIMIX](https://github.com/limix/limix), a flexible and efficient linear mixed
 model library with interfaces to Python.
 
 A description of the public interface can be found [here
@@ -13,8 +13,8 @@ A description of the public interface can be found [here
 
 LiMMBo is currently available on the [Python Package
 Index](https://pypi.python.org) and will in the future be available through
-(conda-forge[(https://conda-forge.org/#about]. The latter platform provides the
-recommended installation of [Limix](https://github.com/limix/limix), which
+[conda-forge](https://conda-forge.org/#about). The latter platform provides the
+recommended installation of [LIMIX](https://github.com/limix/limix), which
 LiMMBo heavily relies on.
 
 The recommended way of installing both packages is the following:
