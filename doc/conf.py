@@ -205,10 +205,10 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 # Wrap text in argparse tables
-html_static_path = []
+html_static_path = ['./_static']
 
 html_context = {
     'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
+        './_static/theme_overrides.css',  # override wide tables in RTD theme
         ],
     }
