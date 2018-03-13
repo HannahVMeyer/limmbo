@@ -132,6 +132,7 @@ dependencies:
 - pip=9.0.1
 - pixman=0.34.0
 - ply=3.9
+- pp=1.6.5
 - prompt_toolkit=1.0.9
 - psutil=5.0.1
 - ptyprocess=0.5.1
