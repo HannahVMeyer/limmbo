@@ -1,6 +1,5 @@
 import argparse
 
-
 def getGWASargs():
     parser = argparse.ArgumentParser(
         prog="runAssociation",
@@ -26,7 +25,7 @@ def getGWASargs():
         dest="pheno_delim",
         required=False,
         default=",",
-        help=('Delimiter of phenotype file.  g '
+        help=('Delimiter of phenotype file. '
               'Default: %(default)s'))
     required.add_argument(
         '-g',
@@ -36,7 +35,7 @@ def getGWASargs():
         required=False,
         default=None,
         help=('Genotype file: either [S x N].csv file (first column: SNP id, '
-              'first row: sample IDs) or  `plink formated <https://www.cog-'
+              'first row: sample IDs) or `plink formated <https://www.cog-'
               'genomics.org/plink/1.9/input>`_ genotypes '
               '(.bim/.fam/.bed). Default: %(default)s'))
     required.add_argument(
@@ -141,8 +140,9 @@ def getGWASargs():
         required=False,
         default=None,
         help=('Required for large phenotype sizes when --lmm/-lm; computed '
-              'via runLiMMBo; specifies file name for genetic trait covariance'
-              ' matrix (rows: traits, columns: traits). Default: %(default)s'))
+              'via runVarianceEstimation; specifies file name for genetic '
+              'trait covariance matrix (rows: traits, columns: traits). '
+              'Default: %(default)s'))
     optionalfiles.add_argument(
         '--cg_delim',
         action="store",
@@ -157,9 +157,9 @@ def getGWASargs():
         dest="file_cn",
         required=False,
         default=None,
-        help=('Required for large phenotype sizeswhen --lmm/-lm; computed via '
-              'runLiMMBo; specifies file name for non-genetic trait '
-              'covariance matrix (rows: traits, columns: traits). '
+        help=('Required for large phenotype sizes when --lmm/-lm; computed '
+              'via runVarianceEstimation; specifies file name for genetic '
+              'trait covariance matrix (rows: traits, columns: traits). '
               'Default: %(default)s'))
     optionalfiles.add_argument(
         '--cn_delim',
@@ -167,7 +167,7 @@ def getGWASargs():
         dest="cn_delim",
         required=False,
         default=",",
-        help=('Delimiter of Cn file. g Default: %(default)s'))
+        help=('Delimiter of Cn file. Default: %(default)s'))
     optionalfiles.add_argument(
         '-pcs',
         '--file_pcs',
@@ -184,7 +184,7 @@ def getGWASargs():
         dest="pcs_delim",
         required=False,
         default=",",
-        help=('Delimiter of PCs file. g Default: %(default)s'))
+        help=('Delimiter of PCs file. Default: %(default)s'))
     optionalfiles.add_argument(
         '-c',
         '--file_cov',
@@ -201,7 +201,7 @@ def getGWASargs():
         dest="covariate_delim",
         required=False,
         default=",",
-        help=('Delimiter of covariates file. g '
+        help=('Delimiter of covariates file. '
               'Default: %(default)s'))
 
     optional = parser.add_argument_group('Optional association parameters')
@@ -378,7 +378,7 @@ def getGWASargs():
 
     version = parser.add_argument_group('Version')
     version.add_argument('--version', action='version',
-                         version='%(prog)s 0.1.3')
+                         version='%(prog)s 0.1.4')
 
     return parser
 

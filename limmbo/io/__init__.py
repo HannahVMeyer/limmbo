@@ -4,7 +4,7 @@ Parse command-line arguments
 .. autofunction:: limmbo.io.parser.getGWASargs
 
 A detailed list of the command-line options for `getGWASargs` can be found in
-:ref:`runGWAS`.
+:ref:`runAssociation`.
 
 .. autofunction:: limmbo.io.parser.getVarianceEstimationArgs
 

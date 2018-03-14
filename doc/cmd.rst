@@ -1,6 +1,7 @@
 Command-line interface
 **********************
-.. _runGWAS:
+
+.. _runAssociation:
 
 Association analysis
 ^^^^^^^^^^^^^^^^^^^^
