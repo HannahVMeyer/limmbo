@@ -18,9 +18,6 @@
 #
 import os
 import sys
-sys.path.append(os.path.abspath('../..'))
-sys.path.append(os.path.abspath('..'))
-
 
 # -- General configuration ------------------------------------------------
 
@@ -106,6 +103,10 @@ html_theme_options = {}
 # so a file named "default.css" will overwrite the builtin "default.css".
 
 html_static_path = ['_static']
+
+def setup(app):
+    app.add_stylesheet('theme_overrides.css')
+    
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
