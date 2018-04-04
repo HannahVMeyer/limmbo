@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 def getGWASargs():
     parser = argparse.ArgumentParser(
@@ -491,7 +492,7 @@ def getVarianceEstimationArgs():
         action="store",
         dest="S",
         default=None,
-        required=True,
+        required='--limmbo' in sys.argv,
         help=('Size [int] of phenotype subsamples used for variance '
               'decomposition. Default: %(default)s'),
         type=int)
