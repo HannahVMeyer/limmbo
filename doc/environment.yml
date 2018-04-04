@@ -135,4 +135,3 @@ dependencies:
   - virtualenv==15.1.0
   - virtualenv-clone==0.2.6
   - virtualenvwrapper==4.7.2
-
