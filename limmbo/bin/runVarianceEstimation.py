@@ -12,9 +12,7 @@ def entry_point():
     # parse command-line arguments
     parser = getVarianceEstimationArgs()
     options = parser.parse_args()
-    if options.file_covariates is None and options.regress is True:
-        parser.error(("Regress is set to True but no covariate file",
-                      "provided"))
+    
     # read data specified in command-line arguments
     dataread = ReadData(verbose=options.verbose)
     dataread.getPhenotypes(file_pheno=options.file_pheno,
@@ -31,10 +29,6 @@ def entry_point():
                 file_samplelist=options.file_samplelist)
     else:
         samplelist = None
-    if options.traitstring is not None:
-        traitlist = dataread.getTraitSubset(traitstring=options.traitstring)
-    else:
-        traitlist = None
 
     # combine all input, check for consistency and pre-process data
     datainput = InputData(verbose=options.verbose)
@@ -44,11 +38,18 @@ def entry_point():
         datainput.addCovariates(covariates=dataread.covariates)
         datainput.regress()
     datainput.commonSamples(samplelist=samplelist)
-    datainput.subsetTraits(traitlist=traitlist)
+    if options.traitstring is not None:
+        traitlist = dataread.getTraitSubset(traitstring=options.traitstring)
+        datainput.subsetTraits(traitlist=traitlist)
     if options.transform is not None:
         datainput.transform(transform=options.transform)
 
     if options.limmbo:
+        if options.verbose:
+            print ("Starting variance estimation with LiMMBo for phenotype" 
+                    "with {} samples and {} traits").format(
+                            *datainput.phenotypes.shape)
+
         datalimmbo = LiMMBo(datainput=datainput,
                             S=options.S,
                             timing=options.timing,
