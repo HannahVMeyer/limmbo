@@ -31,6 +31,8 @@ After successful installation of LIMIX, simply install LiMMBo via
 ```bash
 pip install limmbo
 ```
+Recently, an R wrapper package for limmbo was created - this independent project
+can be found [here](https://github.com/fboehm/limmbo2).
 
 ## Problems
 
