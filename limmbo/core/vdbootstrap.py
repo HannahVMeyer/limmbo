@@ -14,7 +14,8 @@ import cPickle
 import limix.mtset
 
 from limix_core.covar import FreeFormCov
-import pp
+import multiprocessing as mp
+from pathos.multiprocessing import ProcessingPool as Pool
 
 
 class DataMismatch(Exception):
@@ -67,6 +68,11 @@ class LiMMBo(object):
                                 "of phenotypes ({})").format(
                                     self.S,
                                     self.phenotypes.shape[1]))
+    def __runVD_pool(self, bs):
+        r""" Wrapper for pathos.multiprocessing.Pool
+        """
+        pheno = self.__bootstrapPhenotypes(bs)
+        return self.__VarianceDecomposition(pheno, bs)
 
     def runBootstrapCovarianceEstimation(self, seed, cpus, minCooccurrence=3,
                                          n=None):
@@ -94,32 +100,14 @@ class LiMMBo(object):
         self.P = self.phenotypes.shape[1]
         self.__generateBootstrapMatrix(seed=seed, n=n,
                                        minCooccurrence=minCooccurrence)
-        ppservers = ()
-        jobs = []
-        results = []
-
-        if cpus is not None:
-            job_server = pp.Server(cpus, ppservers=ppservers)
-        else:
-            job_server = pp.Server(ppservers=ppservers)
-
+        if cpus is None:
+            cpus = mp.cpu_count()
+        self.map = Pool(cpus).map
         verboseprint(
-            'Number of CPUs available for parallelising: {}'.format(
-                job_server.get_ncpus()),
-            verbose=self.verbose)
-
-        for bs in range(self.runs):
-            pheno = self.__bootstrapPhenotypes(bs)
-            verboseprint('Start vd for bootstrap nr {}'.format(bs + 1))
-            jobs.append(
-                job_server.submit(self.__VarianceDecomposition, (pheno, bs),
-                                  (verboseprint, ), ("limix.mtset", "time")))
-
-        for job in jobs:
-            bsresult = job()
-            bsresult['bootstrap'] = self.bootstrap_matrix[bsresult[
-                'bsindex'], :]
-            results.append(bsresult)
+                'Number of CPUs available for parallelising: {}'.format(cpus),
+                verbose=self.verbose)
+        verboseprint('Start vd for bootstraps', verbose=self.verbose)
+        results = self.map(self.__runVD_pool,  range(self.runs))
 
         return results
 
@@ -475,7 +463,7 @@ class LiMMBo(object):
 
         n = 0
         for vdresult in results:
-            bootstrap[n] = vdresult['bootstrap']
+            bootstrap[n] = self.bootstrap_matrix[vdresult['bsindex'],:]
             process_time_bs.append(vdresult['process_time'])
 
             # store results of each bootstrap as matrix of inflated
