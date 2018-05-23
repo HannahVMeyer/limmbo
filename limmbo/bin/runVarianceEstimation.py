@@ -5,6 +5,7 @@ from limmbo.core.vdbootstrap import LiMMBo
 from limmbo.core.vdsimple import vd_reml
 
 import pandas as pd
+import pdb
 
 
 def entry_point():
@@ -55,6 +56,7 @@ def entry_point():
                             timing=options.timing,
                             iterations=options.iterations,
                             verbose=options.verbose)
+        pdb.set_trace()
         resultsBS = datalimmbo.runBootstrapCovarianceEstimation(
             seed=options.seed, cpus=options.cpus,
             minCooccurrence=options.minCooccurrence,
