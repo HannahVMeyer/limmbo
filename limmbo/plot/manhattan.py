@@ -7,7 +7,8 @@ def plot_manhattan(df,
                    alpha=None,
                    null_style=dict(alpha=0.1, color='Orange'),
                    alt_style=dict(alpha=1.0, color='DarkBlue'),
-                   ax=None):
+                   ax=None,
+                   annotate=False):
     r"""Produce a manhattan plot.
 
     Arguments:
@@ -69,7 +70,7 @@ def plot_manhattan(df,
     ytop = -1.2 * log10(min(df['pv'].min(), alpha))
 
     _plot_chrom_strips(ax, df, ytop)
-    _plot_points(ax, df, alpha, null_style, alt_style)
+    _plot_points(ax, df, alpha, null_style, alt_style, annotate=annotate)
     _set_frame(ax, df, ytop)
 
     ax.set_ylabel('-log$_{10}$pv')
@@ -88,17 +89,17 @@ def _set_frame(ax, df, ytop):
     ax.spines["top"].set_visible(False)
 
 
-def _plot_points(ax, df, alpha, null_style, alt_style):
+def _plot_points(ax, df, alpha, null_style, alt_style, annotate):
     null_df = df.loc[df['pv'] >= alpha, :]
     alt_df = df.loc[df['pv'] < alpha, :]
 
     ax.plot(null_df['abs_pos'], -log10(null_df['pv']), '.', ms=5, **null_style)
     ax.plot(alt_df['abs_pos'], -log10(alt_df['pv']), '.', ms=5, **alt_style)
-
-    for i in range(alt_df.shape[0]):
-        x = alt_df['abs_pos'].values[i]
-        y = -log10(alt_df['pv'].values[i])
-        _annotate(ax, x, y, alt_df['label'].values[i])
+    if annotate:
+        for i in range(alt_df.shape[0]):
+            x = alt_df['abs_pos'].values[i]
+            y = -log10(alt_df['pv'].values[i])
+            _annotate(ax, x, y, alt_df['label'].values[i])
 
 
 def _plot_chrom_strips(ax, df, ytop):
