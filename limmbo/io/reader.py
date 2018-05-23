@@ -91,7 +91,6 @@ class ReadData(object):
                 >>> data.phenotypes.columns[:3]
                 Index([u'trait_1', u'trait_2', u'trait_3'], dtype='object')
         """
-
         if file_pheno is None:
             raise MissingInput('No phenotype file specified')
         else:

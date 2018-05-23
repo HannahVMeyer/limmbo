@@ -16,7 +16,7 @@ def getGWASargs():
         '--file_pheno',
         action="store",
         dest="file_pheno",
-        required=False,
+        required=True,
         help=('Path [string] to [(N+1) x (P+1)] .csv file of [P] '
               'phenotypes with [N] samples (first column: sample IDs, first '
               'row: phenotype IDs). Default: %(default)s'))
@@ -374,6 +374,7 @@ def getGWASargs():
         dest="thr",
         required=False,
         default=None,
+        type=float,
         help=('Significance threshold; when --fdr specified, empirical fdr '
               'used as threshold. Default: %(default)s'))
 
