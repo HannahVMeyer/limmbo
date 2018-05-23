@@ -3,12 +3,14 @@ from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.gwas import GWAS
 
+import pdb
 
 def entry_point():
 
     # parse command-line arguments
     parser = getGWASargs()
     options = parser.parse_args()
+
     if options.lmm and options.file_relatedness is None:
         parser.error("For --lmm, --kf is required")
     if options.file_covariates is None and \
@@ -60,7 +62,7 @@ def entry_point():
     if dataread.Cg is not None:
         datainput.addVarianceComponents(Cg=dataread.Cg, Cn=dataread.Cn)
     datainput.commonSamples(samplelist=samplelist)
-    if options.regress is not None:
+    if options.regress:
         datainput.regress()
     if options.transform is not None:
         datainput.transform(transform=options.transform)
