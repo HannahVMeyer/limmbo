@@ -496,7 +496,7 @@ class LiMMBo(object):
                 Cn_average[p1, p2] = vals[~sp.isnan(vals)].mean()
 
         Cg_reg, ev_g = regularize(Cg_average)
-        Cn_reg, ev_n,  = regularize(Cn_average)
+        Cn_reg, ev_n  = regularize(Cn_average)
 
         verboseprint(
             ("Fitting bootstrapping results: minimize residual sum of "
@@ -521,7 +521,7 @@ class LiMMBo(object):
                    'process_time_bs': process_time_bs,
                    'number_of_successful_bs': number_of_bs,
                    'results_fit_Cg': results_fit_Cg,
-                   'results_fit_Cn': results_fit_Cn,
+                   'results_fit_Cn': results_fit_Cn
                    }
 
         return results
