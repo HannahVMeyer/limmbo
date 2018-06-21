@@ -17,10 +17,6 @@ Index](https://pypi.python.org) and will in the future be available through
 recommended installation of [LIMIX](https://github.com/limix/limix), which
 LiMMBo heavily relies on.
 
-The latest LiMMBo version relies on the parallel python package which is 
-not available for python 3. While we work on replacing this dependency, 
-LiMMBo can only be installed for python 2. 
-
 The recommended way of installing both packages is the following:
 Install LIMIX via [conda](http://conda.pydata.org/docs/index.html)
 ```bash

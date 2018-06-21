@@ -1,137 +1,145 @@
-name: limmbo-py2.7
+name: limmbo3
 channels:
 - conda-forge
 - defaults
 dependencies:
-- asciitree=0.3.3=py27_1
-- backports=1.0=py27_1
-- backports.functools_lru_cache=1.4=py27_1
-- backports_abc=0.5=py27_0
-- bokeh=0.12.13=py27_0
-- brent-search=1.0.29=py27_0
-- ca-certificates=2017.11.5=0
-- cachetools=2.0.0=py27_0
-- certifi=2017.11.5=py27_0
-- cffi=1.11.2=py27_0
+- asciitree=0.3.3=py35_1
+- bokeh=0.12.16=py35_0
+- brent-search=1.0.32=py35_0
+- cachetools=2.0.1=py_0
+- cffi=1.11.5=py35_0
 - click=6.7=py_1
-- cloudpickle=0.5.2=py_0
-- cycler=0.10.0=py27_0
-- dask=0.16.1=py_0
-- dask-core=0.16.1=py_0
-- dbus=1.10.22=0
-- distributed=1.20.2=py27_0
-- enum34=1.1.6=py27_1
+- cloudpickle=0.5.3=py_0
+- cycler=0.10.0=py35_0
+- cytoolz=0.9.0.1=py35_0
+- dask=0.18.0=py_0
+- dask-core=0.18.0=py_0
+- dbus=1.13.0=h3a4f0e9_0
+- distributed=1.22.0=py35_0
 - expat=2.2.5=0
-- fontconfig=2.12.6=0
+- fontconfig=2.13.0=0
 - freetype=2.8.1=0
-- funcsigs=1.0.2=py_2
-- functools32=3.2.3.2=py27_1
-- futures=3.2.0=py27_0
-- gettext=0.19.7=1
-- glib=2.55.0=0
-- glimix-core=1.3.7=py27_0
-- gst-plugins-base=1.8.0=0
-- gstreamer=1.8.0=1
-- h5py=2.7.1=py27_2
+- glimix-core=1.2.26=py35_0
+- h5py=2.8.0=py35hb794570_1
 - hcephes=0.2.3=1
-- hdf5=1.10.1=1
-- heapdict=1.0.0=py27_0
+- hdf5=1.10.2=0
+- heapdict=1.0.0=py35_0
 - icu=58.2=0
-- jinja2=2.10=py27_0
-- joblib=0.11=py27_0
+- jinja2=2.10=py35_0
+- joblib=0.11=py35_0
 - jpeg=9b=2
-- libffi=3.2.1=3
+- kiwisolver=1.0.1=py35_1
 - libiconv=1.15=0
 - libpng=1.6.34=0
-- libxcb=1.12=1
-- libxml2=2.9.7=0
+- libuuid=1.0.3=1
+- libxcb=1.13=0
+- libxml2=2.9.8=0
 - liknorm=1.3.11=0
-- liknorm-py=1.0.12=py27_0
-- limix=1.0.12=np112py27_0
-- limix-core=1.0.1=py27_1
-- limix-legacy=0.8.12=np112py27_2
-- llvmlite=0.21.0=py27_0
-- locket=0.2.0=py27_1
-- markupsafe=1.0=py27_0
-- matplotlib=2.1.2=py27_0
-- msgpack-python=0.5.1=py27_0
-- ncephes=1.0.40=py27_0
-- ncurses=5.9=10
-- ndarray-listener=1.0.26=py27_0
-- numpy-sugar=1.2.0=py27_0
-- openssl=1.0.2n=0
-- optimix=1.2.21=py27_0
-- pandas=0.22.0=py27_0
-- pandas-plink=1.2.18=py27_0
-- partd=0.3.8=py27_0
-- pcre=8.39=0
-- pip=9.0.1=py27_1
-- psutil=5.4.0=py27_0
-- pycparser=2.18=py27_0
-- pyparsing=2.2.0=py27_0
-- pyqt=5.6.0=py27_4
-- python=2.7.14=4
-- python-dateutil=2.6.1=py27_0
-- pytz=2017.3=py_2
-- pyyaml=3.12=py27_1
-- qt=5.6.2=7
-- readline=7.0=0
-- scipy-sugar=1.0.4=py27_0
-- setuptools=38.4.0=py27_0
-- singledispatch=3.4.0.3=py27_0
-- sip=4.18=py27_1
-- six=1.11.0=py27_1
-- sortedcontainers=1.5.7=py27_0
-- sqlite=3.20.1=2
-- ssl_match_hostname=3.5.0.1=py27_1
-- subprocess32=3.2.7=py27_0
-- tblib=1.3.2=py27_0
-- tk=8.6.7=0
-- toolz=0.8.2=py_2
-- tornado=4.5.3=py27_0
-- tqdm=4.19.5=py_0
-- wheel=0.30.0=py27_2
+- liknorm-py=1.0.12=py35_0
+- limix=1.0.17=py35_0
+- limix-core=1.0.2=py35_1
+- limix-legacy=0.8.12=np114py35_3
+- llvmlite=0.23.0=py35_1
+- locket=0.2.0=py35_1
+- markupsafe=1.0=py35_0
+- matplotlib=2.2.2=py35_1
+- mkl_fft=1.0.2=py35_0
+- mkl_random=1.0.1=py35_0
+- msgpack-python=0.5.6=py35h2d50403_2
+- ncephes=1.0.40=py35_0
+- ndarray-listener=1.1.1=py35_0
+- numba=0.38.1=py35_0
+- numpy-sugar=1.2.5=py35_0
+- optimix=1.2.23=py35_1
+- packaging=17.1=py_0
+- pandas=0.23.1=py35_0
+- pandas-plink=1.2.25=py35_0
+- partd=0.3.8=py35_0
+- pcre=8.41=1
+- psutil=5.4.6=py35_0
+- pycparser=2.18=py35_0
+- pyparsing=2.2.0=py35_0
+- pyqt=5.6.0=py35_5
+- python-dateutil=2.7.3=py_0
+- pytz=2018.4=py_0
+- pyyaml=3.12=py35_1
+- scipy-sugar=1.0.6=py35_0
+- sip=4.18=py35_1
+- six=1.11.0=py35_1
+- sortedcontainers=2.0.3=py35_0
+- tblib=1.3.2=py35_0
+- toolz=0.9.0=py_0
+- tornado=5.0.2=py35_0
+- tqdm=4.23.4=py_0
 - xorg-libxau=1.0.8=3
 - xorg-libxdmcp=1.1.2=3
-- xz=5.2.3=0
-- yaml=0.1.6=0
+- yaml=0.1.7=0
 - zict=0.1.3=py_0
-- zlib=1.2.11=0
-- intel-openmp=2018.0.0=hc7b2577_8
-- libgcc-ng=7.2.0=h7cc24e2_2
+- ca-certificates=2018.03.07=0
+- certifi=2018.4.16=py35_0
+- glib=2.53.6=h5d9569c_2
+- gst-plugins-base=1.12.4=h33fb286_0
+- gstreamer=1.12.4=hb53b477_0
+- intel-openmp=2018.0.3=0
+- libedit=3.1.20170329=h6b74fdf_2
+- libffi=3.2.1=hd88cf55_4
+- libgcc=7.2.0=h69d50b8_2
+- libgcc-ng=7.2.0=hdf63c60_3
 - libgfortran=3.0.0=1
-- libstdcxx-ng=7.2.0=h7a57d05_2
-- mkl=2017.0.4=h4c4d0af_0
-- numba=0.36.2=np112py27h603bb47_0
-- numpy=1.12.0=py27_0
-- scikit-learn=0.19.0=np112py27_0
-- scipy=0.19.1=np112py27_0
+- libgfortran-ng=7.2.0=hdf63c60_3
+- libstdcxx-ng=7.2.0=hdf63c60_3
+- mkl=2018.0.3=1
+- ncurses=6.1=hf484d3e_0
+- numpy=1.14.2=py35hdbf6ddf_1
+- openssl=1.0.2o=h20670df_0
+- pip=10.0.1=py35_0
+- python=3.5.5=hc3d631a_4
+- qt=5.6.2=hd25b39d_14
+- readline=7.0=ha6073c6_4
+- scikit-learn=0.19.1=py35hbf1f462_0
+- scipy=1.1.0=py35hfc37229_0
+- setuptools=39.2.0=py35_0
+- sqlite=3.24.0=h84994c4_0
+- tk=8.6.7=hc745277_3
+- wheel=0.31.1=py35_0
+- xz=5.2.4=h14c3975_4
+- zlib=1.2.11=ha838bed_2
 - pip:
-  - alabaster==0.7.10
-  - babel==2.5.3
-  - backports-abc==0.5
-  - backports.functools-lru-cache==1.4
-  - backports.ssl-match-hostname==3.5.0.1
+  - alabaster==0.7.11
+  - apipkg==1.4
+  - atomicwrites==1.1.5
+  - attrs==18.1.0
+  - babel==2.6.0
   - bottleneck==1.2.1
   - chardet==3.0.4
+  - cython==0.28.3
+  - dill==0.2.8.1
   - docutils==0.14
-  - htseq==0.6.1
-  - idna==2.6
+  - execnet==1.5.0
+  - idna==2.7
   - imagesize==1.0.0
-  - limmbo==0.1.4
-  - packaging==17.1
-  - pbr==1.10.0
-  - pp==1.6.5
+  - limmbo (/homes/hannah/python_modules/limmbo)==0.1.4
+  - mkl-fft==1.0.2
+  - mkl-random==1.0.1
+  - more-itertools==4.2.0
+  - msgpack==0.5.6
+  - multiprocess==0.70.6.1
+  - pathos==0.2.2
+  - pep8==1.7.1
+  - pluggy==0.6.0
+  - pox==0.2.4
+  - ppft==1.6.4.8
+  - py==1.5.3
   - pygments==2.2.0
-  - requests==2.18.4
+  - pytest==3.6.2
+  - pytest-cache==1.0
+  - pytest-pep8==1.0.6
+  - pytest-runner==4.2
+  - requests==2.19.1
   - snowballstemmer==1.2.1
-  - sphinx==1.7.1
-  - sphinx-argparse==0.2.2
-  - sphinx-rtd-theme==0.2.4
-  - sphinxcontrib-websupport==1.0.1
-  - stevedore==1.18.0
-  - typing==3.6.4
-  - urllib3==1.22
-  - virtualenv==15.1.0
-  - virtualenv-clone==0.2.6
-  - virtualenvwrapper==4.7.2
+  - sphinx==1.7.5
+  - sphinx-rtd-theme==0.4.0
+  - sphinxcontrib-websupport==1.1.0
+  - urllib3==1.23
+prefix: /homes/hannah/software/anaconda2/envs/limmbo3
+
