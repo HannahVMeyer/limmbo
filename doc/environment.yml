@@ -141,5 +141,4 @@ dependencies:
   - sphinx-rtd-theme==0.4.0
   - sphinxcontrib-websupport==1.1.0
   - urllib3==1.23
-prefix: /homes/hannah/software/anaconda2/envs/limmbo3
 
