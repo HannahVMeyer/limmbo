@@ -7,7 +7,7 @@ source Python module. It builds on and can be used in combination with
 model library with interfaces to Python.
 
 A description of the public interface can be found [here
-](https://www.ebi.ac.uk/~hannah/limmbo/index.html)
+](https://limmbo.readthedocs.io/en/latest/index.html)
 
 ## Install
 
