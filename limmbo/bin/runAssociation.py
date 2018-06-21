@@ -3,8 +3,6 @@ from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.gwas import GWAS
 
-import pdb
-
 def entry_point():
 
     # parse command-line arguments

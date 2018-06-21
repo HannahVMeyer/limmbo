@@ -359,10 +359,7 @@ class GWAS(object):
                 elif adjustSingleTrait is "effective":
                     self.adjustBy = effectiveTests(self.phenotypes)
                 else:
-                    raise (("{} is not a provided method to adjust "
-                            "single-trait pvalues for multiple hypothesis "
-                            "testing").format(
-                        adjustSingleTrait))
+                    raise "{} is not a provided method to adjust "
             pvalues_adjust = np.array([self.__adjust(p) for p in pvalues])
         else:
             pvalues_adjust = None

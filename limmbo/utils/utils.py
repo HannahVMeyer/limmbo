@@ -160,10 +160,10 @@ def generate_permutation(P, S, n, seed=12321, exclude_zero=False):
     rand_state = np.random.RandomState(seed)
     return_list = [None] * n
     if exclude_zero:
-        rangeP = range(P)[1:]
+        rangeP = list(range(P))[1:]
     else:
-        rangeP = range(P)
-    for i in xrange(n):
+        rangeP = list(range(P))
+    for i in range(n):
         perm_dic = rand_state.choice(a=rangeP, size=S, replace=False)
         return_list[i] = perm_dic
     return return_list
@@ -210,7 +210,7 @@ def verboseprint(message, verbose=True):
             flag whether to print message (True) or not (False)
     """
     if verbose is True:
-        print message
+        print(message)
 
 
 def match(samples_ref, data_compare, samples_compare, squarematrix=False):

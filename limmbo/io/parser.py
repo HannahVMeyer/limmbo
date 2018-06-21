@@ -439,6 +439,18 @@ def getVarianceEstimationArgs():
               '--lmm/-lm. Default: '
               '%(default)s'))
     required.add_argument(
+        '-S_U_k',
+        '--files_S_U_kinship',
+        action="store",
+        nargs=2,
+        dest="file_S_relatedness",
+        required=False,
+        default=None,
+        help=('Path [string] to [N x (N+1)] file of eigenvectors and path to
+            file with eigenvalues of kinship/relatedness matrix. Required when '
+              '--lmm/-lm. Default: '
+              '%(default)s'))
+    required.add_argument(
         '--kinship_delim',
         action="store",
         dest="relatedness_delim",

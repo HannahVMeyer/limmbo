@@ -5,8 +5,6 @@ from limmbo.core.vdbootstrap import LiMMBo
 from limmbo.core.vdsimple import vd_reml
 
 import pandas as pd
-import pdb
-
 
 def entry_point():
 
@@ -47,16 +45,15 @@ def entry_point():
 
     if options.limmbo:
         if options.verbose:
-            print ("Starting variance estimation with LiMMBo for phenotype" 
+            print(("Starting variance estimation with LiMMBo for phenotype" 
                     "with {} samples and {} traits").format(
-                            *datainput.phenotypes.shape)
+                            *datainput.phenotypes.shape))
 
         datalimmbo = LiMMBo(datainput=datainput,
                             S=options.S,
                             timing=options.timing,
                             iterations=options.iterations,
                             verbose=options.verbose)
-        pdb.set_trace()
         resultsBS = datalimmbo.runBootstrapCovarianceEstimation(
             seed=options.seed, cpus=options.cpus,
             minCooccurrence=options.minCooccurrence,

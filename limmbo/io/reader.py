@@ -159,15 +159,24 @@ class ReadData(object):
             verboseprint("No covariates set", verbose=self.verbose)
             self.covariates = None
 
-    def getRelatedness(self, file_relatedness, delim=","):
+    def getRelatedness(self, file_relatedness=None, file_U_relatedness=None,
+            file_S_relatedness=None, delim=","):
         """
         Read file of [`N` x `N`] pairwise relatedness estimates of [`N`]
-        samples.
+        samples. Relatedness estimates can be supplied as either the
+        kinship matrix or the eigenvectors and -values of the kinship
+        matrix. The latter will speed up the computation.
 
         Arguments:
             file_relatedness (string):
                 [(`N` + `1`) x N] .csv file with: [`N`] sample IDs in the first
                 row
+            file_U_relatedness (string):
+                [(`N` + `1`) x `N`] .csv file with eigenvectors of relatedness
+                matrix of `N` individuals;
+            file_S_relatedness (string):
+                .csv file with eigenvalues of [`N x `N`] relatedness matrix of
+                `N` individuals;
             delim (string):
                 delimiter of covariate file, one of " ", ",", "\t"
 
@@ -194,17 +203,49 @@ class ReadData(object):
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
         """
 
-        if file_relatedness is None:
+        if not any(file_relatedness, file_S_relatedness, file_U_relatedness):
             raise MissingInput('No relatedness data specified')
-        if file_type(file_relatedness) is not 'delim':
-            raise FormatError('Supplied relatedness file is not .csv or .txt')
-        try:
-            self.relatedness = pd.io.parsers.read_csv(file_relatedness,
+
+        if file_relatedness is not None:
+            if file_type(file_relatedness) is not 'delim':
+                raise FormatError('Supplied relatedness file is not .csv or 
+                        .txt')
+                try:
+                    self.relatedness = pd.io.parsers.read_csv(file_relatedness,
                                                       sep=delim)
-            self.relatedness.index = self.relatedness.columns
-        except Exception:
-            raise IOError('{} could not be opened'.format(file_relatedness))
-        verboseprint("Reading relationship matrix", verbose=self.verbose)
+                    self.relatedness.index = self.relatedness.columns
+                except Exception:
+                    raise IOError('{} could not be opened'.format(
+                        file_relatedness))
+                    verboseprint("Reading relationship matrix",
+                            verbose=self.verbose)
+        else:
+            if file_S_relatedness is None or file_U_relatedness is None:
+                raise MissingInput('Files with eigenvectors and eigenvalues
+                        have to be provided')
+            if file_type(file_S_relatedness) is not 'delim':
+                raise FormatError('Supplied eigenvalue of relatedness file is
+                                  not .csv or .txt')
+                try:
+                    self.S_relatedness = pd.io.parsers.read_csv(
+                            file_S_relatedness, sep=delim)
+                except Exception:
+                    raise IOError('{} could not be opened'.format(
+                        file_S_relatedness))
+                    verboseprint("Reading eigenvalues of relationship matrix",
+                            verbose=self.verbose)
+            if file_type(file_U_relatedness) is not 'delim':
+                raise FormatError('Supplied eigenvectors of relatedness file is
+                                  not .csv or .txt')
+                try:
+                    self.U_relatedness = pd.io.parsers.read_csv(
+                            file_U_relatedness, sep=delim)
+                    self.relatedness.index = self.U_R.columns
+                except Exception:
+                    raise IOError('{} could not be opened'.format(
+                        file_U_relatedness))
+                    verboseprint("Reading eigenvectors of relationship matrix",
+                            verbose=self.verbose)
 
     def getPCs(self, file_pcs=None, nrpcs=None, delim=","):
         r"""
@@ -280,7 +321,7 @@ class ReadData(object):
                   - [(`NrSNP` + 1) x (`N`+1)] .csv file with: [`N`] sample IDs
                     in the first row and [`NrSNP`] genotype IDs in the first
                     column
-                  - sample IDs should be of type: chrom-pos-rsID for instance
+                  - snpIDs IDs should be of type: chrom-pos-rsID for instance
                     22-50714616-rs6010226
             delim (string):
                 delimiter of genotype file (when text format), one of " ", ",",

@@ -206,7 +206,8 @@ class InputData(object):
             raise IOError("Duplicate sample names in covariates")
         self.covariates = pd.DataFrame(covariates, index=self.covs_samples)
 
-    def addRelatedness(self, relatedness, relatedness_samples=None):
+    def addRelatedness(self, relatedness=None, U_relatedness=None,
+            S_relatedness=None, relatedness_samples=None):
         """
         Add [`N` x `N`] pairwise relatedness estimates of [`N`] samples to the
         InputData instance
@@ -218,6 +219,12 @@ class InputData(object):
                 relatedness_samples do not have to specified separately.
             relatedness_samples (array-like):
                 [`N`] sample IDs
+            U_relatedness (array-like):
+                eigenvectors of [`N x `N`] relatedness matrix of `N` 
+                individuals;
+            S_relatedness (array-like):
+                eigenvalues of [`N x `N`] relatedness matrix of `N` 
+                individuals;
 
         Returns:
             None:
@@ -225,6 +232,12 @@ class InputData(object):
 
                 - **self.relatedness** (pd.DataFrame):
                   [`N` x `N`] relatedness matrix
+                - **self.U_relatedness** (pd.DataFrame):
+                  eigenvectors of [`N x `N`] relatedness matrix of `N`
+                  individuals;
+                - **S_relatedness** (pd.DataFrame):
+                  eigenvalues of [`N x `N`] relatedness matrix of `N`
+                  individuals;
                 - **self.relatedness_samples** (np.array):
                   [`N`] sample IDs
 
@@ -254,38 +267,59 @@ class InputData(object):
                 (100,)
 
         """
+        if not any(relatedness, U_relatedness):
+            raise MissingInput("Neither relatedness nor eigenvectors of
+                    relatedness matrix are provided")
+
         if relatedness_samples is None:
-            try:
-                self.relatedness_samples = np.array(relatedness.index)
-            except Exception:
-                raise TypeError(("relatedness_samples are not provided and "
+            if relatedness is not None:
+                try:
+                    self.relatedness_samples = np.array(relatedness.index)
+                except Exception:
+                    raise TypeError(("relatedness_samples are not provided and "
                                  "relatedness has no index to retrieve "
+                                 "relatedness_samples from"))
+            if U_relatedness is not None:
+                try:
+                    self.relatedness_samples = np.array(U_relatedness.index)
+                except Exception:
+                    raise TypeError(("relatedness_samples are not provided and "
+                                 "U_relatedness has no index to retrieve "
                                  "relatedness_samples from"))
         else:
             self.relatedness_samples = np.array(relatedness_samples)
-        rel = np.array(relatedness)
-        if rel.shape[0] != rel.shape[1]:
-            raise FormatError(('Relatedness has to be a square matrix, but '
-                               'number of rows {} is not equal to number of '
-                               'columns {}').format(
-                                   rel.shape[0],
-                                   rel.shape[1]))
 
-        if not np.all(np.array(rel) - np.array(rel).T == 0):
-            raise FormatError('Relatedness matrix is not symmetric')
-        if not self._is_positive_definite(rel):
-            raise FormatError(
-                'Relatedness matrix is not positive-semi definite')
-        if rel.shape[0] != self.relatedness_samples.shape[0]:
-            raise DataMismatch(('Number of samples in relatedness ({}) does '
+        if relatedness is not None:
+            rel = np.array(relatedness)
+            if rel.shape[0] != rel.shape[1]:
+                raise FormatError(('Relatedness has to be a square matrix, but '
+                    'number of rows {} is not equal to number of '
+                    'columns {}').format(rel.shape[0], rel.shape[1]))
+
+            if not np.all(np.array(rel) - np.array(rel).T == 0):
+                raise FormatError('Relatedness matrix is not symmetric')
+            if not self._is_positive_definite(rel):
+                raise FormatError('Relatedness matrix is not positive-semi'
+                        'definite')
+            if rel.shape[0] != self.relatedness_samples.shape[0]:
+                raise DataMismatch(('Number of samples in relatedness ({}) does '
                                 'not match number of sample IDs ({}) provided'
-                                ).format(
-                rel.shape[0], self.relatedness_samples.shape[0]))
-        if len(self.relatedness_samples) != len(set(self.relatedness_samples)):
-            raise IOError("Duplicate sample names in relatedness")
-        self.relatedness = pd.DataFrame(relatedness,
-                                        index=self.relatedness_samples,
-                                        columns=self.relatedness_samples)
+                                ).format(rel.shape[0],
+                                    self.relatedness_samples.shape[0]))
+            if len(self.relatedness_samples) != len(set(
+                self.relatedness_samples)):
+                raise IOError("Duplicate sample names in relatedness")
+            self.relatedness = pd.DataFrame(relatedness,
+                    index=self.relatedness_samples,
+                    columns=self.relatedness_samples)
+        else:
+            if not any(S_relatedness, U_relatedness):
+                raise MissingInput("Both eigenvectors and eigenvalues of
+                        relatedness matrix have to be provided")
+            self.U_relatedness = pd.DataFrame(U_relatedness,
+                    columns=self.relatedness_samples)
+            self.S_relatedness = pd.DataFrame(S_relatedness)
+
 
     def addGenotypes(self, genotypes, geno_samples=None,
                      genotypes_info=None):

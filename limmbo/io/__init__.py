@@ -23,7 +23,7 @@ Check data
 """
 
 
-from __future__ import absolute_import
+
 from . import parser
 from . import reader
 from . import input

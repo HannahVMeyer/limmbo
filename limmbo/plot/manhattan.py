@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 from numpy import arange, asarray, cumsum, flipud, log10, logical_and
 

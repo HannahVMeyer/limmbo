@@ -9,12 +9,12 @@ import pandas as pd
 import numpy as np
 import bottleneck as bn
 import time
-import cPickle
+import pickle
 
 import limix.mtset
 
 from limix_core.covar import FreeFormCov
-import multiprocessing as mp
+import multiprocess as mp
 from pathos.multiprocessing import ProcessingPool as Pool
 
 
@@ -107,7 +107,7 @@ class LiMMBo(object):
                 'Number of CPUs available for parallelising: {}'.format(cpus),
                 verbose=self.verbose)
         verboseprint('Start vd for bootstraps', verbose=self.verbose)
-        results = self.map(self.__runVD_pool,  range(self.runs))
+        results = self.map(self.__runVD_pool,  list(range(self.runs)))
 
         return results
 
@@ -278,18 +278,18 @@ class LiMMBo(object):
 
             verboseprint(("Pickle array of all [`S` x `S`] bootstrap "
                           "covariance matrices"), verbose=self.verbose)
-            cPickle.dump(resultsCombineBootstrap['Cg_all_bs'],
+            pickle.dump(resultsCombineBootstrap['Cg_all_bs'],
                          open('{}/Cg_all_bootstraps.p'.format(output), "wb"))
-            cPickle.dump(resultsCombineBootstrap['Cn_all_bs'],
+            pickle.dump(resultsCombineBootstrap['Cn_all_bs'],
                          open('{}/Cn_all_bootstraps.p'.format(output), "wb"))
 
             verboseprint(("Pickle result parameters of BFGS fit for fitting "
                           "the [`S` x `S`] bootstrap covariance matrices to "
                           "the [`P` x `P`] overall trait covariance matrices"),
                          verbose=self.verbose)
-            cPickle.dump(resultsCombineBootstrap['results_fit_Cg'],
+            pickle.dump(resultsCombineBootstrap['results_fit_Cg'],
                          open("%s/optimise_results_Cg.p" % (output), "wb"))
-            cPickle.dump(resultsCombineBootstrap['results_fit_Cg'],
+            pickle.dump(resultsCombineBootstrap['results_fit_Cg'],
                          open("%s/optimise_results_Cn.p" % (output), "wb"))
 
         if self.timing:
@@ -347,8 +347,8 @@ class LiMMBo(object):
                 ('Generate bootstrap matrix with {} bootstrap samples '
                  '(number of specified bootstraps').format(n),
                 verbose=self.verbose)
-            for i in xrange(n):
-                bootstrap = rand_state.choice(a=range(self.P), size=self.S,
+            for i in range(n):
+                bootstrap = rand_state.choice(a=list(range(self.P)), size=self.S,
                                               replace=False)
                 return_list.append(bootstrap)
                 index = np.ix_(np.array(bootstrap), np.array(bootstrap))
@@ -356,7 +356,7 @@ class LiMMBo(object):
             self.runs = n
         else:
             while counts.min() < minCooccurrence:
-                bootstrap = rand_state.choice(a=range(self.P), size=self.S,
+                bootstrap = rand_state.choice(a=list(range(self.P)), size=self.S,
                                               replace=False)
                 return_list.append(bootstrap)
                 index = np.ix_(np.array(bootstrap), np.array(bootstrap))
@@ -496,7 +496,7 @@ class LiMMBo(object):
                 Cn_average[p1, p2] = vals[~sp.isnan(vals)].mean()
 
         Cg_reg, ev_g = regularize(Cg_average)
-        Cn_reg, ev_n  = regularize(Cn_average)
+        Cn_reg, ev_n,  = regularize(Cn_average)
 
         verboseprint(
             ("Fitting bootstrapping results: minimize residual sum of "
@@ -521,7 +521,7 @@ class LiMMBo(object):
                    'process_time_bs': process_time_bs,
                    'number_of_successful_bs': number_of_bs,
                    'results_fit_Cg': results_fit_Cg,
-                   'results_fit_Cn': results_fit_Cn
+                   'results_fit_Cn': results_fit_Cn,
                    }
 
         return results
@@ -732,9 +732,12 @@ class LiMMBo(object):
                 number of subsample
             phenotypes (array-like):
                 [`N` x `P`] original phenotypes
-            relatedness (array-like):
-                [`N` x `N`] kinship/genetic relatedness used in estimation of
-                genetic component
+            U_R (array-like):
+                eigenvectors of[`N` x `N`] kinship/genetic relatedness used 
+                in estimation of genetic component
+            S_R (array-like):
+                eigenvalues of[`N` x `N`] kinship/genetic relatedness used 
+                in estimation of genetic component
             output (string):
                 output directory; needed for caching
 
@@ -754,7 +757,7 @@ class LiMMBo(object):
 
         # time variance decomposition
         t0 = time.clock()
-        vd = limix.mtset.MTSet(Y=phenoSubset, R=self.relatedness)
+        vd = limix.mtset.MTSet(Y=phenoSubset, U_R=self.U_R, S_R=self.S_R)
         vd_null_info = vd.fitNull(
             cache=False,
             n_times=self.iterations,
