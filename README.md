@@ -7,7 +7,7 @@ source Python module. It builds on and can be used in combination with
 model library with interfaces to Python.
 
 A description of the public interface can be found [here
-](https://www.ebi.ac.uk/~hannah/limmbo/index.html)
+](https://limmbo.readthedocs.io/en/latest/index.html)
 
 ## Install
 
@@ -16,10 +16,6 @@ Index](https://pypi.python.org) and will in the future be available through
 [conda-forge](https://conda-forge.org/#about). The latter platform provides the
 recommended installation of [LIMIX](https://github.com/limix/limix), which
 LiMMBo heavily relies on.
-
-The latest LiMMBo version relies on the parallel python package which is 
-not available for python 3. While we work on replacing this dependency, 
-LiMMBo can only be installed for python 2. 
 
 The recommended way of installing both packages is the following:
 Install LIMIX via [conda](http://conda.pydata.org/docs/index.html)
