@@ -160,7 +160,7 @@ class ReadData(object):
             self.covariates = None
 
     def getRelatedness(self, file_relatedness=None, file_U_relatedness=None,
-            file_S_relatedness=None, delim=","):
+            file_S_relatedness=None, delim="\t"):
         """
         Read file of [`N` x `N`] pairwise relatedness estimates of [`N`]
         samples. Relatedness estimates can be supplied as either the
@@ -178,7 +178,7 @@ class ReadData(object):
                 .csv file with eigenvalues of [`N x `N`] relatedness matrix of
                 `N` individuals;
             delim (string):
-                delimiter of covariate file, one of " ", ",", "\t"
+                delimiter of kinship file, one of " ", ",", "\t"
 
         Returns:
             None:
@@ -203,13 +203,13 @@ class ReadData(object):
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
         """
 
-        if not any(file_relatedness, file_S_relatedness, file_U_relatedness):
+        if not any([file_relatedness, file_S_relatedness, file_U_relatedness]):
             raise MissingInput('No relatedness data specified')
 
         if file_relatedness is not None:
             if file_type(file_relatedness) is not 'delim':
-                raise FormatError('Supplied relatedness file is not .csv or 
-                        .txt')
+                raise FormatError('Supplied relatedness file is not .csv or'
+                        '.txt')
                 try:
                     self.relatedness = pd.io.parsers.read_csv(file_relatedness,
                                                       sep=delim)
@@ -221,11 +221,11 @@ class ReadData(object):
                             verbose=self.verbose)
         else:
             if file_S_relatedness is None or file_U_relatedness is None:
-                raise MissingInput('Files with eigenvectors and eigenvalues
-                        have to be provided')
+                raise MissingInput('Files with eigenvectors and eigenvalues'
+                        'have to be provided')
             if file_type(file_S_relatedness) is not 'delim':
-                raise FormatError('Supplied eigenvalue of relatedness file is
-                                  not .csv or .txt')
+                raise FormatError('Supplied eigenvalue of relatedness file is'
+                                  'not .csv or .txt')
                 try:
                     self.S_relatedness = pd.io.parsers.read_csv(
                             file_S_relatedness, sep=delim)
@@ -235,8 +235,8 @@ class ReadData(object):
                     verboseprint("Reading eigenvalues of relationship matrix",
                             verbose=self.verbose)
             if file_type(file_U_relatedness) is not 'delim':
-                raise FormatError('Supplied eigenvectors of relatedness file is
-                                  not .csv or .txt')
+                raise FormatError('Supplied eigenvectors of relatedness file is'
+                                  'not .csv or .txt')
                 try:
                     self.U_relatedness = pd.io.parsers.read_csv(
                             file_U_relatedness, sep=delim)

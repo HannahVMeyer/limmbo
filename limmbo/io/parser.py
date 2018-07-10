@@ -446,8 +446,8 @@ def getVarianceEstimationArgs():
         dest="file_S_relatedness",
         required=False,
         default=None,
-        help=('Path [string] to [N x (N+1)] file of eigenvectors and path to
-            file with eigenvalues of kinship/relatedness matrix. Required when '
+        help=('Path [string] to [N x (N+1)] file of eigenvectors and path to'
+            'file with eigenvalues of kinship/relatedness matrix. Required when'
               '--lmm/-lm. Default: '
               '%(default)s'))
     required.add_argument(

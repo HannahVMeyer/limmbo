@@ -268,8 +268,8 @@ class InputData(object):
 
         """
         if not any(relatedness, U_relatedness):
-            raise MissingInput("Neither relatedness nor eigenvectors of
-                    relatedness matrix are provided")
+            raise MissingInput("Neither relatedness nor eigenvectors of"
+                    "relatedness matrix are provided")
 
         if relatedness_samples is None:
             if relatedness is not None:
@@ -314,8 +314,8 @@ class InputData(object):
                     columns=self.relatedness_samples)
         else:
             if not any(S_relatedness, U_relatedness):
-                raise MissingInput("Both eigenvectors and eigenvalues of
-                        relatedness matrix have to be provided")
+                raise MissingInput("Both eigenvectors and eigenvalues of"
+                        "relatedness matrix have to be provided")
             self.U_relatedness = pd.DataFrame(U_relatedness,
                     columns=self.relatedness_samples)
             self.S_relatedness = pd.DataFrame(S_relatedness)
