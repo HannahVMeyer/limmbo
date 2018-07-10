@@ -118,7 +118,6 @@ dependencies:
   - execnet==1.5.0
   - idna==2.7
   - imagesize==1.0.0
-  - limmbo (/homes/hannah/python_modules/limmbo)==0.1.4
   - mkl-fft==1.0.2
   - mkl-random==1.0.1
   - more-itertools==4.2.0
