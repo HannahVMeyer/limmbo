@@ -109,41 +109,39 @@ class InputData(object):
         """
         if pheno_samples is None:
             try:
-                self.pheno_samples = np.array(phenotypes.index)
+                self.pheno_samples = pd.DataFrame_from_dict(
+                        {'id': phenotypes.index})
             except Exception:
-                raise TypeError(("pheno_samples are not provided and "
-                                 "phenotypes has no index to retrieve "
-                                 "pheno_samples from."))
+                raise TypeError(("pheno_samples are not provided and phenotypes"
+                    " has no index to retrieve pheno_samples from."))
         else:
-            self.pheno_samples = np.array(pheno_samples)
+            self.pheno_samples = pd.DataFrame_from_dict({'id': pheno_samples})
 
         if phenotype_ID is None:
             try:
-                self.phenotype_ID = np.array(phenotypes.columns)
+                self.phenotype_ID = pd.DataFrame_from_dict(
+                        {'id':phenotypes.columns})
             except Exception:
-                raise TypeError(("phenotype_ID are not provided and "
-                                 "phenotypes has no column names to retrieve "
-                                 "phenotype_ID from."))
+                raise TypeError(("phenotype_ID are not provided and phenotypes "
+                    "has no column names to retrieve phenotype_ID from."))
         else:
-            self.phenotype_ID = np.array(phenotype_ID)
+            self.phenotype_ID = pd.DataFrame_from_dict({'id':phenotype_ID})
 
         if phenotypes.shape[0] != self.pheno_samples.shape[0]:
-            raise DataMismatch(('Number of samples in phenotypes ({}) does '
-                                'not match number of sample IDs ({}) provided'
-                                ).format(
-                phenotypes.shape[0], self.pheno_samples.shape[0]))
+            raise DataMismatch(('Number of samples in phenotypes ({}) does not '
+                ' match number of sample IDs ({}) provided').format(
+                    phenotypes.shape[0], self.pheno_samples.shape[0]))
         if phenotypes.shape[1] != self.phenotype_ID.shape[0]:
-            raise DataMismatch(('Number phenotypes ({}) does not match '
-                                'number of phenotype IDs ({}) provided'
-                                ).format(phenotypes.shape[1],
-                                         self.phenotype_ID.shape[0]))
-        if len(self.pheno_samples) != len(set(self.pheno_samples)):
+            raise DataMismatch(('Number phenotypes ({}) does not match number '
+                'of phenotype IDs ({}) provided').format(phenotypes.shape[1],
+                    self.phenotype_ID.shape[0]))
+        if len(self.pheno_samples.id) != len(set(self.pheno_samples.id)):
             raise IOError("Duplicate sample names in phenotypes")
-        if len(self.phenotype_ID) != len(set(self.phenotype_ID)):
+        if len(self.phenotype_ID.id) != len(set(self.phenotype_ID.id)):
             raise IOError("Duplicate trait names in phenotypes")
 
-        self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples,
-                                       columns=self.phenotype_ID)
+        self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples.id,
+                                       columns=self.phenotype_ID.id)
 
     def addCovariates(self, covariates, covs_samples=None):
         """
@@ -188,23 +186,20 @@ class InputData(object):
         """
         if covs_samples is None:
             try:
-                self.covs_samples = np.array(covariates.index)
+                self.covs_samples = pd.DataFrame.from_dict(
+                        {'id':covariates.index})
             except Exception:
-                raise TypeError(("covs_samples are not provided and "
-                                 "covariates has no index to retrieve "
-                                 "covs_samples from."))
+                raise TypeError(("covs_samples are not provided and covariates "
+                    "has no index to retrieve covs_samples from."))
         else:
-            self.covs_samples = np.array(covs_samples)
-        if np.array(covariates).shape[0] != np.array(self.covs_samples
-                                                     ).shape[0]:
-            raise DataMismatch(('Number of samples in covariates ({}) does '
-                                'not match number of sample IDs ({}) provided'
-                                ).format(
-                np.array(covariates).shape[0],
-                np.array(self.covs_samples).shape[0]))
-        if len(self.covs_samples) != len(set(self.covs_samples)):
+            self.covs_samples = pd.DataFrame.from_dict({'id':covs_samples})
+        if np.array(covariates).shape[0] != self.covs_samples.shape[0]:
+            raise DataMismatch(('Number of samples in covariates ({}) does not '
+                'match number of sample IDs ({}) provided').format(
+                    np.array(covariates).shape[0], self.covs_samples.shape[0]))
+        if len(self.covs_samples.id) != len(set(self.covs_samples.id)):
             raise IOError("Duplicate sample names in covariates")
-        self.covariates = pd.DataFrame(covariates, index=self.covs_samples)
+        self.covariates = pd.DataFrame(covariates, index=self.covs_samples.id)
 
     def addRelatedness(self, relatedness=None, U_relatedness=None,
             S_relatedness=None, relatedness_samples=None):
@@ -274,23 +269,27 @@ class InputData(object):
         if relatedness_samples is None:
             if relatedness is not None:
                 try:
-                    self.relatedness_samples = np.array(relatedness.index)
+                    self.relatedness_samples = pd.DataFrame.from_dict(
+                            {'id': relatedness.index})
                 except Exception:
                     raise TypeError(("relatedness_samples are not provided and "
-                                 "relatedness has no index to retrieve "
-                                 "relatedness_samples from"))
+                        "relatedness has no index to retrieve "
+                        "relatedness_samples from"))
             if U_relatedness is not None:
                 try:
-                    self.relatedness_samples = np.array(U_relatedness.index)
+                    self.relatedness_samples = pd.DataFrame.from_dict(
+                            {'id': U_relatedness.index})
                 except Exception:
                     raise TypeError(("relatedness_samples are not provided and "
-                                 "U_relatedness has no index to retrieve "
-                                 "relatedness_samples from"))
+                        "U_relatedness has no index to retrieve "
+                        "relatedness_samples from"))
         else:
-            self.relatedness_samples = np.array(relatedness_samples)
+            self.relatedness_samples = pd.DataFrame.from_dict(
+                            {'id': relatedness_samples})
 
         if relatedness is not None:
             rel = np.array(relatedness)
+
             if rel.shape[0] != rel.shape[1]:
                 raise FormatError(('Relatedness has to be a square matrix, but '
                     'number of rows {} is not equal to number of '
@@ -303,21 +302,21 @@ class InputData(object):
                         'definite')
             if rel.shape[0] != self.relatedness_samples.shape[0]:
                 raise DataMismatch(('Number of samples in relatedness ({}) does '
-                                'not match number of sample IDs ({}) provided'
-                                ).format(rel.shape[0],
-                                    self.relatedness_samples.shape[0]))
-            if len(self.relatedness_samples) != len(set(
-                self.relatedness_samples)):
+                    'not match number of sample IDs ({}) provided').format(
+                        rel.shape[0], self.relatedness_samples.shape[0]))
+            if len(self.relatedness_samples.id) != len(set(
+                self.relatedness_samples.id)):
                 raise IOError("Duplicate sample names in relatedness")
+
             self.relatedness = pd.DataFrame(relatedness,
-                    index=self.relatedness_samples,
-                    columns=self.relatedness_samples)
+                    index=self.relatedness_samples.id,
+                    columns=self.relatedness_samples.id)
         else:
             if not any(S_relatedness, U_relatedness):
                 raise MissingInput("Both eigenvectors and eigenvalues of"
                         "relatedness matrix have to be provided")
             self.U_relatedness = pd.DataFrame(U_relatedness,
-                    columns=self.relatedness_samples)
+                    columns=self.relatedness_samples.id)
             self.S_relatedness = pd.DataFrame(S_relatedness)
 
 
@@ -339,7 +338,7 @@ class InputData(object):
                 [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
                 rsIDs as index
             darray (bool):
-                True if genotypes are dask.array, False otherwise
+                If genotypes are dask.array set to True, False otherwise
 
         Returns:
             None:
@@ -379,18 +378,29 @@ class InputData(object):
                 rs72668606     8  79733124
                 rs55770986     7   2087823
         """
+        self.darray = darray
+        if self.darray and geno_samples is None:
+            raise MissingInput(('For genotypes in dask.array format, '
+                'genotype sample IDs have to be specified via geno_samples'))
         if geno_samples is None:
             try:
-                self.geno_samples = np.array(genotypes.index)
+                self.geno_samples = pd.DataFrame.from_dict(
+                        {'id': genotypes.index})
             except Exception:
                 raise TypeError(("geno_samples are not provided and genotypes "
                     "has no index to retrieve geno_samples from"))
         else:
-            self.geno_samples = np.array(geno_samples)
+            try:
+                self.geno_samples = pd.DataFrame.from_dict({'id': geno_samples})
+            except Exception:
+                raise TypeError(("geno_samples are not array-like"))
+
         if genotypes_info is None:
             raise MissingInput(('Genotype info has to be specified via '
                                 'genotypes_info'))
-        if darray:
+        self.genotypes_info = genotypes_info
+
+        if self.darray:
             self.genotypes = genotypes
             nsamples = genotypes.shape[1]
             nsnps = genotypes.shape[0]
@@ -398,7 +408,6 @@ class InputData(object):
             self.genotypes = pd.DataFrame(genotypes, index=self.geno_samples)
             nsamples = self.genotypes.shape[0]
             nsnps = self.genotypes.shape[1]
-        self.genotypes_info = genotypes_info
 
         if nsamples != self.geno_samples.shape[0]:
             raise DataMismatch(('Number of samples in genotypes ({}) does '
@@ -408,7 +417,7 @@ class InputData(object):
             raise DataMismatch(('Number of genotypes in genotypes ({}) does '
                 'not match number of genotypes in genotypes_info ({})').format(
                     nsnps, self.genotypes_info.shape[0]))
-        if len(self.geno_samples) != len(set(self.geno_samples)):
+        if len(self.geno_samples.id) != len(set(self.geno_samples.id)):
             raise IOError("Duplicate sample names in genotypes")
 
     def addVarianceComponents(self, Cg, Cn,):
@@ -471,37 +480,30 @@ class InputData(object):
             self.Cg = np.array(Cg)
             self.Cn = np.array(Cn)
             if self.Cg.shape[0] != self.Cg.shape[1]:
-                raise FormatError(('Cg has to be a square matrix, but '
-                                   'number of rows {} is not equal to number '
-                                   'of columns {}').format(self.Cg.shape[0],
-                                                           self.Cg.shape[1]))
+                raise FormatError(('Cg has to be a square matrix, but number of'
+                    ' rows {} is not equal to number of columns {}').format(
+                        self.Cg.shape[0], self.Cg.shape[1]))
             if not np.all(self.Cg - self.Cg.T == 0):
                 raise FormatError('Cg is not symmetric')
             if not self._is_positive_definite(self.Cg):
                 raise FormatError('Cg is not positive-semi definite')
             if self.Cg.shape[0] != self.phenotypes.shape[1]:
-                raise DataMismatch(('Number of traits in Cg ({}) does '
-                                    'not match number of traits ({}) in '
-                                    'phenotypes'
-                                    ).format(self.Cg.shape[0],
-                                             self.phenotypes.shape[1]))
+                raise DataMismatch(('Number of traits in Cg ({}) does not match'
+                    ' number of traits ({}) in phenotypes').format(
+                        self.Cg.shape[0], self.phenotypes.shape[1]))
             if self.Cn.shape[0] != self.Cn.shape[1]:
-                raise FormatError(('Cn has to be a square matrix, but '
-                                   'number of rows {} is not equal to number '
-                                   'of columns {}').format(self.Cn.shape[0],
-                                                           self.Cn.shape[1]))
+                raise FormatError(('Cn has to be a square matrix, but number of'
+                    ' rows {} is not equal to number of columns {}').format(
+                        self.Cn.shape[0], self.Cn.shape[1]))
 
             if not np.all(self.Cn - self.Cn.T == 0):
                 raise FormatError('Cn is not symmetric')
             if not self._is_positive_definite(self.Cn):
                 raise FormatError('Cn is not positive-semi definite')
             if self.Cn.shape[0] != self.phenotypes.shape[1]:
-                raise DataMismatch(('Number of traits in Cn ({}) does '
-                                    'not match number of traits ({}) in '
-                                    'phenotypes').format(
-                                        self.Cn.shape[0],
-                                        self.phenotypes.shape[1])
-                                   )
+                raise DataMismatch(('Number of traits in Cn ({}) does not match'
+                    ' number of traits ({}) in phenotypes').format(
+                        self.Cn.shape[0], self.phenotypes.shape[1]))
 
     def addPCs(self, pcs, pc_samples=None):
         """
@@ -546,21 +548,19 @@ class InputData(object):
         """
         if pc_samples is None:
             try:
-                self.pc_samples = np.array(pcs.index)
+                self.pc_samples = pd.DataFrame.from_dict({'id': pcs.index})
             except Exception:
                 raise TypeError(("pc_samples are not provided and pcs has "
-                                 "no index to retrieve pc_samples from"))
+                    "no index to retrieve pc_samples from"))
         else:
-            self.pc_samples = np.array(pc_samples)
+            self.pc_samples = pd.DataFrame.from_dict({'id': pc_samples})
         if np.array(pcs).shape[0] != np.array(self.pc_samples).shape[0]:
-            raise DataMismatch(('Number of samples in pcs ({}) does'
-                                'not match number of sample IDs ({}) provided'
-                                ).format(
-                np.array(pcs).shape[0],
-                np.array(pc_samples).shape[0]))
-        if len(self.pc_samples) != len(set(self.pc_samples)):
+            raise DataMismatch(('Number of samples in pcs ({}) does not match'
+                ' number of sample IDs ({}) provided').format(
+                    np.array(pcs).shape[0], np.array(pc_samples).shape[0]))
+        if len(self.pc_samples.id) != len(set(self.pc_samples.id)):
             raise IOError("Duplicate sample names for principle components")
-        self.pcs = pd.DataFrame(pcs, index=self.pc_samples)
+        self.pcs = pd.DataFrame(pcs, index=self.pc_samples.id)
 
     def subsetTraits(self, traitlist=None):
         """
@@ -706,63 +706,74 @@ class InputData(object):
         self.samples = self.pheno_samples
 
         if self.relatedness is not None:
-            test_pheno_relatedness = np.intersect1d(self.pheno_samples,
-                                                    self.relatedness_samples)
-            if len(test_pheno_relatedness) == 0:
+            pr = self.pheno_samples.id.isin(self.relatedness_samples.id)
+            if len(pr.index[pr]) == 0:
                 raise DataMismatch(('No common samples between phenotypes and '
-                                    'relatedness estimates'))
-            self.samples = test_pheno_relatedness
+                    'relatedness estimates'))
+            self.samples = self.pheno_samples[np.array(pd.index[pr])]
+
         if self.genotypes is not None:
-            test_pheno_geno = np.intersect1d(self.pheno_samples,
-                                             self.geno_samples)
-            if len(test_pheno_geno) == 0:
+            pg = self.pheno_samples.id.isin(self.geno_samples.id)
+            pg_index = np.array(pg.index[pg])
+            if len(pg_index) == 0:
                 raise DataMismatch(('No common samples between phenotypes,'
-                                    'and genotypes'))
-            self.samples = np.intersect1d(self.samples, test_pheno_geno)
+                    'and genotypes'))
+            spg = self.samples.id.isin(self.pheno_samples[pg_index])
+            self.samples = self.samples[np.array(spg.index[spg])]
+
         if self.covariates is not None:
-            test_pheno_covs = np.intersect1d(self.pheno_samples,
-                                             self.covs_samples)
-            if len(test_pheno_covs) == 0:
+            pc = self.pheno_samples.id.isin(self.covs_samples)
+            pc_index = np.array(pc.index[pc])
+            if len(pc_index) == 0:
                 raise DataMismatch(('No common samples between phenotypes, '
-                                    'and covariates'))
-            self.samples = np.intersect1d(self.samples, test_pheno_covs)
+                    'and covariates'))
+            spc = self.samples.id.isin(self.pheno_samples[pc_index])
+            self.samples = self.samples[np.array(spc.index[spc])]
+
         if self.pcs is not None:
-            test_pheno_pcs = np.intersect1d(self.pheno_samples,
-                                            self.pcs_samples)
-            if len(test_pheno_pcs) == 0:
+            pp = self.pheno_samples.id.isin(self.pcs_samples)
+            pp_index = np.array(pp.index[pp])
+            if len(pp_index) == 0:
                 raise DataMismatch(('No common samples between phenotypes,'
-                                    'and pcs'))
-            self.samples = np.intersect1d(self.samples, test_pheno_pcs)
+                    'and pcs'))
+            spp = self.samples.id.isin(self.pheno_samples[pp_index])
+            self.samples = self.samples[np.array(spp.index[spp])]
 
         if samplelist is not None:
             if len(samplelist) != len(set(samplelist)):
                 raise IOError("Duplicate sample names in samplelist")
-            test_samples_samplelist = np.intersect1d(self.samples, samplelist)
-            if len(test_samples_samplelist) == 0:
-                raise DataMismatch(('No samples between common samples in, '
-                                    'datasets and samplelist'))
-            if len(test_samples_samplelist) < len(samplelist):
+
+            ss = self.samples.id.isin(self.samplelist.id)
+            ss_index = np.array(ss.index[ss])
+            if len(ss_index) == 0:
+                raise DataMismatch(('No common samples between samples in, '
+                    'datasets and samplelist'))
+            if len(ss_index) < len(samplelist):
                 raise DataMismatch(('Not all Ids in samplelist are contained '
-                                    'in common samples from provided '
-                                    'datasets'))
+                    'in common samples from provided datasets'))
             self.samples = samplelist
 
-        self.phenotypes = self.phenotypes.loc[self.samples, :]
+        self.phenotypes = self.phenotypes.loc[self.samples.id, :]
         self.pheno_samples = np.array(self.phenotypes.index)
 
         if self.genotypes is not None:
-            self.genotypes = self.genotypes.loc[self.samples, :]
-            self.geno_samples = np.array(self.genotypes.index)
+            if not self.darray:
+                self.genotypes = self.genotypes.loc[self.samples.id, :]
+            else:
+                gs = self.geno_samples.id.isin(self.samples.id)
+                gs_index = np.array(gs.index[gs])
+                self.genotypes = self.genotypes[:, gs_index]
+            self.geno_samples = self.samples
         if self.relatedness is not None:
-            self.relatedness = self.relatedness.loc[self.samples, :]
-            self.relatedness = self.relatedness[self.samples]
-            self.relatedness_samples = np.array(self.relatedness.index)
+            self.relatedness = self.relatedness.loc[self.samples.id, :]
+            self.relatedness = self.relatedness[self.samples.id]
+            self.relatedness_samples = self.samples
         if self.covariates is not None:
-            self.covariates = self.covariates.loc[self.samples, :]
-            self.covs_samples = np.array(self.covariates.index)
+            self.covariates = self.covariates.loc[self.samples.id, :]
+            self.covs_samples = self.samples
         if self.pcs is not None:
-            self.pcs = self.pcs.loc[self.samples, :]
-            self.pc_samples = np.array(self.pcs.index)
+            self.pcs = self.pcs.loc[self.samples.id, :]
+            self.pc_samples = self.samples
 
     def regress(self):
         """
@@ -947,6 +958,9 @@ class InputData(object):
                 ID_4  0.908627 -0.604125 -8.9622
                 ID_5 -0.646248 -2.141970 -8.9622
         """
+        if self.darray:
+            raise TypeError("Genotype standardisation not yet implemented for"
+                    "genotypes in dask.array format")
         self.genotypes_sd = np.zeros(self.genotypes.shape)
         for snp in range(self.genotypes.shape[1]):
             p, q = AlleleFrequencies(self.genotypes.iloc[:, snp])
@@ -998,6 +1012,9 @@ class InputData(object):
                 rs72668606  0.119091  0.880909
                 rs55770986  0.169338  0.830662
         """
+        if self.darray:
+            raise TypeError("Allele frequency computation not yet implemented "
+                    "genotypes in dask.array format")
         verboseprint('Get allele frequencies of %s snps'.format(
             self.genotypes.shape[1]), verbose=self.verbose)
         self.freqs = np.zeros((self.genotypes.shape[1], 2))
