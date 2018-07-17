@@ -322,7 +322,7 @@ class InputData(object):
 
 
     def addGenotypes(self, genotypes, geno_samples=None,
-                     genotypes_info=None):
+                     genotypes_info=None, darray=False):
         """
         Add [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
         genotypes, [`N`] array of sample IDs and [`NrSNP` x 2] dataframe of
@@ -336,8 +336,10 @@ class InputData(object):
             geno_samples (array-like):
                 [`N`] vector of `N` sample IDs
             genotypes_info (dataframe):
-                  [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
-                  rsIDs as index
+                [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
+                rsIDs as index
+            darray (bool):
+                True if genotypes are dask.array, False otherwise
 
         Returns:
             None:
@@ -382,24 +384,30 @@ class InputData(object):
                 self.geno_samples = np.array(genotypes.index)
             except Exception:
                 raise TypeError(("geno_samples are not provided and genotypes "
-                                 "has no index to retrieve geno_samples from"))
+                    "has no index to retrieve geno_samples from"))
         else:
             self.geno_samples = np.array(geno_samples)
         if genotypes_info is None:
             raise MissingInput(('Genotype info has to be specified via '
                                 'genotypes_info'))
-        self.genotypes = pd.DataFrame(genotypes, index=self.geno_samples)
+        if darray:
+            self.genotypes = genotypes
+            nsamples = genotypes.shape[1]
+            nsnps = genotypes.shape[0]
+        else:
+            self.genotypes = pd.DataFrame(genotypes, index=self.geno_samples)
+            nsamples = self.genotypes.shape[0]
+            nsnps = self.genotypes.shape[1]
         self.genotypes_info = genotypes_info
-        if self.genotypes.shape[0] != self.geno_samples.shape[0]:
+
+        if nsamples != self.geno_samples.shape[0]:
             raise DataMismatch(('Number of samples in genotypes ({}) does '
-                                'not match number of sample IDs ({}) provided'
-                                ).format(
-                self.genotypes.shape[0], self.geno_samples.shape[0]))
-        if self.genotypes.shape[1] != self.genotypes_info.shape[0]:
+                'not match number of sample IDs ({}) provided').format(nsamples,
+                    self.geno_samples.shape[0]))
+        if nsnps != self.genotypes_info.shape[0]:
             raise DataMismatch(('Number of genotypes in genotypes ({}) does '
-                                'not match number of genotypes in '
-                                'genotypes_info ({})').format(
-                self.genotypes.shape[1], self.genotypes_info.shape[0]))
+                'not match number of genotypes in genotypes_info ({})').format(
+                    nsnps, self.genotypes_info.shape[0]))
         if len(self.geno_samples) != len(set(self.geno_samples)):
             raise IOError("Duplicate sample names in genotypes")
 

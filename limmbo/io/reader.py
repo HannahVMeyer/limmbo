@@ -4,6 +4,7 @@ import numpy as np
 import re
 
 from limix.io import read_plink
+from  bgen_reader import read_bgen
 
 from limmbo.utils.utils import verboseprint
 from limmbo.io.utils import file_type
@@ -305,7 +306,7 @@ class ReadData(object):
     def getGenotypes(self, file_genotypes=None, delim=','):
         r"""
         Reads genotype file in the following formats: plink (.bed, .bim, .fam),
-        gen (.gen, .sample) or comma-separated values (.csv) file.
+        bgen (.bgen, .sample) or comma-separated values (.csv) file.
 
         Arguments:
             file_geno (string):
@@ -315,6 +316,11 @@ class ReadData(object):
                   as specified in the plink `user manual <https://www.cog-
                   genomics.org/plink/1.9/input>`_, binary plink format with
                   .bed, .fam and .bim file.
+
+                - **bgen format**:
+
+                  as specified in the bgen (binary gen) `format <http://www.well.
+                  ox.ac.uk/~gav/bgen_format>`_
 
                 - **.csv format**:
 
@@ -331,11 +337,18 @@ class ReadData(object):
             None:
                 updated the following attributes of the ReadData instance:
 
-                - **self.genotypes** (np.array):
-                  [`N` x `NrSNPs`] genotype matrix
-                - **self.genotypes_info** (pd.dataframe):
+                - **self.genotypes** (np.array/dask.array):
+                  if genotypes were provided as text-format self.genotypes is a
+                  [`N` x `NrSNPs`] np.array
+                  if genotypes were provided in bed/bgen format, self.genotypes
+                  is a [`NrSNPs` x `N` x nan] dask.array
+                - **self.genotypes_info** (pd.DataFrame):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
                   rsIDs as index
+                - **self.genotypes_darray** (bool):
+                  True if self.genotypes is dask.array, False otherwise
+                - **self.genotypes_samples* (pd.DataFrame):
+                  Genotype sample IDs
 
         Examples:
 
@@ -398,10 +411,12 @@ class ReadData(object):
                 genotypes_info.append(split[[0, 1]])
 
             self.genotypes = genotypes.astype(float).T
+            self.genotypes_samples = genotypes.index
             self.genotypes_info = pd.DataFrame(
                 np.array(genotypes_info),
                 columns=['chrom', 'pos'],
                 index=snp_ID)
+            self.genotypes_darray = False
 
         if file_type(file_genotypes) is 'bed':
             try:
@@ -410,13 +425,30 @@ class ReadData(object):
             except Exception:
                 raise IOError('{} could not be opened'.format(file_genotypes))
 
-            self.genotypes = pd.DataFrame(bed.compute()).astype(float).T
-            self.genotypes.index = fam.iid
+            #self.genotypes = pd.DataFrame(bed.compute()).astype(float).T
+            self.genotypes = bed
+            self.genotypes_samples = fam.iid
             self.genotypes_info = pd.DataFrame(
                 np.array([bim.chrom, bim.pos]).T,
                 columns=['chrom', 'pos'],
                 index=bim.snp)
             self.genotypes_info.index.name = None
+            self.genotypes_darray = True
+
+        if file_type(file_genotypes) is 'bgen':
+            try:
+                bgen = read_bgen(file_genotypes, sample_file=file_samples,
+                        verbose=self.verbose)
+            except Exception:
+                raise IOError('{} could not be opened'.format(file_genotypes))
+
+            self.genotypes = bgen['genotype']
+            self.genotypes_samples = bgen["samples"]
+            self.genotypes_info = pd.DataFrame.from_dict(
+                    {'chrom': bgen['variants']['chrom'],
+                     'pos':bgen['variants']['pos']})
+            self.genotypes_info.index = bgen['variants']['rsid'].values
+            self.genotypes_darray = True
 
     def getVarianceComponents(self, file_Cg=None, file_Cn=None, delim_cg=",",
                               delim_cn=","):
