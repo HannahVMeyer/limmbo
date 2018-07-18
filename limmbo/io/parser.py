@@ -49,6 +49,14 @@ def getGWASargs():
               'www.cog-genomics.org/plink/1.9/input>`_). '
               'Default: %(default)s'))
     required.add_argument(
+        '--geno_samples',
+        action="store",
+        dest="file_samples",
+        required=False,
+        default=None,
+        help=('Optional .sample in GEN format when using BGEN files without'
+            'internal sample IDs. Default: %(default)s'))
+    required.add_argument(
         '-o',
         '--outdir',
         action="store",

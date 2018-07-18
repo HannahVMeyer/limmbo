@@ -211,15 +211,20 @@ class ReadData(object):
             if file_type(file_relatedness) is not 'delim':
                 raise FormatError('Supplied relatedness file is not .csv or'
                         '.txt')
-                try:
-                    self.relatedness = pd.io.parsers.read_csv(file_relatedness,
-                                                      sep=delim)
-                    self.relatedness.index = self.relatedness.columns
-                except Exception:
-                    raise IOError('{} could not be opened'.format(
-                        file_relatedness))
-                    verboseprint("Reading relationship matrix",
-                            verbose=self.verbose)
+            try:
+                self.relatedness = pd.io.parsers.read_csv(file_relatedness,
+                                                  sep=delim)
+                verboseprint("Reading relationship matrix",
+                    verbose=self.verbose)
+            except Exception:
+                raise IOError('{} could not be opened'.format(
+                    file_relatedness))
+
+            try:
+                self.relatedness.index = self.relatedness.columns
+            except Exception:
+                raise FormatError('Relatedness matrix is not a square matrix. '
+                    'Is the header of your kinship matrix missing?')
         else:
             if file_S_relatedness is None or file_U_relatedness is None:
                 raise MissingInput('Files with eigenvectors and eigenvalues'
@@ -303,7 +308,7 @@ class ReadData(object):
             verboseprint("No pcs set", verbose=self.verbose)
             self.pcs = None
 
-    def getGenotypes(self, file_genotypes=None, delim=','):
+    def getGenotypes(self, file_genotypes=None, delim=',', file_samples=None):
         r"""
         Reads genotype file in the following formats: plink (.bed, .bim, .fam),
         bgen (.bgen, .sample) or comma-separated values (.csv) file.
@@ -388,9 +393,9 @@ class ReadData(object):
 
         if file_genotypes is None:
             raise MissingInput('No genotypes data specified')
-        if file_type(file_genotypes) not in ['delim', 'bed']:
-            raise FormatError(('Supplied genotype file is neither in plink '
-                               'nor .csv/.txt format'))
+        if file_type(file_genotypes) not in ['delim', 'bed', 'bgen']:
+            raise FormatError(('Supplied genotype file is neither in plink,'
+                ' bgen nor .csv/.txt format'))
         verboseprint("Reading genotypes from %s" % file_genotypes,
                      verbose=self.verbose)
 
@@ -443,7 +448,7 @@ class ReadData(object):
                 raise IOError('{} could not be opened'.format(file_genotypes))
 
             self.genotypes = bgen['genotype']
-            self.genotypes_samples = bgen["samples"]
+            self.genotypes_samples = bgen['samples']
             self.genotypes_info = pd.DataFrame.from_dict(
                     {'chrom': bgen['variants']['chrom'],
                      'pos':bgen['variants']['pos']})

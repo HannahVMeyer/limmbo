@@ -109,23 +109,23 @@ class InputData(object):
         """
         if pheno_samples is None:
             try:
-                self.pheno_samples = pd.DataFrame_from_dict(
+                self.pheno_samples = pd.DataFrame.from_dict(
                         {'id': phenotypes.index})
             except Exception:
                 raise TypeError(("pheno_samples are not provided and phenotypes"
                     " has no index to retrieve pheno_samples from."))
         else:
-            self.pheno_samples = pd.DataFrame_from_dict({'id': pheno_samples})
+            self.pheno_samples = pd.DataFrame.from_dict({'id': pheno_samples})
 
         if phenotype_ID is None:
             try:
-                self.phenotype_ID = pd.DataFrame_from_dict(
+                self.phenotype_ID = pd.DataFrame.from_dict(
                         {'id':phenotypes.columns})
             except Exception:
                 raise TypeError(("phenotype_ID are not provided and phenotypes "
                     "has no column names to retrieve phenotype_ID from."))
         else:
-            self.phenotype_ID = pd.DataFrame_from_dict({'id':phenotype_ID})
+            self.phenotype_ID = pd.DataFrame.from_dict({'id':phenotype_ID})
 
         if phenotypes.shape[0] != self.pheno_samples.shape[0]:
             raise DataMismatch(('Number of samples in phenotypes ({}) does not '
@@ -321,7 +321,7 @@ class InputData(object):
 
 
     def addGenotypes(self, genotypes, geno_samples=None,
-                     genotypes_info=None, darray=False):
+                     genotypes_info=None, genotypes_darray=False):
         """
         Add [`N` x `NrSNP`] genotype array of [`N`] samples and [`NrSNP`]
         genotypes, [`N`] array of sample IDs and [`NrSNP` x 2] dataframe of
@@ -378,8 +378,8 @@ class InputData(object):
                 rs72668606     8  79733124
                 rs55770986     7   2087823
         """
-        self.darray = darray
-        if self.darray and geno_samples is None:
+        self.genotypes_darray = genotypes_darray
+        if self.genotypes_darray and geno_samples is None:
             raise MissingInput(('For genotypes in dask.array format, '
                 'genotype sample IDs have to be specified via geno_samples'))
         if geno_samples is None:
@@ -391,7 +391,8 @@ class InputData(object):
                     "has no index to retrieve geno_samples from"))
         else:
             try:
-                self.geno_samples = pd.DataFrame.from_dict({'id': geno_samples})
+                self.geno_samples = pd.DataFrame(data=np.array(geno_samples),
+                        columns=['id'])
             except Exception:
                 raise TypeError(("geno_samples are not array-like"))
 
@@ -400,7 +401,7 @@ class InputData(object):
                                 'genotypes_info'))
         self.genotypes_info = genotypes_info
 
-        if self.darray:
+        if self.genotypes_darray:
             self.genotypes = genotypes
             nsamples = genotypes.shape[1]
             nsnps = genotypes.shape[0]
@@ -710,7 +711,7 @@ class InputData(object):
             if len(pr.index[pr]) == 0:
                 raise DataMismatch(('No common samples between phenotypes and '
                     'relatedness estimates'))
-            self.samples = self.pheno_samples[np.array(pd.index[pr])]
+            self.samples = self.pheno_samples.loc[np.array(pd.index[pr])]
 
         if self.genotypes is not None:
             pg = self.pheno_samples.id.isin(self.geno_samples.id)
@@ -718,26 +719,26 @@ class InputData(object):
             if len(pg_index) == 0:
                 raise DataMismatch(('No common samples between phenotypes,'
                     'and genotypes'))
-            spg = self.samples.id.isin(self.pheno_samples[pg_index])
-            self.samples = self.samples[np.array(spg.index[spg])]
+            spg = self.samples.id.isin(self.pheno_samples.id[pg_index])
+            self.samples = self.samples.loc[np.array(spg.index[spg])]
 
         if self.covariates is not None:
-            pc = self.pheno_samples.id.isin(self.covs_samples)
+            pc = self.pheno_samples.id.isin(self.covs_samples.id)
             pc_index = np.array(pc.index[pc])
             if len(pc_index) == 0:
                 raise DataMismatch(('No common samples between phenotypes, '
                     'and covariates'))
-            spc = self.samples.id.isin(self.pheno_samples[pc_index])
-            self.samples = self.samples[np.array(spc.index[spc])]
+            spc = self.samples.id.isin(self.pheno_samples.id[pc_index])
+            self.samples = self.samples.loc[np.array(spc.index[spc])]
 
         if self.pcs is not None:
-            pp = self.pheno_samples.id.isin(self.pcs_samples)
+            pp = self.pheno_samples.id.isin(self.pcs_samples.id)
             pp_index = np.array(pp.index[pp])
             if len(pp_index) == 0:
                 raise DataMismatch(('No common samples between phenotypes,'
                     'and pcs'))
-            spp = self.samples.id.isin(self.pheno_samples[pp_index])
-            self.samples = self.samples[np.array(spp.index[spp])]
+            spp = self.samples.id.isin(self.pheno_samples.id[pp_index])
+            self.samples = self.samples.loc[np.array(spp.index[spp])]
 
         if samplelist is not None:
             if len(samplelist) != len(set(samplelist)):
@@ -757,7 +758,7 @@ class InputData(object):
         self.pheno_samples = np.array(self.phenotypes.index)
 
         if self.genotypes is not None:
-            if not self.darray:
+            if not self.genotypes_darray:
                 self.genotypes = self.genotypes.loc[self.samples.id, :]
             else:
                 gs = self.geno_samples.id.isin(self.samples.id)
