@@ -2,6 +2,7 @@ from limmbo.io.parser import getGWASargs
 from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.gwas import GWAS
+import pdb
 
 def entry_point():
 
@@ -21,7 +22,8 @@ def entry_point():
     dataread.getPhenotypes(file_pheno=options.file_pheno,
                            delim=options.pheno_delim)
     dataread.getGenotypes(
-        file_genotypes=options.file_genotypes, delim=options.genotypes_delim)
+        file_genotypes=options.file_genotypes, delim=options.genotypes_delim,
+        file_samples=options.file_samples)
     if options.file_covariates is not None:
         dataread.getCovariates(file_covariates=options.file_covariates,
                                delim=options.covariate_delim)
@@ -50,7 +52,9 @@ def entry_point():
                             phenotype_ID=dataread.phenotype_ID,
                             pheno_samples=dataread.pheno_samples)
     datainput.addGenotypes(genotypes=dataread.genotypes,
-                           genotypes_info=dataread.genotypes_info)
+                           genotypes_info=dataread.genotypes_info,
+                           geno_samples=dataread.genotypes_samples,
+                           genotypes_darray=dataread.genotypes_darray)
     if traitlist is not None:
         datainput.subsetTraits(traitlist=traitlist)
     if dataread.relatedness is not None:
@@ -59,6 +63,7 @@ def entry_point():
         datainput.addCovariates(covariates=dataread.covariates)
     if dataread.Cg is not None:
         datainput.addVarianceComponents(Cg=dataread.Cg, Cn=dataread.Cn)
+    pdb.set_trace()
     datainput.commonSamples(samplelist=samplelist)
     if options.regress:
         datainput.regress()
@@ -79,27 +84,68 @@ def entry_point():
     else:
         setup = 'lm'
 
-    resultsAssociation = gwas.runAssociationAnalysis(
-        setup=setup,
-        mode=mode,
-        adjustSingleTrait=options.adjustP)
+    if datainput.genotypes_darray:
+        start = 0
+        header = True
+        writemode = 'w'
+        for c in tqdm(chunks, desc="Association", disable=not verbose):
+            end = start + c
 
-    if options.nrpermutations is not None:
-        pvalues_empirical = gwas.computeEmpiricalP(
-            pvalues=resultsAssociation['pvalues'],
-            seed=options.seed,
-            nrpermutations=options.nrpermutations)
+            geno_chunk = self.genotypes[start:end,:].compute()
+            gwas.genotypes = _biallelic_dosage(geno_chunk)
+
+            resultsAssociation = gwas.runAssociationAnalysis(
+                setup=setup,
+                mode=mode,
+                adjustSingleTrait=options.adjustP)
+            gwas.saveAssociationResults(resultsAssociation,
+                    outdir=options.outdir, name=options.name, mode=writemode,
+                    header=header)
+
+            if options.plot:
+                if start == 0:
+                    pvalues = resultsAssociation['pvalues']
+                    if mode == 'singletrait':
+                        pvalues_adjust = resultsAssociation['pvalues_adjust']
+                else:
+                    pvalues = np.concatenat(pvalues,
+                            resultsAssociation['pvalues'])
+                    if mode == 'singletrait' and options.adjustP:
+                        pvalues_adjust = np.concatenat(pvalues_adjust,
+                                resultsAssociation['pvalues_adjust'])
+
+            header=False
+            writemode = 'a'
+            start = end
+
+        if options.plot:
+            if mode == 'singletrait' and options.adjustP:
+                resultsAssociation = {'pvalues': pvalues,
+                        'pvalues_adjust': pvalues_adjust}
+            else:
+                resultsAssociation = {'pvalues': pvalues}
     else:
-        pvalues_empirical = None
+        resultsAssociation = gwas.runAssociationAnalysis(
+            setup=setup,
+            mode=mode,
+            adjustSingleTrait=options.adjustP)
 
-    if options.fdr is not None:
-        empirical_fdr, empirical_pvalue_dist = gwas.computeFDR(
-            fdr=options.fdr,
-            seed=options.seed)
+        if options.nrpermutations is not None:
+            pvalues_empirical = gwas.computeEmpiricalP(
+                pvalues=resultsAssociation['pvalues'],
+                seed=options.seed,
+                nrpermutations=options.nrpermutations)
+        else:
+            pvalues_empirical = None
 
-    gwas.saveAssociationResults(resultsAssociation, outdir=options.outdir,
-                                name=options.name,
-                                pvalues_empirical=pvalues_empirical)
+        if options.fdr is not None:
+            empirical_fdr, empirical_pvalue_dist = gwas.computeFDR(
+                fdr=options.fdr,
+                seed=options.seed)
+
+        gwas.saveAssociationResults(resultsAssociation, outdir=options.outdir,
+            name=options.name,
+            pvalues_empirical=pvalues_empirical)
 
     if options.plot:
         if gwas.fdr_empirical is not None:
