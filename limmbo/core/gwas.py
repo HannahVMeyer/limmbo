@@ -3,6 +3,7 @@ import sys
 import scipy as sp
 import pandas as pd
 import numpy as np
+import tqdm
 
 import limix.qtl as qtl
 import limix.plot as plot
@@ -11,7 +12,6 @@ import limix.mtset
 
 from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import effectiveTests
-from limmbo.core.utils import _biallelic_dosage
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -54,32 +54,6 @@ class GWAS(object):
         self.adjustBy = None
         self.estimate_vd = None
         self.fdr_empirical = None
-
-        if not self.genotypes_darray:
-            try:
-                self.genotypes = np.array(self.genotypes)
-            except:
-                raise IOError("datainput.genotypes cannot be coverted to "
-                        "np.array")
-        try:
-            self.phenotypes = np.array(self.phenotypes)
-        except:
-            raise IOError(
-                "datainput.phenotypes cannot be coverted to np.array")
-
-        if self.covariates is not None:
-            try:
-                self.covariates = np.array(self.covariates)
-            except:
-                raise IOError(
-                    "datainput.covariates cannot be coverted to np.array")
-
-        if self.relatedness is not None:
-            try:
-                self.relatedness = np.array(self.relatedness)
-            except:
-                raise IOError(
-                    "datainput.relatedness cannot be coverted to np.array")
 
     def runAssociationAnalysis(self, mode, setup="lmm",
                                adjustSingleTrait=None):
@@ -190,7 +164,6 @@ class GWAS(object):
                 ...     resultsAssociation['pvalues_adjust'].min())
                 '2.262e-03'
         """
-
         # set parameters for the analysis
         self.N, self.P = self.phenotypes.shape
         self.S = self.genotypes.shape[1]
@@ -263,7 +236,7 @@ class GWAS(object):
             self.model = "lmm_mt"
         else:
             K1c = 1e-9 * sp.eye(self.P)
-            K2c = sp.cov(self.phenotypes.T)
+            K2c = sp.cov(np.array(self.phenotypes).T)
             K1r = sp.eye(self.N)
 
             if self.pcs is not None:
@@ -276,11 +249,9 @@ class GWAS(object):
                 self.model), verbose=self.verbose)
 
         lm, pvalues = qtl.qtl_test_lmm_kronecker(snps=genotypes,
-                                                 phenos=self.phenotypes,
-                                                 Asnps=Asnps, Acovs=Acovs,
-                                                 covs=self.covariates, K1r=K1r,
-                                                 K1c=K1c, K2c=K2c,
-                                                 searchDelta=self.searchDelta)
+                phenos=np.array(self.phenotypes), Asnps=Asnps, Acovs=Acovs,
+                covs=self.covariates, K1r=K1r, K1c=K1c, K2c=K2c,
+                searchDelta=self.searchDelta)
 
         if not empiricalP and not computeFDR:
             betas = lm.getBetaSNP()
@@ -333,7 +304,7 @@ class GWAS(object):
 
         if self.setup is "lmm":
             self.model = "lmm_st"
-            K = self.relatedness
+            K = np.array(self.relatedness)
         else:
             if self.pcs is not None:
                 self.model = "lm_st_pcs"
@@ -344,8 +315,9 @@ class GWAS(object):
         if not empiricalP and not computeFDR:
             verboseprint("Computing single-trait association ({})".format(
                 self.model), verbose=self.verbose)
-            lm = qtl.qtl_test_lmm(snps=genotypes, pheno=self.phenotypes,
-                                  K=K, covs=self.covariates, test=self.test)
+            lm = qtl.qtl_test_lmm(snps=genotypes,
+                    pheno=np.array(self.phenotypes), K=K,
+                    covs=np.array(self.covariates), test=self.test)
             pvalues = lm.getPv()
 
         if not empiricalP and not computeFDR:
@@ -359,7 +331,7 @@ class GWAS(object):
                 if adjustSingleTrait is "bonferroni":
                     self.adjustBy = self.P
                 elif adjustSingleTrait is "effective":
-                    self.adjustBy = effectiveTests(self.phenotypes)
+                    self.adjustBy = effectiveTests(np.array(self.phenotypes))
                 else:
                     raise "{} is not a provided method to adjust "
             pvalues_adjust = np.array([self.__adjust(p) for p in pvalues])
@@ -622,7 +594,8 @@ class GWAS(object):
         return pvadjust
 
     def __varianceDecomposition(self, cache=True):
-        vd = limix.mtset.MTSet(Y=self.phenotypes, R=self.relatedness)
+        vd = limix.mtset.MTSet(Y=np.array(self.phenotypes),
+                R=np.array(self.relatedness))
         vd_null_info = vd.fitNull(n_times=1000, rewrite=True)
         if vd_null_info['conv']:
             verboseprint("Variance decomposition converged")
