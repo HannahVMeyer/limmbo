@@ -46,7 +46,7 @@ class InputData(object):
         self.pheno_samples = None
         self.phenotype_ID = None
         self.covariates = None
-        self.covariate_samples = None
+        self.covs_samples = None
         self.relatedness = None
         self.relatedness_samples = None
         self.pcs = None
@@ -116,7 +116,7 @@ class InputData(object):
                     " has no index to retrieve pheno_samples from."))
         else:
             self.pheno_samples = pd.DataFrame.from_dict({'id': pheno_samples})
-
+        self.pheno_samples = self.pheno_samples.astype('str')
         if phenotype_ID is None:
             try:
                 self.phenotype_ID = pd.DataFrame.from_dict(
@@ -126,6 +126,7 @@ class InputData(object):
                     "has no column names to retrieve phenotype_ID from."))
         else:
             self.phenotype_ID = pd.DataFrame.from_dict({'id':phenotype_ID})
+        self.phenotype_ID = self.phenotype_ID.astype('str')
 
         if phenotypes.shape[0] != self.pheno_samples.shape[0]:
             raise DataMismatch(('Number of samples in phenotypes ({}) does not '
@@ -140,8 +141,16 @@ class InputData(object):
         if len(self.phenotype_ID.id) != len(set(self.phenotype_ID.id)):
             raise IOError("Duplicate trait names in phenotypes")
 
-        self.phenotypes = pd.DataFrame(phenotypes, index=self.pheno_samples.id,
-                                       columns=self.phenotype_ID.id)
+        self.phenotypes = pd.DataFrame(data=np.array(phenotypes),
+                    index=self.pheno_samples.id.values,
+                    columns=self.phenotype_ID.id.values)
+
+        # check for NAs
+        if self.phenotypes.isna().any(axis=1).sum() != 0:
+            print("Phenotypes contain NAs, samples with NA will be removed.")
+            pheno_na = self.phenotypes.isna().any(axis=1)
+            self.phenotypes=self.phenotypes[~pheno_na]
+            self.pheno_samples=self.pheno_samples[~pheno_na.values]
 
     def addCovariates(self, covariates, covs_samples=None):
         """
@@ -193,13 +202,22 @@ class InputData(object):
                     "has no index to retrieve covs_samples from."))
         else:
             self.covs_samples = pd.DataFrame.from_dict({'id':covs_samples})
+        self.covs_samples = self.covs_samples.astype('str')
         if np.array(covariates).shape[0] != self.covs_samples.shape[0]:
             raise DataMismatch(('Number of samples in covariates ({}) does not '
                 'match number of sample IDs ({}) provided').format(
                     np.array(covariates).shape[0], self.covs_samples.shape[0]))
         if len(self.covs_samples.id) != len(set(self.covs_samples.id)):
             raise IOError("Duplicate sample names in covariates")
-        self.covariates = pd.DataFrame(covariates, index=self.covs_samples.id)
+        self.covariates = pd.DataFrame(data=np.array(covariates),
+                index=self.covs_samples.id.values)
+
+        # check for NAs
+        if self.covariates.isna().any(axis=1).sum() != 0:
+            print("Covariates contain NAs, samples with NA will be removed.")
+            cov_na = self.covariates.isna().any(axis=1)
+            self.covariates=self.covariates[~cov_na]
+            self.covs_samples=self.covs_samples[~cov_na.values]
 
     def addRelatedness(self, relatedness=None, U_relatedness=None,
             S_relatedness=None, relatedness_samples=None):
@@ -286,6 +304,7 @@ class InputData(object):
         else:
             self.relatedness_samples = pd.DataFrame.from_dict(
                             {'id': relatedness_samples})
+        self.relatedness_samples = self.relatedness_samples.astype('str')
 
         if relatedness is not None:
             rel = np.array(relatedness)
@@ -309,8 +328,15 @@ class InputData(object):
                 raise IOError("Duplicate sample names in relatedness")
 
             self.relatedness = pd.DataFrame(relatedness,
-                    index=self.relatedness_samples.id,
-                    columns=self.relatedness_samples.id)
+                    index=self.relatedness_samples.id.values,
+                    columns=self.relatedness_samples.id.values)
+            # check for NAs
+            if self.relatedness.isna().any(axis=1).sum() != 0:
+                print("Relatedness matrix contains NAs, samples with NA will be "
+                    "removed.")
+                relatedness_samples = \
+                    relatedness_samples[~self.relatedness.isna().any(axis=1).values]
+                self.relatedness=self.relatedness[~self.relatedness.isna()]
         else:
             if not any(S_relatedness, U_relatedness):
                 raise MissingInput("Both eigenvectors and eigenvalues of"
@@ -318,6 +344,7 @@ class InputData(object):
             self.U_relatedness = pd.DataFrame(U_relatedness,
                     columns=self.relatedness_samples.id)
             self.S_relatedness = pd.DataFrame(S_relatedness)
+
 
 
     def addGenotypes(self, genotypes, geno_samples=None,
@@ -395,6 +422,7 @@ class InputData(object):
                         columns=['id'])
             except Exception:
                 raise TypeError(("geno_samples are not array-like"))
+        self.geno_samples = self.geno_samples.astype('str')
 
         if genotypes_info is None:
             raise MissingInput(('Genotype info has to be specified via '
@@ -406,7 +434,8 @@ class InputData(object):
             nsamples = genotypes.shape[1]
             nsnps = genotypes.shape[0]
         else:
-            self.genotypes = pd.DataFrame(genotypes, index=self.geno_samples)
+            self.genotypes = pd.DataFrame(genotypes,
+                    index=self.geno_samples.id.values)
             nsamples = self.genotypes.shape[0]
             nsnps = self.genotypes.shape[1]
 
@@ -555,13 +584,14 @@ class InputData(object):
                     "no index to retrieve pc_samples from"))
         else:
             self.pc_samples = pd.DataFrame.from_dict({'id': pc_samples})
+        self.pc_samples = self.pc_samples.astype('str')
         if np.array(pcs).shape[0] != np.array(self.pc_samples).shape[0]:
             raise DataMismatch(('Number of samples in pcs ({}) does not match'
                 ' number of sample IDs ({}) provided').format(
                     np.array(pcs).shape[0], np.array(pc_samples).shape[0]))
         if len(self.pc_samples.id) != len(set(self.pc_samples.id)):
             raise IOError("Duplicate sample names for principle components")
-        self.pcs = pd.DataFrame(pcs, index=self.pc_samples.id)
+        self.pcs = pd.DataFrame(pcs, index=self.pc_samples.id.values)
 
     def subsetTraits(self, traitlist=None):
         """
@@ -755,7 +785,7 @@ class InputData(object):
             self.samples = samplelist
 
         self.phenotypes = self.phenotypes.loc[self.samples.id, :]
-        self.pheno_samples = np.array(self.phenotypes.index)
+        self.pheno_samples = self.samples
 
         if self.genotypes is not None:
             if not self.genotypes_darray:
@@ -831,7 +861,7 @@ class InputData(object):
         verboseprint('Regress covariates', verbose=self.verbose)
         phenotypes = regressOut(np.array(self.phenotypes),
                                 np.array(self.covariates))
-        self.phenotypes = pd.DataFrame(phenotypes,
+        self.phenotypes = pd.DataFrame(np.array(phenotypes),
                                        index=self.phenotypes.index,
                                        columns=self.phenotypes.columns)
         self.covariates = None
