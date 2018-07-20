@@ -16,6 +16,9 @@ from limmbo.utils.utils import effectiveTests
 import matplotlib as mpl
 mpl.use('Agg')
 
+class FormatError(Exception):
+    """Raised when inappropriate input is given"""
+    pass
 
 class GWAS(object):
     r"""
@@ -164,6 +167,13 @@ class GWAS(object):
                 ...     resultsAssociation['pvalues_adjust'].min())
                 '2.262e-03'
         """
+        self.phenotypes = np.array(self.phenotypes)
+        self.genotypes = np.array(self.genotypes)
+        if self.relatedness is not None:
+            self.relatedness = np.array(self.relatedness)
+        if convariates is not None:
+            self.covariates = np.array(self.covariates)
+
         # set parameters for the analysis
         self.N, self.P = self.phenotypes.shape
         self.S = self.genotypes.shape[1]
@@ -174,6 +184,9 @@ class GWAS(object):
         self.mode = mode
 
         if mode == "multitrait":
+            if self.P == 1:
+                raise FormatError("Association mode is multitrait but only one"
+                    "phenotype specified")
             associationResults = self.__multiTraitAssociation_anyeffect(
                 genotypes=self.genotypes)
 
@@ -236,7 +249,7 @@ class GWAS(object):
             self.model = "lmm_mt"
         else:
             K1c = 1e-9 * sp.eye(self.P)
-            K2c = sp.cov(np.array(self.phenotypes).T)
+            K2c = sp.cov(self.phenotypes.T)
             K1r = sp.eye(self.N)
 
             if self.pcs is not None:
@@ -249,7 +262,7 @@ class GWAS(object):
                 self.model), verbose=self.verbose)
 
         lm, pvalues = qtl.qtl_test_lmm_kronecker(snps=genotypes,
-                phenos=np.array(self.phenotypes), Asnps=Asnps, Acovs=Acovs,
+                phenos=self.phenotypes, Asnps=Asnps, Acovs=Acovs,
                 covs=self.covariates, K1r=K1r, K1c=K1c, K2c=K2c,
                 searchDelta=self.searchDelta)
 
@@ -316,8 +329,8 @@ class GWAS(object):
             verboseprint("Computing single-trait association ({})".format(
                 self.model), verbose=self.verbose)
             lm = qtl.qtl_test_lmm(snps=genotypes,
-                    pheno=np.array(self.phenotypes), K=K,
-                    covs=np.array(self.covariates), test=self.test)
+                    pheno=self.phenotypes, K=K,
+                    covs=self.covariates, test=self.test)
             pvalues = lm.getPv()
 
         if not empiricalP and not computeFDR:
@@ -331,7 +344,7 @@ class GWAS(object):
                 if adjustSingleTrait is "bonferroni":
                     self.adjustBy = self.P
                 elif adjustSingleTrait is "effective":
-                    self.adjustBy = effectiveTests(np.array(self.phenotypes))
+                    self.adjustBy = effectiveTests(self.phenotypes)
                 else:
                     raise "{} is not a provided method to adjust "
             pvalues_adjust = np.array([self.__adjust(p) for p in pvalues])
