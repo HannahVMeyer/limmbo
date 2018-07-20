@@ -2,6 +2,8 @@ from limmbo.io.parser import getGWASargs
 from limmbo.io.reader import ReadData
 from limmbo.io.input import InputData
 from limmbo.core.gwas import GWAS
+from limmbo.core.utils import _biallelic_dosage
+from tqdm import tqdm
 import pdb
 
 def entry_point():
@@ -48,9 +50,7 @@ def entry_point():
 
     # combine all input, check for consistency and pre-process data
     datainput = InputData(verbose=options.verbose)
-    datainput.addPhenotypes(phenotypes=dataread.phenotypes,
-                            phenotype_ID=dataread.phenotype_ID,
-                            pheno_samples=dataread.pheno_samples)
+    datainput.addPhenotypes(phenotypes=dataread.phenotypes)
     datainput.addGenotypes(genotypes=dataread.genotypes,
                            genotypes_info=dataread.genotypes_info,
                            geno_samples=dataread.genotypes_samples,
@@ -63,7 +63,6 @@ def entry_point():
         datainput.addCovariates(covariates=dataread.covariates)
     if dataread.Cg is not None:
         datainput.addVarianceComponents(Cg=dataread.Cg, Cn=dataread.Cn)
-    pdb.set_trace()
     datainput.commonSamples(samplelist=samplelist)
     if options.regress:
         datainput.regress()
@@ -85,14 +84,16 @@ def entry_point():
         setup = 'lm'
 
     if datainput.genotypes_darray:
+        pdb.set_trace()
+        chunks = datainput.genotypes.chunks[0]
         start = 0
         header = True
         writemode = 'w'
-        for c in tqdm(chunks, desc="Association", disable=not verbose):
+        for c in tqdm(chunks, desc="Association", disable=not gwas.verbose):
             end = start + c
 
-            geno_chunk = self.genotypes[start:end,:].compute()
-            gwas.genotypes = _biallelic_dosage(geno_chunk)
+            geno_chunk = datainput.genotypes[start:end,:].compute()
+            gwas.genotypes = _biallelic_dosage(geno_chunk).T
 
             resultsAssociation = gwas.runAssociationAnalysis(
                 setup=setup,
