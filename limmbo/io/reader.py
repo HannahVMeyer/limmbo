@@ -37,22 +37,14 @@ class ReadData(object):
 
     def __init__(self, verbose=True):
         self.verbose = verbose
-        self.samples = None
         self.phenotypes = None
-        self.pheno_samples = None
-        self.phenotype_ID = None
         self.covariates = None
-        self.covs_samples = None
         self.relatedness = None
-        self.relatedness_samples = None
         self.genotypes = None
         self.geno_samples = None
         self.genotypes_info = None
         self.pcs = None
         self.pc_samples = None
-        self.snps = None
-        self.geno_samples = None
-        self.position = None
         self.Cg = None
         self.Cn = None
 
