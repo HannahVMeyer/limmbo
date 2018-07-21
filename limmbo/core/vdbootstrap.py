@@ -341,13 +341,11 @@ class LiMMBo(object):
         """
         return_list = []
         return_list = multiple_set_covers_all(self.P, self.S, minCooccurrence,seed=1242)
-		
         if n is not None:
             verboseprint(
                 ('Generate bootstrap matrix with {} bootstrap samples '
                  '(number of specified bootstraps').format(n),
                 verbose=self.verbose)
-            
             return_list = random.sample(return_list, n)
             self.runs = n
         else:
