@@ -361,6 +361,7 @@ class LiMMBo(object):
                 return_list.append(bootstrap)
                 index = np.ix_(np.array(bootstrap), np.array(bootstrap))
                 counts[index] += 1
+
             self.runs = len(return_list)
             verboseprint(
                 ('Generated bootstrap matrix with {} bootstrap runs '
