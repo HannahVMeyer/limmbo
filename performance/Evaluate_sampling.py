@@ -10,7 +10,7 @@ def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
     global_counter = 0
 
     #Create a dictionary to store mappings between tuples and traits. Should be a function really
-    for i in range(1, number_of_traits):
+    for i in range(0, number_of_traits):
         for j in range(i+1, number_of_traits):
             number_to_tuple[global_counter] = (i,j)
             global_counter = global_counter +1
