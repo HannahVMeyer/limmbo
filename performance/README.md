@@ -1,12 +1,12 @@
 # Comparing random sampling to set coverage
 
 LiMMBo uses a subsampling step to estimate the overall genetic and non-genetic
-covariance matrices, Cg and Cn for phenotypes Y. For phenotypes with N samples
-and P traits, Cg and Cn are of size [P x P]. For the estimation of these
+covariance matrices, $C_g$ and $C_n$ for phenotypes Y. For phenotypes with $N$ samples
+and $P$ traits, $C_g$ and Cn are of size [P x P]. For the estimation of these
 covariance matrices P(P+1)/2 parameters have to be estimated. Instead of
 estimating these parameters from complete phenotype matrix Y, LiMMBo generates
-[`s` x `s`] trait variance matrices by randomly sampling `s` traits from the 
-total of `P` traits and applies to the variance estimation to the small
+[s x s] trait variance matrices by randomly sampling s traits from the 
+total of P traits and applies to the variance estimation to the small
 matrices. It generates enough [s x s] sized matrices to ensure that each trait
 combination is sampled at least a given number of times, eg 3.
 
