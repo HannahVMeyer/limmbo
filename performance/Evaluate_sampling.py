@@ -29,21 +29,21 @@ def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
         for j in range(i+1,number_of_traits):
             number_to_tuple[global_counter] = (i,j)
             global_counter = global_counter +1
-    
+
     number_of_trait_tuples = (number_of_traits*(number_of_traits-1))//2
-    
+
     inflated_sample_size = sample_size_ori-1
-    
+
     goal_set_cover_size = number_of_trait_tuples//inflated_sample_size +1
     used_subsets = list()
-    
+
     set_cover = range(1, inflated_sample_size+1)
     #Compute the set covers one at a time
     for i in range(1 ,number_of_covers+1):
         for j in range(1, goal_set_cover_size+1):
             new_set_cover = [((x+(i-1)+(j-1)*inflated_sample_size) % number_of_trait_tuples) for x in set_cover]
             used_subsets.append(np.array(new_set_cover))
-    
+
     flattened_list = list()
     #Map back from tuple index to trait ids
     count=1
@@ -54,22 +54,22 @@ def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
     #Remove duplicates from each subset
     forward_array   = list([np.unique(xi) for xi in flattened_list])
     backward_array  = list([np.unique(np.subtract(number_of_traits-1,xi)) for xi in flattened_list])
-    
+
     bootstrap_array = list()
     bootstrap_array.extend(forward_array)
     bootstrap_array.extend(backward_array)
-    
+
     length_array = [len(x) for x in bootstrap_array]
-    
+
     maxlen = max(length_array)
-    
+
     #Because of the mapping from traits to tuples the method might not always pick each set to be
-    #the same size. It seemed like that was needed by the method so the below code randomly fixes 
+    #the same size. It seemed like that was needed by the method so the below code randomly fixes
     #the unequal set size. If the number of tuples is close to the sample size this will be slow
-    
+
     rand_state = np.random.RandomState(seed)
     counts = sp.zeros((number_of_traits, number_of_traits))
-    
+
     for i in range(0,len(bootstrap_array)):
         while (len(bootstrap_array[i])!=maxlen):
             bootstrap_array[i] = np.unique(np.append(rand_state.choice(
@@ -77,7 +77,8 @@ def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
                     size=(maxlen-len(bootstrap_array[i])),
                     replace=False),
                 bootstrap_array[i]))
-        index = np.ix_(np.array(bootstrap_array[i]), np.array(bootstrap_array[i]))
+        index = np.ix_(np.array(bootstrap_array[i]),
+            np.array(bootstrap_array[i]))
         counts[index] += 1
     return {'bootstrap': bootstrap_array, 'counts': counts}
 
