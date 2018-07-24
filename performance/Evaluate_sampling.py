@@ -19,8 +19,7 @@ def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
     if (number_of_covers % 2)==0:
         number_of_covers = number_of_covers//2
     else:
-        number_of_covers = number_of_covers//2 +1
-    print(number_of_covers)    
+        number_of_covers = number_of_covers//2 +1    
     
     number_of_trait_tuples = (number_of_traits*(number_of_traits-1))//2
     order = np.random.permutation(number_of_trait_tuples)
