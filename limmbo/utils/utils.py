@@ -285,33 +285,33 @@ def effectiveTests(test):
     # 3. Determine effective number of tests:
     t = np.sqrt(eigenval).sum()**2 / eigenval.sum()
     return t
-
 def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
         seed=2152):
     #Compute a set of subsets that represent a multiple set covers
     number_to_tuple = dict()
     global_counter = 0
+    
     if (number_of_covers % 2)==0:
         number_of_covers = number_of_covers//2
     else:
         number_of_covers = number_of_covers//2 +1
     
-    first_count = list(range(number_of_traits))
-    random.shuffle(first_count)
+    number_of_trait_tuples = (number_of_traits*(number_of_traits-1))//2
+    order = np.random.permutation(number_of_trait_tuples)
+    
     #Create a dictionary to store mappings between tuples and traits. Should be a function really
-    for i in first_count:
-        for j in range(i+1,number_of_traits):
-            number_to_tuple[global_counter] = (i,j)
+    for i in range(0, number_of_traits):
+        for j in range(i+1, number_of_traits):
+            number_to_tuple[order[global_counter]] = (i,j)
             global_counter = global_counter +1
     
-    number_of_trait_tuples = (number_of_traits*(number_of_traits-1))//2
     
     inflated_sample_size = sample_size_ori-1
     
     goal_set_cover_size = number_of_trait_tuples//inflated_sample_size +1
     used_subsets = list()
     
-    set_cover = range(1, inflated_sample_size+1)
+    set_cover = range(0, inflated_sample_size)
     #Compute the set covers one at a time
     for i in range(1 ,number_of_covers+1):
         for j in range(1, goal_set_cover_size+1):
@@ -327,11 +327,9 @@ def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
         count = count + 1
     #Remove duplicates from each subset
     forward_array   = list([np.unique(xi) for xi in flattened_list])
-    backward_array  = list([np.unique(np.subtract(number_of_traits-1,xi)) for xi in flattened_list])
     
     bootstrap_array = list()
     bootstrap_array.extend(forward_array)
-    bootstrap_array.extend(backward_array)
     
     length_array = [len(x) for x in bootstrap_array]
     
