@@ -18,4 +18,4 @@ Evaluate_performance.py compares the two methods in terms of trait coverage,
 the time for constructing the subsampling arrays (construction only; does not
 include the variance estimation step) and the number of subsampling
 matrices needed for coverage. The results are shown
-[hrer](https://github.com/HannahVMeyer/limmbo/blob/master/performance/sampling.pdf).
+[here](https://github.com/HannahVMeyer/limmbo/blob/master/performance/sampling.pdf).
