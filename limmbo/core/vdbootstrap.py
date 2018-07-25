@@ -2,6 +2,7 @@ from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import nans
 from limmbo.utils.utils import regularize
 from limmbo.utils.utils import inflate_matrix
+from limmbo.utils.utils import multiple_set_covers_all
 
 import scipy as sp
 from scipy.optimize import fmin_l_bfgs_b as opt
@@ -338,29 +339,16 @@ class LiMMBo(object):
                 [`runs` x `S`] matrix containing bootstrap samples of numbers
                 range(`P`)
         """
-        rand_state = np.random.RandomState(seed)
-        counts = sp.zeros((self.P, self.P))
         return_list = []
-
+        return_list = multiple_set_covers_all(self.P, self.S, minCooccurrence,seed=1242)
         if n is not None:
             verboseprint(
                 ('Generate bootstrap matrix with {} bootstrap samples '
                  '(number of specified bootstraps').format(n),
                 verbose=self.verbose)
-            for i in range(n):
-                bootstrap = rand_state.choice(a=list(range(self.P)), size=self.S,
-                                              replace=False)
-                return_list.append(bootstrap)
-                index = np.ix_(np.array(bootstrap), np.array(bootstrap))
-                counts[index] += 1
+            return_list = random.sample(return_list, n)
             self.runs = n
         else:
-            while counts.min() < minCooccurrence:
-                bootstrap = rand_state.choice(a=list(range(self.P)), size=self.S,
-                                              replace=False)
-                return_list.append(bootstrap)
-                index = np.ix_(np.array(bootstrap), np.array(bootstrap))
-                counts[index] += 1
             self.runs = len(return_list)
             verboseprint(
                 ('Generated bootstrap matrix with {} bootstrap runs '
@@ -370,7 +358,7 @@ class LiMMBo(object):
 
         self.seed = seed
         self.bootstrap_matrix = np.array(return_list)
-        self.counts_min = int(counts.min())
+        self.counts_min = int(self.S)
 
     def __bootstrapPhenotypes(self, bs):
         r"""
