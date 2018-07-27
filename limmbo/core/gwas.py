@@ -422,7 +422,7 @@ class GWAS(object):
                                                pvalues_adjust_df], axis=1)
 
                 pvalues_adjust_df.to_csv("{}/{}_padjust{}.csv".format(
-                    outstring), index=False, mode=mode, header=header)
+                    *outstring), index=False, mode=mode, header=header)
 
             if pvalues_empirical is not None:
 
@@ -440,7 +440,7 @@ class GWAS(object):
                                                pempirical_raw_df], axis=1)
 
                 pempirical_raw_df.to_csv("{}/{}_pempirical_raw{}{}.csv".format(
-                    outstring + (self.nrpermutations,)), index=False,
+                    *outstring + (self.nrpermutations,)), index=False,
                     mode=mode, header=header)
 
         if self.mode is 'multitrait':
@@ -456,14 +456,14 @@ class GWAS(object):
                 pvalues_empirical_df = pd.concat(
                     [self.genotypes_info, pvalues_empirical_df], axis=1)
 
-        pvalues_df.to_csv("{}/{}_pvalue{}.csv".format(outstring), index=False,
+        pvalues_df.to_csv("{}/{}_pvalue{}.csv".format(*outstring), index=False,
                 mode=mode, header=header)
-        beta_df.to_csv("{}/{}_betavalue{}.csv".format(outstring), index=False,
+        beta_df.to_csv("{}/{}_betavalue{}.csv".format(*outstring), index=False,
                 mode=mode, header=header)
 
         if pvalues_empirical is not None:
             pvalues_empirical_df.to_csv("{}/{}_pempirical{}{}.csv".format(
-                (outstring + (self.nrpermutations,))), index=False, mode=mode,
+                *outstring + (self.nrpermutations,)), index=False, mode=mode,
                 header=header)
 
         if self.estimate_vd:
@@ -472,16 +472,16 @@ class GWAS(object):
                     "{}/timeVarianceDecomposition_REML.csv".format(outdir),
                     index=False, header=False)
 
-            pd.DataFrame(self.Cg).to_csv("%s/Cg_REML.csv" % (outdir),
+            pd.DataFrame(self.Cg).to_csv("{}/Cg_REML.csv".format(outdir),
                 index=False, header=False)
-            pd.DataFrame(self.Cn).to_csv("%s/Cn_REML.csv" % (outdir),
+            pd.DataFrame(self.Cn).to_csv("{}/Cn_REML.csv".format(outdir),
                 index=False, header=False)
 
         if self.fdr_empirical is not None:
             pd.DataFrame(self.allppermute).to_csv("{]/{}_ppermute{}.csv".format(
-                outstring), index=False, header=header, mode=mode)
+                *outstring), index=False, header=header, mode=mode)
             pd.DataFrame(['FDR', str(self.fdr_empirical)]).T.to_csv(
-                "{}/{}_empiricalFDR{}.csv".format(outstring), header=False,
+                "{}/{}_empiricalFDR{}.csv".format(*outstring), header=False,
                 index=False)
 
     def computeEmpiricalP(self, pvalues, nrpermutations=1000, seed=10):
