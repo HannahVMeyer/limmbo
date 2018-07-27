@@ -94,6 +94,7 @@ def entry_point():
 
             geno_chunk = datainput.genotypes[start:end,:].compute()
             gwas.genotypes = _biallelic_dosage(geno_chunk).T
+            gwas.genotypes_info = gwas.genotypes_info.iloc[start:end,:]
 
             resultsAssociation = gwas.runAssociationAnalysis(
                 setup=setup,
