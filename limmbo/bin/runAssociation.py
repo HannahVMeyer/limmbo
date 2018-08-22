@@ -55,8 +55,8 @@ def entry_point():
                            genotypes_info=dataread.genotypes_info,
                            geno_samples=dataread.genotypes_samples,
                            genotypes_darray=dataread.genotypes_darray)
-    pdb.set_trace()
-    datainput.subsetTraits(traitlist=traitlist) if traitlist is not None
+    if traitlist is not None:
+        datainput.subsetTraits(traitlist=traitlist)
     if dataread.relatedness is not None:
         datainput.addRelatedness(relatedness=dataread.relatedness)
     if dataread.covariates is not None:
@@ -82,6 +82,7 @@ def entry_point():
         header = True
         writemode = 'w'
         for c in tqdm(chunks, desc="Association", disable=not gwas.verbose):
+            pdb.set_trace()
             end = start + c
 
             geno_chunk = datainput.genotypes[start:end,:].compute()
