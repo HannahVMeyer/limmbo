@@ -642,7 +642,7 @@ class InputData(object):
             raise IOError("Duplicate trait names in traitlist")
         try:
             self.phenotypes = self.phenotypes.iloc[:, self.traitlist]
-            self.phenotype_ID = self.phenotype_ID[self.traitlist]
+            self.phenotype_ID = self.phenotype_ID.loc[self.traitlist]
         except:
             raise DataMismatch(('Selected trait number {} is greater '
                                 'than number of phenotypes provided {}'
