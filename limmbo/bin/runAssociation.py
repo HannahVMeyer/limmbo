@@ -55,8 +55,8 @@ def entry_point():
                            genotypes_info=dataread.genotypes_info,
                            geno_samples=dataread.genotypes_samples,
                            genotypes_darray=dataread.genotypes_darray)
-    if traitlist is not None:
-        datainput.subsetTraits(traitlist=traitlist)
+    pdb.set_trace()
+    datainput.subsetTraits(traitlist=traitlist) if traitlist is not None
     if dataread.relatedness is not None:
         datainput.addRelatedness(relatedness=dataread.relatedness)
     if dataread.covariates is not None:
@@ -73,18 +73,10 @@ def entry_point():
     gwas = GWAS(datainput=datainput,
                 verbose=options.verbose)
 
-    if options.singletrait:
-        mode = 'singletrait'
-    else:
-        mode = 'multitrait'
-
-    if options.lmm:
-        setup = 'lmm'
-    else:
-        setup = 'lm'
+    mode = 'singletrait' if options.singletrait else 'multitrait'
+    setup = 'lmm' if options.lmm else 'lm'
 
     if datainput.genotypes_darray:
-        pdb.set_trace()
         chunks = datainput.genotypes.chunks[0]
         start = 0
         header = True

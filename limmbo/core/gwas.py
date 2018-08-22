@@ -171,7 +171,7 @@ class GWAS(object):
         self.genotypes = np.array(self.genotypes)
         if self.relatedness is not None:
             self.relatedness = np.array(self.relatedness)
-        if convariates is not None:
+        if self.covariates is not None:
             self.covariates = np.array(self.covariates)
 
         # set parameters for the analysis
