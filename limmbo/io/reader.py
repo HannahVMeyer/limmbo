@@ -168,8 +168,8 @@ class ReadData(object):
                 [(`N` + `1`) x `N`] .csv file with eigenvectors of relatedness
                 matrix of `N` individuals;
             file_S_relatedness (string):
-                .csv file with eigenvalues of [`N x `N`] relatedness matrix of
-                `N` individuals;
+                .csv file with `N` eigenvalues of [`N x `N`] relatedness matrix
+                of `N` individuals;
             delim (string):
                 delimiter of kinship file, one of " ", ",", "\t"
 
