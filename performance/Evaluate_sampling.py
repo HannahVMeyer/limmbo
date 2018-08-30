@@ -26,10 +26,10 @@ def relabel_subset(subset, permutation):
 ########
 def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
         seed=2152):
-    i = 0 
+    i = 0
     j = 0
     used_subsets = list()
-    
+
     #Here we compute one set cover. After that we can generate the others based on this by relabelling
     #the matrix rows/cols with a permutation
     while (j < number_of_traits):
@@ -45,7 +45,7 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
             i=j
         else:
             i = (j//sample_size)*sample_size +sample_size#Set i to new start position            
-    
+
     counts = sp.zeros((number_of_traits, number_of_traits))
     #Don't bother recomputing the set cover just relabel in randomly. 
     #(you can do it in a non-random way but the coverage will look cluster around the main diagonal
