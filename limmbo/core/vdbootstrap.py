@@ -340,7 +340,8 @@ class LiMMBo(object):
                 range(`P`)
         """
         return_list = []
-        return_list = multiple_set_covers_all(self.P, self.S, minCooccurrence,seed=1242)
+        return_list = multiple_set_covers_all(self.P, self.S, 
+            minCooccurrence, seed=1242)
         if n is not None:
             verboseprint(
                 ('Generate bootstrap matrix with {} bootstrap samples '
