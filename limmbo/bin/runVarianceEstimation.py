@@ -4,6 +4,8 @@ from limmbo.io.input import InputData
 from limmbo.core.vdbootstrap import LiMMBo
 from limmbo.core.vdsimple import vd_reml
 
+import pdb
+
 import pandas as pd
 
 def entry_point():
@@ -11,13 +13,14 @@ def entry_point():
     # parse command-line arguments
     parser = getVarianceEstimationArgs()
     options = parser.parse_args()
-    
     # read data specified in command-line arguments
     dataread = ReadData(verbose=options.verbose)
     dataread.getPhenotypes(file_pheno=options.file_pheno,
                            delim=options.pheno_delim)
     dataread.getRelatedness(
         file_relatedness=options.file_relatedness,
+        file_evec_relatedness=options.file_evec_relatedness,
+        file_eval_relatedness=options.file_eval_relatedness,
         delim=options.relatedness_delim)
     if options.file_covariates is not None:
         dataread.getCovariates(file_covariates=options.file_covariates,
@@ -32,7 +35,10 @@ def entry_point():
     # combine all input, check for consistency and pre-process data
     datainput = InputData(verbose=options.verbose)
     datainput.addPhenotypes(phenotypes=dataread.phenotypes)
-    datainput.addRelatedness(relatedness=dataread.relatedness)
+    datainput.addRelatedness(relatedness=dataread.relatedness,
+        evec_relatedness=dataread.evec_relatedness,
+        eval_relatedness=dataread.eval_relatedness,
+        )
     if dataread.covariates is not None:
         datainput.addCovariates(covariates=dataread.covariates)
         datainput.regress()
@@ -45,7 +51,7 @@ def entry_point():
 
     if options.limmbo:
         if options.verbose:
-            print(("Starting variance estimation with LiMMBo for phenotype" 
+            print(("Starting variance estimation with LiMMBo for phenotype"
                     "with {} samples and {} traits").format(
                             *datainput.phenotypes.shape))
 
@@ -58,7 +64,6 @@ def entry_point():
             seed=options.seed, cpus=options.cpus,
             minCooccurrence=options.minCooccurrence,
             n=options.runs)
-
         resultsCovariance = datalimmbo.combineBootstrap(results=resultsBS)
         datalimmbo.saveVarianceComponents(resultsCovariance,
                                           output=options.outdir,

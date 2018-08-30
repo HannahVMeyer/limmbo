@@ -30,6 +30,8 @@ def file_type(filepath):
         return 'bed'
     if _is_gen(filepath):
         return 'gen'
+    if _is_bgen(filepath):
+        return 'bgen'
     if any([filepath.endswith(ext) for ext in imexts]):
         return 'image'
     return 'unknown'
@@ -38,6 +40,11 @@ def file_type(filepath):
 def _is_bed(filepath):
     return all([exists(filepath + ext) for ext in ['.bed', '.bim', '.fam']])
 
-
 def _is_gen(filepath):
     return all([exists(filepath + ext) for ext in ['.gen', '.sample']])
+
+def _is_bgen(filepath):
+    if all([exists(filepath + ext) for ext in ['.bgen']]):
+        return True
+    if filepath.endswith('.bgen'):
+        return True

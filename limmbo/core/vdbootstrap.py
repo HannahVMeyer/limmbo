@@ -43,26 +43,16 @@ class LiMMBo(object):
             Set to true to print progress messages.
 
     """
-    def __init__(self, datainput, S, timing=False, iterations=10,
+    def __init__(self, datainput, S, timing=False, iterations=50,
                  verbose=False):
         self.phenotypes = datainput.phenotypes
         self.relatedness = datainput.relatedness
+        self.evec_relatedness = datainput.evec_relatedness
+        self.eval_relatedness = datainput.eval_relatedness
         self.S = S
         self.timing = timing
         self.iterations = iterations
         self.verbose = verbose
-
-        try:
-            self.phenotypes = np.array(self.phenotypes)
-        except:
-            raise IOError(
-                "datainput.phenotypes cannot be converted to np.array")
-
-        try:
-            self.relatedness = np.array(self.relatedness)
-        except:
-            raise IOError(
-                "datainput.relatedness cannot be converted to np.array")
 
         if self.S > self.phenotypes.shape[1]:
             raise DataMismatch(("Subsampling size S ({}) greater than number "
@@ -254,10 +244,10 @@ class LiMMBo(object):
         verboseprint("Write [`P` x `P`] covariance matrices",
                      verbose=self.verbose)
         pd.DataFrame(resultsCombineBootstrap['Cg_fit']).to_csv(
-            '{}/Cg_fit_seed{}.csv'.format(output, self.seed), sep=",",
+            '{}/Cg_fit.csv'.format(output), sep=",",
             header=False, index=False)
         pd.DataFrame(resultsCombineBootstrap['Cn_fit']).to_csv(
-            '{}/Cn_fit_seed{}.csv'.format(output, self.seed), sep=",",
+            '{}/Cn_fit.csv'.format(output), sep=",",
             header=False, index=False)
 
         if intermediate:
@@ -271,10 +261,10 @@ class LiMMBo(object):
             verboseprint(("Write covariance matrices based on average of "
                           "bootstrap matrices"), verbose=self.verbose)
             pd.DataFrame(resultsCombineBootstrap['Cg_average']).to_csv(
-                "%s/Cg_average_seed%s.csv" % (output, self.seed),
+                "%s/Cg_average.csv" % (output),
                 sep=",", header=False, index=False)
             pd.DataFrame(resultsCombineBootstrap['Cn_average']).to_csv(
-                "%s/Cn_average_seed%s.csv" % (output, self.seed),
+                "%s/Cn_average.csv" % (output),
                 sep=",", header=False, index=False)
 
             verboseprint(("Pickle array of all [`S` x `S`] bootstrap "
@@ -292,6 +282,13 @@ class LiMMBo(object):
                          open("%s/optimise_results_Cg.p" % (output), "wb"))
             pickle.dump(resultsCombineBootstrap['results_fit_Cg'],
                          open("%s/optimise_results_Cn.p" % (output), "wb"))
+
+            verboseprint(("Save analysis parameters to "
+                         "{}/LiMMBo_parameters.p".format(output)),
+                         verbose=self.verbose)
+            pickle.dump({x:resultsCombineBootstrap[x] for x in ['seed',
+               'nr_of_successful_bs', 'nr_of_bs']},
+               open('{}/LiMMBo_parameters.p'.format(output), "wb"))
 
         if self.timing:
             verboseprint("Save process times", verbose=self.verbose)
@@ -340,8 +337,8 @@ class LiMMBo(object):
                 range(`P`)
         """
         return_list = []
-        return_list = multiple_set_covers_all(self.P, self.S, 
-            minCooccurrence, seed=1242)
+        return_list = multiple_set_covers_all(self.P, self.S,
+            minCooccurrence, seed=seed)
         if n is not None:
             verboseprint(
                 ('Generate bootstrap matrix with {} bootstrap samples '
@@ -382,7 +379,7 @@ class LiMMBo(object):
                   [`N` x `S`] of subsampled phenotypes
         """
         bootstrap = self.bootstrap_matrix[bs, :]
-        phenotypes = self.phenotypes[:, bootstrap]
+        phenotypes = self.phenotypes.iloc[:, bootstrap]
 
         return phenotypes
 
@@ -719,16 +716,14 @@ class LiMMBo(object):
                 be computed
             bs (int):
                 number of subsample
-            phenotypes (array-like):
+            self.phenotypes (array-like):
                 [`N` x `P`] original phenotypes
-            U_R (array-like):
+            self.evec_relatedness (array-like):
                 eigenvectors of[`N` x `N`] kinship/genetic relatedness used 
                 in estimation of genetic component
-            S_R (array-like):
+            self.eval_relatedness (array-like):
                 eigenvalues of[`N` x `N`] kinship/genetic relatedness used 
                 in estimation of genetic component
-            output (string):
-                output directory; needed for caching
 
         Returns:
             (dictionary):
@@ -746,7 +741,12 @@ class LiMMBo(object):
 
         # time variance decomposition
         t0 = time.clock()
-        vd = limix.mtset.MTSet(Y=phenoSubset, U_R=self.U_R, S_R=self.S_R)
+        if self.relatedness is not None:
+            vd = limix.mtset.MTSet(Y=phenoSubset, R=self.relatedness)
+        else:
+            vd = limix.mtset.MTSet(Y=phenoSubset,
+                U_R=self.evec_relatedness.values,
+                S_R=self.eval_relatedness.values.flatten())
         vd_null_info = vd.fitNull(
             cache=False,
             n_times=self.iterations,

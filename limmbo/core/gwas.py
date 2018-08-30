@@ -3,6 +3,7 @@ import sys
 import scipy as sp
 import pandas as pd
 import numpy as np
+import tqdm
 
 import limix.qtl as qtl
 import limix.plot as plot
@@ -15,6 +16,9 @@ from limmbo.utils.utils import effectiveTests
 import matplotlib as mpl
 mpl.use('Agg')
 
+class FormatError(Exception):
+    """Raised when inappropriate input is given"""
+    pass
 
 class GWAS(object):
     r"""
@@ -53,31 +57,6 @@ class GWAS(object):
         self.adjustBy = None
         self.estimate_vd = None
         self.fdr_empirical = None
-
-        try:
-            self.genotypes = np.array(self.genotypes)
-        except:
-            raise IOError("datainput.genotypes cannot be coverted to np.array")
-
-        try:
-            self.phenotypes = np.array(self.phenotypes)
-        except:
-            raise IOError(
-                "datainput.phenotypes cannot be coverted to np.array")
-
-        if self.covariates is not None:
-            try:
-                self.covariates = np.array(self.covariates)
-            except:
-                raise IOError(
-                    "datainput.covariates cannot be coverted to np.array")
-
-        if self.relatedness is not None:
-            try:
-                self.relatedness = np.array(self.relatedness)
-            except:
-                raise IOError(
-                    "datainput.relatedness cannot be coverted to np.array")
 
     def runAssociationAnalysis(self, mode, setup="lmm",
                                adjustSingleTrait=None):
@@ -188,6 +167,12 @@ class GWAS(object):
                 ...     resultsAssociation['pvalues_adjust'].min())
                 '2.262e-03'
         """
+        self.phenotypes = np.array(self.phenotypes)
+        self.genotypes = np.array(self.genotypes)
+        if self.relatedness is not None:
+            self.relatedness = np.array(self.relatedness)
+        if self.covariates is not None:
+            self.covariates = np.array(self.covariates)
 
         # set parameters for the analysis
         self.N, self.P = self.phenotypes.shape
@@ -199,6 +184,9 @@ class GWAS(object):
         self.mode = mode
 
         if mode == "multitrait":
+            if self.P == 1:
+                raise FormatError("Association mode is multitrait but only one"
+                    "phenotype specified")
             associationResults = self.__multiTraitAssociation_anyeffect(
                 genotypes=self.genotypes)
 
@@ -274,11 +262,9 @@ class GWAS(object):
                 self.model), verbose=self.verbose)
 
         lm, pvalues = qtl.qtl_test_lmm_kronecker(snps=genotypes,
-                                                 phenos=self.phenotypes,
-                                                 Asnps=Asnps, Acovs=Acovs,
-                                                 covs=self.covariates, K1r=K1r,
-                                                 K1c=K1c, K2c=K2c,
-                                                 searchDelta=self.searchDelta)
+                phenos=self.phenotypes, Asnps=Asnps, Acovs=Acovs,
+                covs=self.covariates, K1r=K1r, K1c=K1c, K2c=K2c,
+                searchDelta=self.searchDelta)
 
         if not empiricalP and not computeFDR:
             betas = lm.getBetaSNP()
@@ -331,7 +317,7 @@ class GWAS(object):
 
         if self.setup is "lmm":
             self.model = "lmm_st"
-            K = self.relatedness
+            K = np.array(self.relatedness)
         else:
             if self.pcs is not None:
                 self.model = "lm_st_pcs"
@@ -342,8 +328,9 @@ class GWAS(object):
         if not empiricalP and not computeFDR:
             verboseprint("Computing single-trait association ({})".format(
                 self.model), verbose=self.verbose)
-            lm = qtl.qtl_test_lmm(snps=genotypes, pheno=self.phenotypes,
-                                  K=K, covs=self.covariates, test=self.test)
+            lm = qtl.qtl_test_lmm(snps=genotypes,
+                    pheno=self.phenotypes, K=K,
+                    covs=self.covariates, test=self.test)
             pvalues = lm.getPv()
 
         if not empiricalP and not computeFDR:
@@ -369,8 +356,8 @@ class GWAS(object):
         return {"lm": lm, "pvalues": pvalues, "pvalues_adjust": pvalues_adjust,
                 "betas": betas}
 
-    def saveAssociationResults(self, results, outdir, name="",
-                               pvalues_empirical=None):
+    def saveAssociationResults(self, results, outdir, name="", mode="w",
+            header=True, pvalues_empirical=None):
         r"""
         Saves results of association analyses.
 
@@ -390,6 +377,11 @@ class GWAS(object):
                   'self.adjustSingleTrait' is not None; contains single-trait
                   p-values adjusted for the number of single-trait analyses
                   conducted.
+                - **mode** (str):
+                  Python write mode, default 'w'
+                - **header** (bool):
+                  Set to True to write out column names of output files,
+                  default is True, useful to set to False of mode='a' (append)
 
             outdir (string):
                 '/path/to/output/directory'; needs user writing permission
@@ -429,8 +421,8 @@ class GWAS(object):
                 pvalues_adjust_df = pd.concat([self.genotypes_info,
                                                pvalues_adjust_df], axis=1)
 
-                pvalues_adjust_df.to_csv("%s/%s_padjust%s.csv" % outstring,
-                                         index=False)
+                pvalues_adjust_df.to_csv("{}/{}_padjust{}.csv".format(
+                    *outstring), index=False, mode=mode, header=header)
 
             if pvalues_empirical is not None:
 
@@ -447,9 +439,9 @@ class GWAS(object):
                 pempirical_raw_df = pd.concat([self.genotypes_info,
                                                pempirical_raw_df], axis=1)
 
-                pempirical_raw_df.to_csv("%s/%s_pempirical_raw%s%s.csv" %
-                                         (outstring + (self.nrpermutations,)),
-                                         index=False)
+                pempirical_raw_df.to_csv("{}/{}_pempirical_raw{}{}.csv".format(
+                    *outstring + (self.nrpermutations,)), index=False,
+                    mode=mode, header=header)
 
         if self.mode is 'multitrait':
             pvalues_df = pd.DataFrame(results['pvalues'].T,
@@ -464,30 +456,32 @@ class GWAS(object):
                 pvalues_empirical_df = pd.concat(
                     [self.genotypes_info, pvalues_empirical_df], axis=1)
 
-        pvalues_df.to_csv("%s/%s_pvalue%s.csv" % outstring, index=False)
-        beta_df.to_csv("%s/%s_betavalue%s.csv" % outstring, index=False)
+        pvalues_df.to_csv("{}/{}_pvalue{}.csv".format(*outstring), index=False,
+                mode=mode, header=header)
+        beta_df.to_csv("{}/{}_betavalue{}.csv".format(*outstring), index=False,
+                mode=mode, header=header)
 
         if pvalues_empirical is not None:
-            pvalues_empirical_df.to_csv("%s/%s_pempirical%s%s.csv" %
-                                        (outstring + (self.nrpermutations,)),
-                                        index=False)
+            pvalues_empirical_df.to_csv("{}/{}_pempirical{}{}.csv".format(
+                *outstring + (self.nrpermutations,)), index=False, mode=mode,
+                header=header)
 
         if self.estimate_vd:
             if self.timeVD is not None:
                 pd.DataFrame(self.timeVD).to_csv(
-                    "%s/timeVarianceDecomposition_REML.csv" % outdir,
+                    "{}/timeVarianceDecomposition_REML.csv".format(outdir),
                     index=False, header=False)
 
-            pd.DataFrame(self.Cg).to_csv("%s/Cg_REML.csv" % (outdir),
-                                         index=False, header=False)
-            pd.DataFrame(self.Cn).to_csv("%s/Cn_REML.csv" % (outdir),
-                                         index=False, header=False)
+            pd.DataFrame(self.Cg).to_csv("{}/Cg_REML.csv".format(outdir),
+                index=False, header=False)
+            pd.DataFrame(self.Cn).to_csv("{}/Cn_REML.csv".format(outdir),
+                index=False, header=False)
 
         if self.fdr_empirical is not None:
-            pd.DataFrame(self.allppermute).to_csv("%s/%s_ppermute%s.csv" %
-                                                  outstring, index=False)
+            pd.DataFrame(self.allppermute).to_csv("{]/{}_ppermute{}.csv".format(
+                *outstring), index=False, header=header, mode=mode)
             pd.DataFrame(['FDR', str(self.fdr_empirical)]).T.to_csv(
-                "%s/%s_empiricalFDR%s.csv" % outstring, header=False,
+                "{}/{}_empiricalFDR{}.csv".format(*outstring), header=False,
                 index=False)
 
     def computeEmpiricalP(self, pvalues, nrpermutations=1000, seed=10):
@@ -613,7 +607,8 @@ class GWAS(object):
         return pvadjust
 
     def __varianceDecomposition(self, cache=True):
-        vd = limix.mtset.MTSet(Y=self.phenotypes, R=self.relatedness)
+        vd = limix.mtset.MTSet(Y=np.array(self.phenotypes),
+                R=np.array(self.relatedness))
         vd_null_info = vd.fitNull(n_times=1000, rewrite=True)
         if vd_null_info['conv']:
             verboseprint("Variance decomposition converged")

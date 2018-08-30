@@ -4,6 +4,7 @@ import numpy as np
 import re
 
 from limix.io import read_plink
+from  bgen_reader import read_bgen
 
 from limmbo.utils.utils import verboseprint
 from limmbo.io.utils import file_type
@@ -36,22 +37,14 @@ class ReadData(object):
 
     def __init__(self, verbose=True):
         self.verbose = verbose
-        self.samples = None
         self.phenotypes = None
-        self.pheno_samples = None
-        self.phenotype_ID = None
         self.covariates = None
-        self.covs_samples = None
         self.relatedness = None
-        self.relatedness_samples = None
         self.genotypes = None
         self.geno_samples = None
         self.genotypes_info = None
         self.pcs = None
         self.pc_samples = None
-        self.snps = None
-        self.geno_samples = None
-        self.position = None
         self.Cg = None
         self.Cn = None
 
@@ -159,8 +152,8 @@ class ReadData(object):
             verboseprint("No covariates set", verbose=self.verbose)
             self.covariates = None
 
-    def getRelatedness(self, file_relatedness=None, file_U_relatedness=None,
-            file_S_relatedness=None, delim="\t"):
+    def getRelatedness(self, file_relatedness=None, file_evec_relatedness=None,
+            file_eval_relatedness=None, delim="\t"):
         """
         Read file of [`N` x `N`] pairwise relatedness estimates of [`N`]
         samples. Relatedness estimates can be supplied as either the
@@ -171,12 +164,12 @@ class ReadData(object):
             file_relatedness (string):
                 [(`N` + `1`) x N] .csv file with: [`N`] sample IDs in the first
                 row
-            file_U_relatedness (string):
+            file_evec_relatedness (string):
                 [(`N` + `1`) x `N`] .csv file with eigenvectors of relatedness
                 matrix of `N` individuals;
-            file_S_relatedness (string):
-                .csv file with eigenvalues of [`N x `N`] relatedness matrix of
-                `N` individuals;
+            file_eval_relatedness (string):
+                .csv file with `N` eigenvalues of [`N x `N`] relatedness matrix
+                of `N` individuals;
             delim (string):
                 delimiter of kinship file, one of " ", ",", "\t"
 
@@ -203,49 +196,55 @@ class ReadData(object):
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
         """
 
-        if not any([file_relatedness, file_S_relatedness, file_U_relatedness]):
+        if not any([file_relatedness, file_eval_relatedness,
+                    file_evec_relatedness]):
             raise MissingInput('No relatedness data specified')
 
         if file_relatedness is not None:
             if file_type(file_relatedness) is not 'delim':
                 raise FormatError('Supplied relatedness file is not .csv or'
                         '.txt')
-                try:
-                    self.relatedness = pd.io.parsers.read_csv(file_relatedness,
-                                                      sep=delim)
-                    self.relatedness.index = self.relatedness.columns
-                except Exception:
-                    raise IOError('{} could not be opened'.format(
-                        file_relatedness))
-                    verboseprint("Reading relationship matrix",
-                            verbose=self.verbose)
+            try:
+                self.relatedness = pd.io.parsers.read_csv(file_relatedness,
+                                                  sep=delim)
+                verboseprint("Reading relationship matrix",
+                    verbose=self.verbose)
+            except Exception:
+                raise IOError('{} could not be opened'.format(
+                    file_relatedness))
+
+            try:
+                self.relatedness.index = self.relatedness.columns
+            except Exception:
+                raise FormatError('Relatedness matrix is not a square matrix. '
+                    'Is the header of your kinship matrix missing?')
         else:
-            if file_S_relatedness is None or file_U_relatedness is None:
+            if file_evec_relatedness is None or file_eval_relatedness is None:
                 raise MissingInput('Files with eigenvectors and eigenvalues'
                         'have to be provided')
-            if file_type(file_S_relatedness) is not 'delim':
+            if file_type(file_eval_relatedness) is not 'delim':
                 raise FormatError('Supplied eigenvalue of relatedness file is'
                                   'not .csv or .txt')
-                try:
-                    self.S_relatedness = pd.io.parsers.read_csv(
-                            file_S_relatedness, sep=delim)
-                except Exception:
-                    raise IOError('{} could not be opened'.format(
-                        file_S_relatedness))
-                    verboseprint("Reading eigenvalues of relationship matrix",
-                            verbose=self.verbose)
-            if file_type(file_U_relatedness) is not 'delim':
+            try:
+                verboseprint("Reading eigenvalues of relationship matrix",
+                        verbose=self.verbose)
+                self.eval_relatedness = pd.io.parsers.read_csv(
+                        file_eval_relatedness, sep=delim, header=None)
+            except Exception:
+                raise IOError('{} could not be opened'.format(
+                        file_eval_relatedness))
+            if file_type(file_evec_relatedness) is not 'delim':
                 raise FormatError('Supplied eigenvectors of relatedness file is'
                                   'not .csv or .txt')
-                try:
-                    self.U_relatedness = pd.io.parsers.read_csv(
-                            file_U_relatedness, sep=delim)
-                    self.relatedness.index = self.U_R.columns
-                except Exception:
-                    raise IOError('{} could not be opened'.format(
-                        file_U_relatedness))
-                    verboseprint("Reading eigenvectors of relationship matrix",
-                            verbose=self.verbose)
+            try:
+                self.evec_relatedness = pd.io.parsers.read_csv(
+                        file_evec_relatedness, sep=delim)
+                self.evec_relatedness.index = self.evec_relatedness.columns
+            except Exception:
+                verboseprint("Reading eigenvectors of relationship matrix",
+                        verbose=self.verbose)
+                raise IOError('{} could not be opened'.format(
+                    file_evec_relatedness))
 
     def getPCs(self, file_pcs=None, nrpcs=None, delim=","):
         r"""
@@ -302,10 +301,10 @@ class ReadData(object):
             verboseprint("No pcs set", verbose=self.verbose)
             self.pcs = None
 
-    def getGenotypes(self, file_genotypes=None, delim=','):
+    def getGenotypes(self, file_genotypes=None, delim=',', file_samples=None):
         r"""
         Reads genotype file in the following formats: plink (.bed, .bim, .fam),
-        gen (.gen, .sample) or comma-separated values (.csv) file.
+        bgen (.bgen, .sample) or comma-separated values (.csv) file.
 
         Arguments:
             file_geno (string):
@@ -315,6 +314,11 @@ class ReadData(object):
                   as specified in the plink `user manual <https://www.cog-
                   genomics.org/plink/1.9/input>`_, binary plink format with
                   .bed, .fam and .bim file.
+
+                - **bgen format**:
+
+                  as specified in the bgen (binary gen) `format <http://www.well.
+                  ox.ac.uk/~gav/bgen_format>`_
 
                 - **.csv format**:
 
@@ -331,11 +335,18 @@ class ReadData(object):
             None:
                 updated the following attributes of the ReadData instance:
 
-                - **self.genotypes** (np.array):
-                  [`N` x `NrSNPs`] genotype matrix
-                - **self.genotypes_info** (pd.dataframe):
+                - **self.genotypes** (np.array/dask.array):
+                  if genotypes were provided as text-format self.genotypes is a
+                  [`N` x `NrSNPs`] np.array
+                  if genotypes were provided in bed/bgen format, self.genotypes
+                  is a [`NrSNPs` x `N` x nan] dask.array
+                - **self.genotypes_info** (pd.DataFrame):
                   [`NrSNPs` x 2] dataframe with columns 'chrom' and 'pos', and
                   rsIDs as index
+                - **self.genotypes_darray** (bool):
+                  True if self.genotypes is dask.array, False otherwise
+                - **self.genotypes_samples* (pd.DataFrame):
+                  Genotype sample IDs
 
         Examples:
 
@@ -375,9 +386,9 @@ class ReadData(object):
 
         if file_genotypes is None:
             raise MissingInput('No genotypes data specified')
-        if file_type(file_genotypes) not in ['delim', 'bed']:
-            raise FormatError(('Supplied genotype file is neither in plink '
-                               'nor .csv/.txt format'))
+        if file_type(file_genotypes) not in ['delim', 'bed', 'bgen']:
+            raise FormatError(('Supplied genotype file is neither in plink,'
+                ' bgen nor .csv/.txt format'))
         verboseprint("Reading genotypes from %s" % file_genotypes,
                      verbose=self.verbose)
 
@@ -398,10 +409,12 @@ class ReadData(object):
                 genotypes_info.append(split[[0, 1]])
 
             self.genotypes = genotypes.astype(float).T
+            self.genotypes_samples = genotypes.index
             self.genotypes_info = pd.DataFrame(
                 np.array(genotypes_info),
                 columns=['chrom', 'pos'],
                 index=snp_ID)
+            self.genotypes_darray = False
 
         if file_type(file_genotypes) is 'bed':
             try:
@@ -410,13 +423,30 @@ class ReadData(object):
             except Exception:
                 raise IOError('{} could not be opened'.format(file_genotypes))
 
-            self.genotypes = pd.DataFrame(bed.compute()).astype(float).T
-            self.genotypes.index = fam.iid
+            #self.genotypes = pd.DataFrame(bed.compute()).astype(float).T
+            self.genotypes = bed
+            self.genotypes_samples = fam.iid
             self.genotypes_info = pd.DataFrame(
                 np.array([bim.chrom, bim.pos]).T,
                 columns=['chrom', 'pos'],
                 index=bim.snp)
             self.genotypes_info.index.name = None
+            self.genotypes_darray = True
+
+        if file_type(file_genotypes) is 'bgen':
+            try:
+                bgen = read_bgen(file_genotypes, sample_file=file_samples,
+                        verbose=self.verbose)
+            except Exception:
+                raise IOError('{} could not be opened'.format(file_genotypes))
+
+            self.genotypes = bgen['genotype']
+            self.genotypes_samples = bgen['samples']
+            self.genotypes_info = pd.DataFrame.from_dict(
+                    {'chrom': bgen['variants']['chrom'],
+                     'pos':bgen['variants']['pos']})
+            self.genotypes_info.index = bgen['variants']['rsid'].values
+            self.genotypes_darray = True
 
     def getVarianceComponents(self, file_Cg=None, file_Cn=None, delim_cg=",",
                               delim_cn=","):
