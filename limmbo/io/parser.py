@@ -447,16 +447,25 @@ def getVarianceEstimationArgs():
               '--lmm/-lm. Default: '
               '%(default)s'))
     required.add_argument(
-        '-S_U_k',
-        '--files_S_U_kinship',
+        '-evec_k',
+        '--files_evec_kinship',
         action="store",
-        nargs=2,
-        dest="file_S_relatedness",
+        dest="file_evec_relatedness",
         required=False,
         default=None,
-        help=('Path [string] to [N x (N+1)] file of eigenvectors and path to'
-            'file with eigenvalues of kinship/relatedness matrix. Required when'
+        help=('Path [string] to [N x (N+1)] file with eigenvectors of '
+              'kinship/relatedness matrix. Required when'
               '--lmm/-lm. Default: '
+              '%(default)s'))
+    required.add_argument(
+        '-eval_k',
+        '--files_eval_kinship',
+        action="store",
+        dest="file_eval_relatedness",
+        required=False,
+        default=None,
+        help=('Path [string] to [N] eigenvalues of kinship/relatedness matrix. '
+              'Required when --lmm/-lm. Default: '
               '%(default)s'))
     required.add_argument(
         '--kinship_delim',
@@ -549,7 +558,7 @@ def getVarianceEstimationArgs():
         '--iterations',
         action="store",
         dest="iterations",
-        default=10,
+        default=50,
         required=False,
         type=int,
         help=('Number [int] of iterations for variance decomposition '

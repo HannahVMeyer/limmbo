@@ -152,8 +152,8 @@ class ReadData(object):
             verboseprint("No covariates set", verbose=self.verbose)
             self.covariates = None
 
-    def getRelatedness(self, file_relatedness=None, file_U_relatedness=None,
-            file_S_relatedness=None, delim="\t"):
+    def getRelatedness(self, file_relatedness=None, file_evec_relatedness=None,
+            file_eval_relatedness=None, delim="\t"):
         """
         Read file of [`N` x `N`] pairwise relatedness estimates of [`N`]
         samples. Relatedness estimates can be supplied as either the
@@ -164,10 +164,10 @@ class ReadData(object):
             file_relatedness (string):
                 [(`N` + `1`) x N] .csv file with: [`N`] sample IDs in the first
                 row
-            file_U_relatedness (string):
+            file_evec_relatedness (string):
                 [(`N` + `1`) x `N`] .csv file with eigenvectors of relatedness
                 matrix of `N` individuals;
-            file_S_relatedness (string):
+            file_eval_relatedness (string):
                 .csv file with `N` eigenvalues of [`N x `N`] relatedness matrix
                 of `N` individuals;
             delim (string):
@@ -196,7 +196,8 @@ class ReadData(object):
                 Index([u'ID_1', u'ID_2', u'ID_3'], dtype='object')
         """
 
-        if not any([file_relatedness, file_S_relatedness, file_U_relatedness]):
+        if not any([file_relatedness, file_eval_relatedness,
+                    file_evec_relatedness]):
             raise MissingInput('No relatedness data specified')
 
         if file_relatedness is not None:
@@ -218,32 +219,32 @@ class ReadData(object):
                 raise FormatError('Relatedness matrix is not a square matrix. '
                     'Is the header of your kinship matrix missing?')
         else:
-            if file_S_relatedness is None or file_U_relatedness is None:
+            if file_evec_relatedness is None or file_eval_relatedness is None:
                 raise MissingInput('Files with eigenvectors and eigenvalues'
                         'have to be provided')
-            if file_type(file_S_relatedness) is not 'delim':
+            if file_type(file_eval_relatedness) is not 'delim':
                 raise FormatError('Supplied eigenvalue of relatedness file is'
                                   'not .csv or .txt')
-                try:
-                    self.S_relatedness = pd.io.parsers.read_csv(
-                            file_S_relatedness, sep=delim)
-                except Exception:
-                    raise IOError('{} could not be opened'.format(
-                        file_S_relatedness))
-                    verboseprint("Reading eigenvalues of relationship matrix",
-                            verbose=self.verbose)
-            if file_type(file_U_relatedness) is not 'delim':
+            try:
+                verboseprint("Reading eigenvalues of relationship matrix",
+                        verbose=self.verbose)
+                self.eval_relatedness = pd.io.parsers.read_csv(
+                        file_eval_relatedness, sep=delim, header=None)
+            except Exception:
+                raise IOError('{} could not be opened'.format(
+                        file_eval_relatedness))
+            if file_type(file_evec_relatedness) is not 'delim':
                 raise FormatError('Supplied eigenvectors of relatedness file is'
                                   'not .csv or .txt')
-                try:
-                    self.U_relatedness = pd.io.parsers.read_csv(
-                            file_U_relatedness, sep=delim)
-                    self.relatedness.index = self.U_R.columns
-                except Exception:
-                    raise IOError('{} could not be opened'.format(
-                        file_U_relatedness))
-                    verboseprint("Reading eigenvectors of relationship matrix",
-                            verbose=self.verbose)
+            try:
+                self.evec_relatedness = pd.io.parsers.read_csv(
+                        file_evec_relatedness, sep=delim)
+                self.evec_relatedness.index = self.evec_relatedness.columns
+            except Exception:
+                verboseprint("Reading eigenvectors of relationship matrix",
+                        verbose=self.verbose)
+                raise IOError('{} could not be opened'.format(
+                    file_evec_relatedness))
 
     def getPCs(self, file_pcs=None, nrpcs=None, delim=","):
         r"""

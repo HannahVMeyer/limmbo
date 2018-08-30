@@ -2,6 +2,7 @@ from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import regularize
 from limix.mtset import MTSet as MTST
 
+import numpy as np
 import time
 
 
@@ -69,7 +70,12 @@ def vd_reml(datainput, iterations=10, verbose=True):
 
     # time variance decomposition
     t0 = time.clock()
-    vd = MTST(Y=datainput.phenotypes, U_R=datainput.U_R, S_R=datainput.S_R)
+    if datainput.relatedness is not None:
+        vd = MTST(Y=datainput.phenotypes, R=datainput.relatedness)
+    else:
+        vd = MTST(Y=datainput.phenotypes.values,
+                  U_R=datainput.evec_relatedness.values,
+                  S_R=datainput.eval_relatedness.values.flatten())
     vd_result = vd.fitNull(n_times=iterations, rewrite=True)
     t1 = time.clock()
 

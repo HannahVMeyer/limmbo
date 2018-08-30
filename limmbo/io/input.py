@@ -219,8 +219,8 @@ class InputData(object):
             self.covariates=self.covariates[~cov_na]
             self.covs_samples=self.covs_samples[~cov_na.values]
 
-    def addRelatedness(self, relatedness=None, U_relatedness=None,
-            S_relatedness=None, relatedness_samples=None):
+    def addRelatedness(self, relatedness=None, evec_relatedness=None,
+            eval_relatedness=None, relatedness_samples=None):
         """
         Add [`N` x `N`] pairwise relatedness estimates of [`N`] samples to the
         InputData instance
@@ -280,8 +280,9 @@ class InputData(object):
                 (100,)
 
         """
-        if not any(relatedness, U_relatedness):
-            raise MissingInput("Neither relatedness nor eigenvectors of"
+        if all(v is None for v in [evec_relatedness,
+            eval_relatedness, relatedness]):
+            raise MissingInput("Neither relatedness nor eigenvectors/values of"
                     "relatedness matrix are provided")
 
         if relatedness_samples is None:
@@ -293,13 +294,13 @@ class InputData(object):
                     raise TypeError(("relatedness_samples are not provided and "
                         "relatedness has no index to retrieve "
                         "relatedness_samples from"))
-            if U_relatedness is not None:
+            if evec_relatedness is not None:
                 try:
                     self.relatedness_samples = pd.DataFrame.from_dict(
-                            {'id': U_relatedness.index})
+                            {'id': evec_relatedness.index})
                 except Exception:
                     raise TypeError(("relatedness_samples are not provided and "
-                        "U_relatedness has no index to retrieve "
+                        "evec_relatedness has no index to retrieve "
                         "relatedness_samples from"))
         else:
             self.relatedness_samples = pd.DataFrame.from_dict(
@@ -337,13 +338,16 @@ class InputData(object):
                 relatedness_samples = \
                     relatedness_samples[~self.relatedness.isna().any(axis=1).values]
                 self.relatedness=self.relatedness[~self.relatedness.isna()]
+            self.eval_relatedness=None
+            self.evec_relatedness=None
         else:
-            if not any(S_relatedness, U_relatedness):
+            if any(v is None for v in [evec_relatedness, eval_relatedness]):
                 raise MissingInput("Both eigenvectors and eigenvalues of"
                         "relatedness matrix have to be provided")
-            self.U_relatedness = pd.DataFrame(U_relatedness,
+            self.evec_relatedness = pd.DataFrame(evec_relatedness,
                     columns=self.relatedness_samples.id)
-            self.S_relatedness = pd.DataFrame(S_relatedness)
+            self.eval_relatedness = pd.DataFrame(eval_relatedness)
+            self.relatedness=None
 
 
 
