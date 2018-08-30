@@ -285,67 +285,51 @@ def effectiveTests(test):
     # 3. Determine effective number of tests:
     t = np.sqrt(eigenval).sum()**2 / eigenval.sum()
     return t
-def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
+
+#The set cover of tuples is considered as trying to cover a square matrix of size
+def find_square(i_coord, j_coord, side_length):
+    return np.union1d(np.array(range(i_coord, i_coord+side_length)), np.array(range(j_coord, j_coord+side_length)))
+
+#Relabel a subset so we don't need to recompute set covers for large m
+def relabel_subset(subset, permutation):
+    return [permutation[x] for x in subset]
+
+########
+#This method computes multiple set covers of tuples. 
+#To do so we consider instead covering a matrix is size number_of_traits*number_of_traits.   
+########
+def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
         seed=2152):
-    #Compute a set of subsets that represent a multiple set covers
-    number_to_tuple = dict()
-    global_counter = 0
-    
-    if (number_of_covers % 2)==0:
-        number_of_covers = number_of_covers//2
-    else:
-        number_of_covers = number_of_covers//2 +1
-    
-    number_of_trait_tuples = (number_of_traits*(number_of_traits-1))//2
-    order = np.random.permutation(number_of_trait_tuples)
-    
-    #Create a dictionary to store mappings between tuples and traits. Should be a function really
-    for i in range(0, number_of_traits):
-        for j in range(i+1, number_of_traits):
-            number_to_tuple[order[global_counter]] = (i,j)
-            global_counter = global_counter +1
-    
-    
-    inflated_sample_size = sample_size_ori-1
-    
-    goal_set_cover_size = number_of_trait_tuples//inflated_sample_size +1
+    i = 0 
+    j = 0
     used_subsets = list()
     
-    set_cover = range(0, inflated_sample_size)
-    #Compute the set covers one at a time
-    for i in range(1 ,number_of_covers+1):
-        for j in range(1, goal_set_cover_size+1):
-            new_set_cover = [((x+(i-1)+(j-1)*inflated_sample_size) % number_of_trait_tuples) for x in set_cover]
-            used_subsets.append(np.array(new_set_cover))
+    #Here we compute one set cover. After that we can generate the others based on this by relabelling
+    #the matrix rows/cols with a permutation
+    while (j < number_of_traits):
+        while (i < number_of_traits):
+            if i==j:#We're on the main diagonal and we can get a better set than normal. We can cover .
+                used_subsets.append(find_square(i,j,sample_size) % number_of_traits)
+                i += sample_size
+            else:#We're not on the main diagonal so we can only cover a square of size sample_size/2*sample_size/2  
+                used_subsets.append(find_square(i,j,(sample_size//2)) % number_of_traits)
+                i += sample_size//2
+        j += sample_size//2
+        if j%sample_size ==0:
+            i=j
+        else:
+            i = (j//sample_size)*sample_size +sample_size#Set i to new start position            
     
-    flattened_list = list()
-    #Map back from tuple index to trait ids
-    count=1
-    for set_tuple in used_subsets:
-        list_to_flat = [number_to_tuple[x] for x in set_tuple]
-        flattened_list.append(np.array([item for sublist in list_to_flat for item in sublist]))
-        count = count + 1
-    #Remove duplicates from each subset
-    forward_array   = list([np.unique(xi) for xi in flattened_list])
-    
+    counts = sp.zeros((number_of_traits, number_of_traits))
+    #Don't bother recomputing the set cover just relabel in randomly. 
+    #(you can do it in a non-random way but the coverage will look cluster around the main diagonal
     bootstrap_array = list()
-    bootstrap_array.extend(forward_array)
-    
-    length_array = [len(x) for x in bootstrap_array]
-    
-    maxlen = max(length_array)
-    
-    #Because of the mapping from traits to tuples the method might not always pick each set to be
-    #the same size. It seemed like that was needed by the method so the below code randomly fixes 
-    #the unequal set size. If the number of tuples is close to the sample size this will be slow
-    
-    rand_state = np.random.RandomState(seed)
-    
-    for i in range(0,len(bootstrap_array)):
-        while (len(bootstrap_array[i])!=maxlen):
-            bootstrap_array[i] = np.unique(np.append(rand_state.choice(
-                    a=list(range(number_of_traits)),
-                    size=(maxlen-len(bootstrap_array[i])),
-                    replace=False),
-                bootstrap_array[i]))
-    return bootstrap_array
+    for num in range(0,number_of_covers):
+        order = np.random.permutation(number_of_traits)    
+        for i in range(0,len(used_subsets)):
+            bootstrap_array.append(relabel_subset(used_subsets[i], order))
+            index = np.ix_(relabel_subset(used_subsets[i], order),
+                relabel_subset(used_subsets[i], order))
+            counts[index] += 1
+    return {'bootstrap': bootstrap_array, 'counts': counts}
+
