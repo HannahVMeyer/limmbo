@@ -527,15 +527,6 @@ def getVarianceEstimationArgs():
               'decomposition. Default: %(default)s'),
         type=int)
     limmbo.add_argument(
-        '-r',
-        '--runs',
-        action="store",
-        dest="runs",
-        default=None,
-        required=False,
-        help='Total number [int] of bootstrap runs. Default: %(default)s',
-        type=int)
-    limmbo.add_argument(
         '-t',
         '--timing',
         action="store_true",

@@ -54,7 +54,7 @@ def entry_point():
             print(("Starting variance estimation with LiMMBo for phenotype"
                     "with {} samples and {} traits").format(
                             *datainput.phenotypes.shape))
-
+        pdb.set_trace()
         datalimmbo = LiMMBo(datainput=datainput,
                             S=options.S,
                             timing=options.timing,
@@ -62,8 +62,7 @@ def entry_point():
                             verbose=options.verbose)
         resultsBS = datalimmbo.runBootstrapCovarianceEstimation(
             seed=options.seed, cpus=options.cpus,
-            minCooccurrence=options.minCooccurrence,
-            n=options.runs)
+            minCooccurrence=options.minCooccurrence)
         resultsCovariance = datalimmbo.combineBootstrap(results=resultsBS)
         datalimmbo.saveVarianceComponents(resultsCovariance,
                                           output=options.outdir,

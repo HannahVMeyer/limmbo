@@ -305,8 +305,7 @@ class LiMMBo(object):
             overall_time.to_csv("%s/process_time_summary.csv" % output,
                                 sep=",", header=False, index=True)
 
-    def __generateBootstrapMatrix(self, seed=12321, minCooccurrence=3,
-                                  n=None):
+    def __generateBootstrapMatrix(self, seed=12321, minCooccurrence=3):
         r"""
         Generate subsampling matrix.
 
@@ -317,9 +316,6 @@ class LiMMBo(object):
                 minimum number a trait pair should be sampled; once reached
                 for all trait pairs, sampling is stopped if n is None;
                 default=3
-            n (int):
-                if not None, sets the total number of permutations,
-                otherwise n determined by minCooccurrence;  default: None
 
         Returns:
             None:
@@ -336,27 +332,16 @@ class LiMMBo(object):
                 [`runs` x `S`] matrix containing bootstrap samples of numbers
                 range(`P`)
         """
-        return_list = []
         return_list = multiple_set_covers_all(self.P, self.S,
             minCooccurrence, seed=seed)
-        if n is not None:
-            verboseprint(
-                ('Generate bootstrap matrix with {} bootstrap samples '
-                 '(number of specified bootstraps').format(n),
-                verbose=self.verbose)
-            return_list = random.sample(return_list, n)
-            self.runs = n
-        else:
-            self.runs = len(return_list)
-            verboseprint(
-                ('Generated bootstrap matrix with {} bootstrap runs '
-                 'such that each trait-trait combination was '
-                 'sampled {}').format(self.runs, minCooccurrence),
-                verbose=self.verbose)
+        self.runs = len(return_list['bootstrap'])
+        verboseprint(('Generated bootstrap matrix with {} bootstrap runs '
+            'such that each trait-trait combination was sampled {}').format(
+            self.runs, minCooccurrence), verbose=self.verbose)
 
         self.seed = seed
-        self.bootstrap_matrix = np.array(return_list)
-        self.counts_min = int(self.S)
+        self.bootstrap_matrix = np.array(return_list['bootstrap'])
+        self.counts_min = int(return_list['counts'].min())
 
     def __bootstrapPhenotypes(self, bs):
         r"""
