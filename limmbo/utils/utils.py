@@ -286,46 +286,54 @@ def effectiveTests(test):
     t = np.sqrt(eigenval).sum()**2 / eigenval.sum()
     return t
 
-#The set cover of tuples is considered as trying to cover a square matrix of size
+# The set cover of tuples is considered as trying to cover a square matrix of size
 def find_square(i_coord, j_coord, side_length):
-    return np.union1d(np.array(range(i_coord, i_coord+side_length)), np.array(range(j_coord, j_coord+side_length)))
+    return np.union1d(np.array(range(i_coord, i_coord+side_length)),
+        np.array(range(j_coord, j_coord+side_length)))
 
-#Relabel a subset so we don't need to recompute set covers for large m
+# Relabel a subset so we don't need to recompute set covers for large m
 def relabel_subset(subset, permutation):
     return [permutation[x] for x in subset]
 
 ########
-#This method computes multiple set covers of tuples.
-#To do so we consider instead covering a matrix is size number_of_traits*number_of_traits.
+# This method computes multiple set covers of tuples.
+# To do so we consider instead covering a matrix of size 
+# number_of_traits*number_of_traits.
 ########
 def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
         seed=2152):
     i = 0
     j = 0
     used_subsets = list()
-    
+
     #Here we compute one set cover. After that we can generate the others based on this by relabelling
     #the matrix rows/cols with a permutation
     while (j < number_of_traits):
         while (i < number_of_traits):
-            if i==j:#We're on the main diagonal and we can get a better set than normal. We can cover
-                used_subsets.append(find_square(i,j,sample_size) % number_of_traits)
+            # Main diagonal: better set than normal. We can cover
+            if i == j:
+                used_subsets.append(find_square(i, j, sample_size) %
+                    number_of_traits)
                 i += sample_size
-            else:#We're not on the main diagonal so we can only cover a square of size sample_size/2*sample_size/2
-                used_subsets.append(find_square(i,j,(sample_size//2)) % number_of_traits)
+            # Not on the main diagonal: so we can only cover a square of
+            # size sample_size/2*sample_size/2
+            else:
+                used_subsets.append(find_square(i, j, (sample_size//2)) %
+                    number_of_traits)
                 i += sample_size//2
         j += sample_size//2
-        if j%sample_size ==0:
-            i=j
+        if j % sample_size == 0:
+            i = j
         else:
-            i = (j//sample_size)*sample_size +sample_size#Set i to new start position
-    
+            # Set i to new start position
+            i = (j//sample_size)*sample_size + sample_size
+
     counts = sp.zeros((number_of_traits, number_of_traits))
-    #Don't bother recomputing the set cover just relabel in randomly. 
-    #(you can do it in a non-random way but the coverage will look cluster around the main diagonal
+
+    # relabel set cover randomly
     bootstrap_array = list()
-    for num in range(0,number_of_covers):
-        order = np.random.permutation(number_of_traits)    
+    for num in range(0, number_of_covers):
+        order = np.random.permutation(number_of_traits)
         for i in range(0,len(used_subsets)):
             bootstrap_array.append(relabel_subset(used_subsets[i], order))
             index = np.ix_(relabel_subset(used_subsets[i], order),
