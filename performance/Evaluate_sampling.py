@@ -52,7 +52,7 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
     counts = sp.zeros((number_of_traits, number_of_traits))
     #Don't bother recomputing the set cover just relabel in randomly. 
     #(you can do it in a non-random way but the coverage will look cluster around the main diagonal
-    if (sample_size % 2) ==0 :
+    if (sample_size % 2) !=0 :
         for i in range(0,len(used_subsets)):
             used_subsets[i] = np.append(used_subsets[i], np.random.randint())
     
