@@ -26,29 +26,44 @@ def relabel_subset(subset, permutation):
 ########
 def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
         seed=2152):
-    i = 0
-    j = 0
-    used_subsets = list()
-
+    sample_size_t = sample_size
+    if (sample_size % 2) != 0:#We make odd sized samples even and then fix the sampling size later.
+        sample_size_t = sample_size -1
+    
     #Here we compute one set cover. After that we can generate the others based on this by relabelling
     #the matrix rows/cols with a permutation
+    i = 0 
+    j = 0
+    used_subsets = list()
     while (j < number_of_traits):
         while (i < number_of_traits):
             if i==j:#We're on the main diagonal and we can get a better set than normal. We can cover .
-                used_subsets.append(find_square(i,j,sample_size) % number_of_traits)
-                i += sample_size
+                used_subsets.append(find_square(i,j,sample_size_t) % number_of_traits)
+                i += sample_size_t
             else:#We're not on the main diagonal so we can only cover a square of size sample_size/2*sample_size/2  
-                used_subsets.append(find_square(i,j,((sample_size//2)+1)) % number_of_traits)
-                i += sample_size//2
-        j += sample_size//2
-        if j%sample_size ==0:
+                if sample_size_t %2 == 0:
+                    used_subsets.append(find_square(i,j,sample_size_t//2) % number_of_traits)
+                    i += (sample_size_t//2)
+                else:
+                    new_sub = (find_square(i,j,((sample_size//2))) % number_of_traits)
+                    new_sub = np.append(new_sub, (new_sub.max()+1) % number_of_traits)
+                    used_subsets.append(new_sub)
+                    used_subsets.append(new_sub % number_of_traits)
+                    i += (sample_size_t//2)
+        j += sample_size_t//2
+        if j%sample_size_t ==0:
             i=j
         else:
-            i = (j//sample_size)*sample_size +sample_size#Set i to new start position            
-
+            i = (j//sample_size_t)*sample_size_t +sample_size_t#Set i to new start position            
+    
     counts = sp.zeros((number_of_traits, number_of_traits))
     #Don't bother recomputing the set cover just relabel in randomly. 
     #(you can do it in a non-random way but the coverage will look cluster around the main diagonal
+    if (sample_size % 2) ==0 :
+        for i in range(0,len(used_subsets)):
+            used_subsets[i] = np.append(used_subsets[i], np.random.randint())
+            assert len(used_subsets[i])==sample_size
+    
     bootstrap_array = list()
     for num in range(0,number_of_covers):
         order = np.random.permutation(number_of_traits)    
@@ -57,6 +72,9 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
             index = np.ix_(relabel_subset(used_subsets[i], order),
                 relabel_subset(used_subsets[i], order))
             counts[index] += 1
+    print(counts.min())
+    assert counts.min()>=number_of_covers
+    print(np.unravel_index(counts.argmin(), counts.shape))
     return {'bootstrap': bootstrap_array, 'counts': counts}
 
 def random_sampling(P, S, minCooccurrence, seed=2152):
@@ -107,9 +125,9 @@ def nans(shape):
     return a
 
 if __name__ == "__main__":
-    m=3
-    P=[50, 100, 300]
-    S=10
+    m=4
+    P=[50, 100, 300, 500]
+    S=15
     seed = range(1,21)
     directory = os.environ['HOME'] +'/python_modules/limmbo/performance'
     c_set, t_set, s_set = evaluate(P, S, m, 'set', seed)
