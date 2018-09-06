@@ -38,7 +38,7 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
                 used_subsets.append(find_square(i,j,sample_size) % number_of_traits)
                 i += sample_size
             else:#We're not on the main diagonal so we can only cover a square of size sample_size/2*sample_size/2  
-                used_subsets.append(find_square(i,j,(sample_size//2)) % number_of_traits)
+                used_subsets.append(find_square(i,j,((sample_size//2)+1)) % number_of_traits)
                 i += sample_size//2
         j += sample_size//2
         if j%sample_size ==0:
