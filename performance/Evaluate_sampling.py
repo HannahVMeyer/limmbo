@@ -41,15 +41,8 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
                 used_subsets.append(find_square(i,j,sample_size_t) % number_of_traits)
                 i += sample_size_t
             else:#We're not on the main diagonal so we can only cover a square of size sample_size/2*sample_size/2  
-                if sample_size_t %2 == 0:
-                    used_subsets.append(find_square(i,j,sample_size_t//2) % number_of_traits)
-                    i += (sample_size_t//2)
-                else:
-                    new_sub = (find_square(i,j,((sample_size//2))) % number_of_traits)
-                    new_sub = np.append(new_sub, (new_sub.max()+1) % number_of_traits)
-                    used_subsets.append(new_sub)
-                    used_subsets.append(new_sub % number_of_traits)
-                    i += (sample_size_t//2)
+                used_subsets.append(find_square(i,j,sample_size_t//2) % number_of_traits)
+                i += (sample_size_t//2)
         j += sample_size_t//2
         if j%sample_size_t ==0:
             i=j
@@ -62,7 +55,7 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
     if (sample_size % 2) ==0 :
         for i in range(0,len(used_subsets)):
             used_subsets[i] = np.append(used_subsets[i], np.random.randint())
-            
+    
     bootstrap_array = list()
     for num in range(0,number_of_covers):
         order = np.random.permutation(number_of_traits)    
