@@ -62,8 +62,7 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
     if (sample_size % 2) ==0 :
         for i in range(0,len(used_subsets)):
             used_subsets[i] = np.append(used_subsets[i], np.random.randint())
-            assert len(used_subsets[i])==sample_size
-    
+            
     bootstrap_array = list()
     for num in range(0,number_of_covers):
         order = np.random.permutation(number_of_traits)    
@@ -72,9 +71,6 @@ def multiple_set_covers_all(number_of_traits, sample_size, number_of_covers,
             index = np.ix_(relabel_subset(used_subsets[i], order),
                 relabel_subset(used_subsets[i], order))
             counts[index] += 1
-    print(counts.min())
-    assert counts.min()>=number_of_covers
-    print(np.unravel_index(counts.argmin(), counts.shape))
     return {'bootstrap': bootstrap_array, 'counts': counts}
 
 def random_sampling(P, S, minCooccurrence, seed=2152):
