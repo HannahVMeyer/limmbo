@@ -4,7 +4,6 @@ from limmbo.io.input import InputData
 from limmbo.core.gwas import GWAS
 from limmbo.core.utils import _biallelic_dosage
 from tqdm import tqdm
-import pdb
 
 def entry_point():
 
@@ -82,7 +81,6 @@ def entry_point():
         header = True
         writemode = 'w'
         for c in tqdm(chunks, desc="Association", disable=not gwas.verbose):
-            pdb.set_trace()
             end = start + c
 
             geno_chunk = datainput.genotypes[start:end,:].compute()

@@ -4,8 +4,6 @@ from limmbo.io.input import InputData
 from limmbo.core.vdbootstrap import LiMMBo
 from limmbo.core.vdsimple import vd_reml
 
-import pdb
-
 import pandas as pd
 
 def entry_point():
