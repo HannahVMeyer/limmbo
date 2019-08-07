@@ -51,10 +51,9 @@ def entry_point():
 
     if options.limmbo:
         if options.verbose:
-            print(("Starting variance estimation with LiMMBo for phenotype"
+            print(("Starting variance estimation with LiMMBo for phenotype "
                     "with {} samples and {} traits").format(
                             *datainput.phenotypes.shape))
-        pdb.set_trace()
         datalimmbo = LiMMBo(datainput=datainput,
                             S=options.S,
                             timing=options.timing,

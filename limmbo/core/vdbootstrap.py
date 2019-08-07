@@ -12,6 +12,7 @@ import bottleneck as bn
 import time
 import pickle
 
+
 import limix.mtset
 
 from limix_core.covar import FreeFormCov
@@ -89,8 +90,8 @@ class LiMMBo(object):
         """
 
         self.P = self.phenotypes.shape[1]
-        self.__generateBootstrapMatrix(seed=seed, n=n,
-                                       minCooccurrence=minCooccurrence)
+        self.__generateBootstrapMatrix(seed=seed,
+            minCooccurrence=minCooccurrence)
         if cpus is None:
             cpus = mp.cpu_count()
         self.map = Pool(cpus).map
@@ -175,8 +176,9 @@ class LiMMBo(object):
                    'proc_time_ind_bs': bs_results['process_time_bs'],
                    'proc_time_sum_ind_bs': proc_time_sum_ind_bs,
                    'proc_time_combine_bs': proc_time_combine_bs,
-                   'nr_bs': self.runs,
-                   'nr_successful_bs': bs_results['number_of_successful_bs'],
+                   'nr_of_bs': self.runs,
+                   'seed': self.seed,
+                   'nr_of_successful_bs': bs_results['number_of_successful_bs'],
                    'results_fit_Cg': bs_results['results_fit_Cg'],
                    'results_fit_Cn': bs_results['results_fit_Cn']
                    }
