@@ -218,6 +218,8 @@ class ReadData(object):
             except Exception:
                 raise FormatError('Relatedness matrix is not a square matrix. '
                     'Is the header of your kinship matrix missing?')
+            self.eval_relatedness = None
+            self.evec_relatedness = None
         else:
             if file_evec_relatedness is None or file_eval_relatedness is None:
                 raise MissingInput('Files with eigenvectors and eigenvalues'
@@ -245,6 +247,7 @@ class ReadData(object):
                         verbose=self.verbose)
                 raise IOError('{} could not be opened'.format(
                     file_evec_relatedness))
+            self.relatedness = None
 
     def getPCs(self, file_pcs=None, nrpcs=None, delim=","):
         r"""

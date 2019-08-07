@@ -745,7 +745,7 @@ class InputData(object):
             if len(pr.index[pr]) == 0:
                 raise DataMismatch(('No common samples between phenotypes and '
                     'relatedness estimates'))
-            self.samples = self.pheno_samples.loc[np.array(pd.index[pr])]
+            self.samples = self.pheno_samples.loc[np.array(pr.index[pr])]
 
         if self.genotypes is not None:
             pg = self.pheno_samples.id.isin(self.geno_samples.id)
