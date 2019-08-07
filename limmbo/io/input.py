@@ -49,6 +49,8 @@ class InputData(object):
         self.covs_samples = None
         self.relatedness = None
         self.relatedness_samples = None
+        self.eval_relatedness=None
+        self.evec_relatedness=None
         self.pcs = None
         self.pc_samples = None
         self.snps = None
@@ -778,7 +780,7 @@ class InputData(object):
             if len(samplelist) != len(set(samplelist)):
                 raise IOError("Duplicate sample names in samplelist")
 
-            ss = self.samples.id.isin(self.samplelist.id)
+            ss = self.samples.id.isin(samplelist)
             ss_index = np.array(ss.index[ss])
             if len(ss_index) == 0:
                 raise DataMismatch(('No common samples between samples in, '
