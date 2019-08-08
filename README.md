@@ -11,21 +11,19 @@ A description of the public interface can be found [here
 
 ## Install
 
-LiMMBo is currently available on the [Python Package
-Index](https://pypi.python.org) and will in the future be available through
-[conda-forge](https://conda-forge.org/#about). The latter platform provides the
-recommended installation of [LIMIX](https://github.com/limix/limix), which
-LiMMBo heavily relies on.
+LiMMBo is available on the [Python Package Index](https://pypi.python.org).
+LiMMBo is dependent on Limix [LIMIX](https://github.com/limix/limix), however
+the latest Limix release does not include multi-variate models (see #2).
+While waiting for the updated Limix release please install as follows:
 
-The recommended way of installing both packages is the following:
-Install LIMIX via [conda](http://conda.pydata.org/docs/index.html)
+Install LIMIX with multi-variate support (v1.0.18):
 ```bash
-conda install -c conda-forge limix
+pip3 install "limix<2"
 ```
 
 After successful installation of LIMIX, simply install LiMMBo via
 ```bash
-pip install limmbo
+pip3 install limmbo
 ```
 Recently, an R wrapper package for limmbo was created - this independent project
 can be found [here](https://github.com/fboehm/limmbo2).
