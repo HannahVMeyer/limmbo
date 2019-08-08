@@ -5,4 +5,4 @@ python:
 - "3.7"
 
 install:
-  skip
+  - "pip install -e ."
