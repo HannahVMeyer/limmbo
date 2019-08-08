@@ -1,12 +1,13 @@
 Command-line interface
 **********************
-.. _runGWAS:
+
+.. _runAssociation:
 
 Association analysis
 ^^^^^^^^^^^^^^^^^^^^
 .. argparse::
    :ref: limmbo.io.parser.getGWASargs
-   :prog: runGWAS
+   :prog: runAssociation
    :nodefault:
 
 .. _runVarianceEstimation:

@@ -7,4 +7,4 @@ include limmbo/io/test/data/genotypes.csv
 include limmbo/io/test/data/pcs.csv
 include limmbo/io/test/data/pheno.csv
 include limmbo/io/test/data/relatedness.csv
-
+include version.py

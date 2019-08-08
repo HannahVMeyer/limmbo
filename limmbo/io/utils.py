@@ -1,5 +1,6 @@
 from os.path import exists
 
+
 def file_type(filepath):
     r"""
     Determine filetype based on file ending
@@ -13,7 +14,7 @@ def file_type(filepath):
     Example:
 
     .. doctest::
-        
+
     """
     imexts = ['.png', '.bmp', '.jpg', 'jpeg']
     textexts = ['.csv', '.txt']
@@ -36,6 +37,7 @@ def file_type(filepath):
 
 def _is_bed(filepath):
     return all([exists(filepath + ext) for ext in ['.bed', '.bim', '.fam']])
+
 
 def _is_gen(filepath):
     return all([exists(filepath + ext) for ext in ['.gen', '.sample']])

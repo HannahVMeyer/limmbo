@@ -43,10 +43,10 @@ def vd_reml(datainput, iterations=10, verbose=True):
         >>> from numpy.linalg import cholesky as chol
         >>> from limmbo.core.vdsimple import vd_reml
         >>> from limmbo.io.input import InputData
-        >>> random = RandomState(10)
+        >>> random = RandomState(15)
         >>> N = 100
         >>> S = 1000
-        >>> P = 5
+        >>> P = 3
         >>> snps = (random.rand(N, S) < 0.2).astype(float)
         >>> kinship = numpy.dot(snps, snps.T) / float(10)
         >>> y  = random.randn(N, P)
@@ -61,7 +61,7 @@ def vd_reml(datainput, iterations=10, verbose=True):
         ...                          relatedness_samples = samples)
         >>> Cg, Cn, ptime = vd_reml(datainput, verbose=False)
         >>> Cg.shape
-        (5, 5)
+        (3, 3)
     """
 
     verboseprint(
@@ -69,7 +69,7 @@ def vd_reml(datainput, iterations=10, verbose=True):
 
     # time variance decomposition
     t0 = time.clock()
-    vd = MTST(Y=datainput.phenotypes, R=datainput.relatedness)
+    vd = MTST(Y=datainput.phenotypes, U_R=datainput.U_R, S_R=datainput.S_R)
     vd_result = vd.fitNull(n_times=iterations, rewrite=True)
     t1 = time.clock()
 

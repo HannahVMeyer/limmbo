@@ -1,7 +1,3 @@
-######################
-### import modules ###
-######################
-
 import scipy as sp
 import scipy.linalg as la
 import scipy.stats as stats
@@ -9,6 +5,7 @@ import numpy as np
 import pandas as pd
 from distutils.util import strtobool
 from math import sqrt
+
 
 def boolanize(string):
     r"""
@@ -81,7 +78,7 @@ def getEigen(covMatrix, reverse=True):
     covMatrix = np.array(covMatrix)
 
     S, U = la.eigh(covMatrix)
-    if reverse == True:
+    if reverse:
         S = S[::-1]
         U = U[:, ::-1]
     return (S, U)
@@ -130,8 +127,8 @@ def regularize(m, verbose=True):
             verbose=verbose)
         m += (abs(S.min()) + 1e-4) * sp.eye(m.shape[0])
     elif minS < 1e-4:
-        verboseprint("Make numerically stable: minimum Eigenvalue %6.4f" % \
-                S.min(), verbose=verbose)
+        verboseprint("Make numerically stable: minimum Eigenvalue %6.4f" %
+                     S.min(), verbose=verbose)
         m += 1e-4 * sp.eye(m.shape[0])
     else:
         verboseprint("Minimum Eigenvalue %6.4f" % S.min(), verbose=verbose)
@@ -163,11 +160,11 @@ def generate_permutation(P, S, n, seed=12321, exclude_zero=False):
     rand_state = np.random.RandomState(seed)
     return_list = [None] * n
     if exclude_zero:
-        rangeP = range(P)[1:]
+        rangeP = list(range(P))[1:]
     else:
-        rangeP = range(P)
-    for i in xrange(n):
-        perm_dic = rand_state.choice(a=rangeP, size=p, replace=False)
+        rangeP = list(range(P))
+    for i in range(n):
+        perm_dic = rand_state.choice(a=rangeP, size=S, replace=False)
         return_list[i] = perm_dic
     return return_list
 
@@ -213,7 +210,7 @@ def verboseprint(message, verbose=True):
             flag whether to print message (True) or not (False)
     """
     if verbose is True:
-        print message
+        print(message)
 
 
 def match(samples_ref, data_compare, samples_compare, squarematrix=False):
@@ -288,3 +285,67 @@ def effectiveTests(test):
     # 3. Determine effective number of tests:
     t = np.sqrt(eigenval).sum()**2 / eigenval.sum()
     return t
+def multiple_set_covers_all(number_of_traits, sample_size_ori, number_of_covers,
+        seed=2152):
+    #Compute a set of subsets that represent a multiple set covers
+    number_to_tuple = dict()
+    global_counter = 0
+    
+    if (number_of_covers % 2)==0:
+        number_of_covers = number_of_covers//2
+    else:
+        number_of_covers = number_of_covers//2 +1
+    
+    number_of_trait_tuples = (number_of_traits*(number_of_traits-1))//2
+    order = np.random.permutation(number_of_trait_tuples)
+    
+    #Create a dictionary to store mappings between tuples and traits. Should be a function really
+    for i in range(0, number_of_traits):
+        for j in range(i+1, number_of_traits):
+            number_to_tuple[order[global_counter]] = (i,j)
+            global_counter = global_counter +1
+    
+    
+    inflated_sample_size = sample_size_ori-1
+    
+    goal_set_cover_size = number_of_trait_tuples//inflated_sample_size +1
+    used_subsets = list()
+    
+    set_cover = range(0, inflated_sample_size)
+    #Compute the set covers one at a time
+    for i in range(1 ,number_of_covers+1):
+        for j in range(1, goal_set_cover_size+1):
+            new_set_cover = [((x+(i-1)+(j-1)*inflated_sample_size) % number_of_trait_tuples) for x in set_cover]
+            used_subsets.append(np.array(new_set_cover))
+    
+    flattened_list = list()
+    #Map back from tuple index to trait ids
+    count=1
+    for set_tuple in used_subsets:
+        list_to_flat = [number_to_tuple[x] for x in set_tuple]
+        flattened_list.append(np.array([item for sublist in list_to_flat for item in sublist]))
+        count = count + 1
+    #Remove duplicates from each subset
+    forward_array   = list([np.unique(xi) for xi in flattened_list])
+    
+    bootstrap_array = list()
+    bootstrap_array.extend(forward_array)
+    
+    length_array = [len(x) for x in bootstrap_array]
+    
+    maxlen = max(length_array)
+    
+    #Because of the mapping from traits to tuples the method might not always pick each set to be
+    #the same size. It seemed like that was needed by the method so the below code randomly fixes 
+    #the unequal set size. If the number of tuples is close to the sample size this will be slow
+    
+    rand_state = np.random.RandomState(seed)
+    
+    for i in range(0,len(bootstrap_array)):
+        while (len(bootstrap_array[i])!=maxlen):
+            bootstrap_array[i] = np.unique(np.append(rand_state.choice(
+                    a=list(range(number_of_traits)),
+                    size=(maxlen-len(bootstrap_array[i])),
+                    replace=False),
+                bootstrap_array[i]))
+    return bootstrap_array

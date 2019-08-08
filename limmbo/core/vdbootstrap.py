@@ -2,6 +2,7 @@ from limmbo.utils.utils import verboseprint
 from limmbo.utils.utils import nans
 from limmbo.utils.utils import regularize
 from limmbo.utils.utils import inflate_matrix
+from limmbo.utils.utils import multiple_set_covers_all
 
 import scipy as sp
 from scipy.optimize import fmin_l_bfgs_b as opt
@@ -9,34 +10,41 @@ import pandas as pd
 import numpy as np
 import bottleneck as bn
 import time
-import cPickle
+import pickle
 
-import limix_legacy as dlimix
 import limix.mtset
 
 from limix_core.covar import FreeFormCov
-import pp
+import multiprocess as mp
+from pathos.multiprocessing import ProcessingPool as Pool
+
 
 class DataMismatch(Exception):
-    """Raised when dimensions of sample/ID names do not match dimension of
+    r"""Raised when dimensions of sample/ID names do not match dimension of
     corresponding data"""
     pass
 
+
 class LiMMBo(object):
+    r"""
+    Class for variance decomposition.
+
+    Arguments:
+        datainput (:class:`limmbo.io.InputData`):
+           Object containing relevant data for variance decomposition,
+           at least phenotypes and relatedness matrix.
+        timing (bool):
+           if set to True, process time will be recorded
+        iterations (int):
+            number of iterations for paramter estimation steps
+        S (int):
+            subsampling size `S`
+        verbose (bool):
+            Set to true to print progress messages.
+
+    """
     def __init__(self, datainput, S, timing=False, iterations=10,
-            verbose=False):
-        r"""
-        Arguments:
-            datainput ():
-                fdas
-            timing (bool):
-	        if set to True, process time will be recorded
-            iterations (int):
-
-            S (int):
-                subsampling size `S`
-
-        """
+                 verbose=False):
         self.phenotypes = datainput.phenotypes
         self.relatedness = datainput.relatedness
         self.S = S
@@ -47,19 +55,28 @@ class LiMMBo(object):
         try:
             self.phenotypes = np.array(self.phenotypes)
         except:
-            raise IOError("datainput.phenotypes cannot be converted to np.array")
+            raise IOError(
+                "datainput.phenotypes cannot be converted to np.array")
 
-	try:
-	    self.relatedness = np.array(self.relatedness)
-	except:
-	    raise IOError("datainput.relatedness cannot be converted to np.array")
-        
-	if self.S > self.phenotypes.shape[1]:
+        try:
+            self.relatedness = np.array(self.relatedness)
+        except:
+            raise IOError(
+                "datainput.relatedness cannot be converted to np.array")
+
+        if self.S > self.phenotypes.shape[1]:
             raise DataMismatch(("Subsampling size S ({}) greater than number "
-                "of phnenotypes ({})").format(self.S, self.phenotypes.shape[1]))
+                                "of phenotypes ({})").format(
+                                    self.S,
+                                    self.phenotypes.shape[1]))
+    def __runVD_pool(self, bs):
+        r""" Wrapper for pathos.multiprocessing.Pool
+        """
+        pheno = self.__bootstrapPhenotypes(bs)
+        return self.__VarianceDecomposition(pheno, bs)
 
-    def runBootstrapCovarianceEstimation(self,
-            seed, cpus, minCooccurrence=3, n=None):
+    def runBootstrapCovarianceEstimation(self, seed, cpus, minCooccurrence=3,
+                                         n=None):
         r"""
         Distribute variance decomposition of subset matrices via pp
 
@@ -82,34 +99,16 @@ class LiMMBo(object):
         """
 
         self.P = self.phenotypes.shape[1]
-	self.__generateBootstrapMatrix(seed=seed, n=n,
+        self.__generateBootstrapMatrix(seed=seed, n=n,
                                        minCooccurrence=minCooccurrence)
-        ppservers = ()
-        jobs = []
-        results = []
-
-        if cpus is not None:
-            job_server = pp.Server(cpus, ppservers=ppservers)
-        else:
-            job_server = pp.Server(ppservers=ppservers)
-
+        if cpus is None:
+            cpus = mp.cpu_count()
+        self.map = Pool(cpus).map
         verboseprint(
-            'Number of CPUs available for parallelising: {}'.format(
-            job_server.get_ncpus()),
-            verbose=self.verbose)
-
-        for bs in range(self.runs):
-            pheno = self.__bootstrapPhenotypes(bs)
-            verboseprint('Start vd for bootstrap nr {}'.format(bs + 1))
-            jobs.append(
-                job_server.submit(self.__VarianceDecomposition, (pheno, bs),
-                                  (verboseprint, ), ("limix.mtset", "time")))
-
-        for job in jobs:
-            bsresult = job()
-            bsresult['bootstrap'] = self.bootstrap_matrix[bsresult[
-                'bsindex'], :]
-            results.append(bsresult)
+                'Number of CPUs available for parallelising: {}'.format(cpus),
+                verbose=self.verbose)
+        verboseprint('Start vd for bootstraps', verbose=self.verbose)
+        results = self.map(self.__runVD_pool,  list(range(self.runs)))
 
         return results
 
@@ -120,46 +119,46 @@ class LiMMBo(object):
 
         Arguments:
             results (list):
-		results of runBootstrapVarianceDecomposition()
+                results of runBootstrapVarianceDecomposition()
 
         Returns:
             (dictionary):
                 dictionary containing:
 
                 - **Cg_fit** (numpy.array):
-		  [`P` x `P`] genetic covariance matrix via fitting
+                  [`P` x `P`] genetic covariance matrix via fitting
                 - **Cn_fit** (numpy.array):
-		  [`P` x `P`] noise covariance matrix via fitting
+                  [`P` x `P`] noise covariance matrix via fitting
                 - **Cg_average** (numpy.array):
-		  [`P` x `P`] genetic covariance matrix via simple average
+                  [`P` x `P`] genetic covariance matrix via simple average
                 - **Cn_average** (numpy.array):
-		  [`P` x `P`] noise covariance matrix via simple average
+                  [`P` x `P`] noise covariance matrix via simple average
                 - **Cg_all_bs** (numpy.array):
-		  [`runs` x `S` x `S`] genetic covariance matrices of `runs`
-		  phenotype subsets of size `S`
+                  [`runs` x `S` x `S`] genetic covariance matrices of `runs`
+                  phenotype subsets of size `S`
                 - **Cn_all_bs** (numpy.array):
-		  [`runs` x `S` x `S`] noise covariance matrices of `runs`
-		  phenotype subsets of size `S`
+                  [`runs` x `S` x `S`] noise covariance matrices of `runs`
+                  phenotype subsets of size `S`
                 - **proc_time_ind_bs** (list):
-		  individual run times for all variance decomposition runs of
-		  [`S` x `S`] Cg and Cn
+                  individual run times for all variance decomposition runs of
+                  [`S` x `S`] Cg and Cn
                 - **proc_time_sum_ind_bs** (list):
-		  sum of individual run times for all variance decomposition
-		  runs of [`S` x `S`] Cg and Cn
+                  sum of individual run times for all variance decomposition
+                  runs of [`S` x `S`] Cg and Cn
                 - **proc_time_combine_bs** (list):
-		  run time for finding [`P` x `P`] trait covariance estimates
-		  from fitting [`S` x `S`] bootstrap covariance estimates
+                  run time for finding [`P` x `P`] trait covariance estimates
+                  from fitting [`S` x `S`] bootstrap covariance estimates
                 - **nr_of_bs** (int):
-		  number of bootstrap runs
+                  number of bootstrap runs
                 - **nr_of_successful_bs** (int):
-		  total number of successful bootstrapping runs i.e. variance
-		  decomposition converged
-		- **results_fit_Cg** ():
-		  results parameters of the bfgs-fit of the genetic covariance
-		  matrices (via scipy.optimize.fmin_l_bfgs_g)
-		- **results_fit_Cn** ():
-		  results parameters of the bfgs-fit of the noise covariance
-		  matrices (via scipy.optimize.fmin_l_bfgs_g)
+                  total number of successful bootstrapping runs i.e. variance
+                  decomposition converged
+                - **results_fit_Cg** ():
+                  results parameters of the bfgs-fit of the genetic covariance
+                  matrices (via scipy.optimize.fmin_l_bfgs_g)
+                - **results_fit_Cn** ():
+                  results parameters of the bfgs-fit of the noise covariance
+                  matrices (via scipy.optimize.fmin_l_bfgs_g)
         """
 
         verboseprint('Combine bootstrapping results...', verbose=self.verbose)
@@ -253,14 +252,13 @@ class LiMMBo(object):
         verboseprint("Generate output files", verbose=self.verbose)
 
         verboseprint("Write [`P` x `P`] covariance matrices",
-            verbose=self.verbose)
+                     verbose=self.verbose)
         pd.DataFrame(resultsCombineBootstrap['Cg_fit']).to_csv(
             '{}/Cg_fit_seed{}.csv'.format(output, self.seed), sep=",",
             header=False, index=False)
         pd.DataFrame(resultsCombineBootstrap['Cn_fit']).to_csv(
             '{}/Cn_fit_seed{}.csv'.format(output, self.seed), sep=",",
             header=False, index=False)
-
 
         if intermediate:
             verboseprint("Write bootstrap matrix", verbose=self.verbose)
@@ -269,9 +267,9 @@ class LiMMBo(object):
                 header=False)
 
             verboseprint("Save intermediate variance components",
-                verbose=self.verbose)
+                         verbose=self.verbose)
             verboseprint(("Write covariance matrices based on average of "
-                "bootstrap matrices"), verbose=self.verbose)
+                          "bootstrap matrices"), verbose=self.verbose)
             pd.DataFrame(resultsCombineBootstrap['Cg_average']).to_csv(
                 "%s/Cg_average_seed%s.csv" % (output, self.seed),
                 sep=",", header=False, index=False)
@@ -280,19 +278,19 @@ class LiMMBo(object):
                 sep=",", header=False, index=False)
 
             verboseprint(("Pickle array of all [`S` x `S`] bootstrap "
-                    "covariance matrices"), verbose=self.verbose)
-            cPickle.dump(resultsCombineBootstrap['Cg_all_bs'],
-                     open('{}/Cg_all_bootstraps.p'.format(output), "wb"))
-            cPickle.dump(resultsCombineBootstrap['Cn_all_bs'],
-                     open('{}/Cn_all_bootstraps.p'.format(output), "wb"))
+                          "covariance matrices"), verbose=self.verbose)
+            pickle.dump(resultsCombineBootstrap['Cg_all_bs'],
+                         open('{}/Cg_all_bootstraps.p'.format(output), "wb"))
+            pickle.dump(resultsCombineBootstrap['Cn_all_bs'],
+                         open('{}/Cn_all_bootstraps.p'.format(output), "wb"))
 
             verboseprint(("Pickle result parameters of BFGS fit for fitting "
-                "the [`S` x `S`] bootstrap covariance matrices to the "
-                "[`P` x `P`] overall trait covariance matrices"),
-                verbose=self.verbose)
-            cPickle.dump(resultsCombineBootstrap['results_fit_Cg'],
+                          "the [`S` x `S`] bootstrap covariance matrices to "
+                          "the [`P` x `P`] overall trait covariance matrices"),
+                         verbose=self.verbose)
+            pickle.dump(resultsCombineBootstrap['results_fit_Cg'],
                          open("%s/optimise_results_Cg.p" % (output), "wb"))
-            cPickle.dump(resultsCombineBootstrap['results_fit_Cg'],
+            pickle.dump(resultsCombineBootstrap['results_fit_Cg'],
                          open("%s/optimise_results_Cn.p" % (output), "wb"))
 
         if self.timing:
@@ -302,16 +300,16 @@ class LiMMBo(object):
                 sep=",",
                 header=False,
                 index=False)
-            overall_time =  pd.DataFrame(
+            overall_time = pd.DataFrame(
                 [resultsCombineBootstrap['proc_time_combine_bs'],
                  resultsCombineBootstrap['proc_time_sum_ind_bs']],
                 index=["Proctime combine BS",
                        "Proctime sum of individual BS"])
             overall_time.to_csv("%s/process_time_summary.csv" % output,
-                sep=",", header=False, index=True)
+                                sep=",", header=False, index=True)
 
     def __generateBootstrapMatrix(self, seed=12321, minCooccurrence=3,
-                                n=None):
+                                  n=None):
         r"""
         Generate subsampling matrix.
 
@@ -333,92 +331,34 @@ class LiMMBo(object):
              - **seed** (int):
                seed for pseudo-random numbers generation
              - **runs** (int):
-		n, if n was not None, or determined once all trait-trait
-		subsamplings have occurrd minCooccurence times
+                n, if n was not None, or determined once all trait-trait
+                subsamplings have occurrd minCooccurence times
              - **counts_min** (int):
-	       minimum trait-trait co-occurrence in sampling matrix
+               minimum trait-trait co-occurrence in sampling matrix
              - **bootstrap_matrix** (numpy.array):
-		[`runs` x `S`] matrix containing bootstrap samples of numbers
-		range(`P`)
-
-        Examples:
-
-             .. doctest::
-
-                >>> from limmbo.io import input
-                >>> from limmbo.core import vdbootstrap
-                >>> import numpy as np
-                >>> from numpy.random import RandomState
-                >>> from numpy.linalg import cholesky as chol
-                >>> random = RandomState(5)
-                >>> P = 10
-                >>> N = 1000
-                >>> SNP = 1000
-                >>> pheno = random.normal(0,1, (N, P))
-                >>> pheno_samples = np.array(
-                ...     ['S{}'.format(x+4) for x in range(N)])
-                >>> phenotype_ID = np.array(
-                ...     ['ID{}'.format(x+1) for x in range(P)])
-                >>> X = (random.rand(N, SNP) < 0.3).astype(float)
-                >>> relatedness = np.dot(X, X.T)/float(SNP)
-                >>> relatedness_samples = np.array(
-                ...     ['S{}'.format(x+1) for x in range(N)])
-                >>> indata = input.InputData()
-                >>> indata.addPhenotypes(phenotypes = pheno,
-                ...                      pheno_samples = pheno_samples,
-                ...                      phenotype_ID = phenotype_ID)
-                >>> indata.addRelatedness(relatedness = relatedness,
-                ...                  relatedness_samples = relatedness_samples)
-		>>> limmbo = vdbootstrap.LiMMBo(datainput=indata, verbose=False)
-		>>> limmbo.generateBootstrapMatrix(seed=12,
-                ...               		   minCooccurrence=3)
-		>>> limmbo.bootstrap_matrix[:5,:]
-		array([[5, 8, 7, 0, 4],
-		       [6, 0, 9, 7, 3],
-		       [7, 0, 6, 3, 1],
-		       [8, 4, 9, 7, 5],
-		       [2, 4, 7, 1, 5]])
-		>>> limmbo.runs
-		30
-		>>> limmbo.count
-		3
-
-
-
+                [`runs` x `S`] matrix containing bootstrap samples of numbers
+                range(`P`)
         """
-        rand_state = np.random.RandomState(seed)
-        counts = sp.zeros((self.P, self.P))
         return_list = []
-
+        return_list = multiple_set_covers_all(self.P, self.S, minCooccurrence,seed=1242)
         if n is not None:
             verboseprint(
                 ('Generate bootstrap matrix with {} bootstrap samples '
                  '(number of specified bootstraps').format(n),
                 verbose=self.verbose)
-            for i in xrange(n):
-                bootstrap = rand_state.choice(a=range(self.P), size=self.S,
-                    replace=False)
-                return_list.append(bootstrap)
-                index = np.ix_(np.array(bootstrap), np.array(bootstrap))
-                counts[index] += 1
+            return_list = random.sample(return_list, n)
             self.runs = n
         else:
-            while counts.min() < minCooccurrence:
-                bootstrap = rand_state.choice(a=range(self.P), size=self.S,
-                    replace=False)
-                return_list.append(bootstrap)
-                index = np.ix_(np.array(bootstrap), np.array(bootstrap))
-                counts[index] += 1
             self.runs = len(return_list)
             verboseprint(
                 ('Generated bootstrap matrix with {} bootstrap runs '
-                'such that each trait-trait combination was '
-		'sampled {}').format(self.runs, minCooccurrence),
+                 'such that each trait-trait combination was '
+                 'sampled {}').format(self.runs, minCooccurrence),
                 verbose=self.verbose)
 
         self.seed = seed
         self.bootstrap_matrix = np.array(return_list)
-        self.counts_min = int(counts.min())
+        self.counts_min = int(self.S)
 
     def __bootstrapPhenotypes(self, bs):
         r"""
@@ -438,46 +378,12 @@ class LiMMBo(object):
             (numpy.array):
 
                 - **phenotypes**:
-		  [`N` x `S`] of subsampled phenotypes
-
-        Examples:
-
-             .. doctest::
-
-		 >>> import pandas
-		 >>> import numpy
-		 >>> from numpy.random import RandomState
-		 >>> from limmbo.io.input import InputData
-		 >>> from limmbo.core.vdbootstrap import LiMMBo
-		 >>> from numpy.linalg import cholesky as chol
-		 >>> random = RandomState(10)
-		 >>> P = 10
-		 >>> S = 5
-		 >>> N = 100
-		 >>> S = 1000
-		 >>> snps = (random.rand(N, S) < 0.2).astype(float)
-		 >>> kinship = numpy.dot(snps, snps.T)/float(10)
-		 >>> y  = random.randn(N,P)
-		 >>> pheno = numpy.dot(chol(kinship),y)
-		 >>> pheno_ID = ['PID{}'.format(x+1) for x in range(P)]
-		 >>> samples = ['SID{}'.format(x+1) for x in range(N)]
-		 >>> datainput = InputData()
-		 >>> datainput.addPhenotypes(phenotypes = pheno,
-		 ...                         phenotype_ID = pheno_ID,
-		 ...                         pheno_samples = samples)
-		 >>> datainput.addRelatedness(relatedness = kinship,
-		 ...                          relatedness_samples = samples)
-		 >>> limmbo = LiMMBo(datainput = datainput, verbose=False)
-		 >>> limmbo.generateBootstrapMatrix(P = P, S = S)
-		 >>> bootstrap_pheno_1 = limmbo.bootstrapPhenotypes(bs = 0)
-		 >>> bootstrap_pheno_1.shape
-		 (100, 5)
+                  [`N` x `S`] of subsampled phenotypes
         """
         bootstrap = self.bootstrap_matrix[bs, :]
         phenotypes = self.phenotypes[:, bootstrap]
 
         return phenotypes
-
 
     def __getBootstrapResults(self, results):
         r"""
@@ -497,36 +403,35 @@ class LiMMBo(object):
                 dictionary containing:
 
                 - **Cg_fit** (numpy.array):
-		  [`P` x `P`] genetic covariance matrix via fitting
+                  [`P` x `P`] genetic covariance matrix via fitting
                 - **Cn_fit** (numpy.array):
-		  [`P` x `P`] noise covariance matrix via fitting
+                  [`P` x `P`] noise covariance matrix via fitting
                 - **Cg_average** (numpy.array):
-		  [`P` x `P`] genetic covariance matrix via simple average
+                  [`P` x `P`] genetic covariance matrix via simple average
                 - **Cn_average** (numpy.array):
-		  [`P` x `P`] noise covariance matrix via simple average
+                  [`P` x `P`] noise covariance matrix via simple average
                 - **Cg_bs** (numpy.array):
-		  [`runs` x `S` x `S`] genetic covariance matrices of `runs`
-		  phenotype subsets of size `S`
+                  [`runs` x `S` x `S`] genetic covariance matrices of `runs`
+                  phenotype subsets of size `S`
                 - **Cn_bs** (numpy.array):
-		  [`runs` x `S` x `S`] noise covariance matrices of `runs`
-		  phenotype subsets of size `S`
+                  [`runs` x `S` x `S`] noise covariance matrices of `runs`
+                  phenotype subsets of size `S`
                 - **process_time_bs** (list):
-		  run times for all variance decomposition runs of [`S` x `S`]
-		  Cg and Cn
+                  run times for all variance decomposition runs of [`S` x `S`]
+                  Cg and Cn
                 - **number_of_successful_bs** (int):
-		  total number of successful bootstrapping runs i.e. variance
-		  decomposition converged
-		- **results_fit_Cg** ():
-		  results parameters of the bfgs-fit of the genetic covariance
-		  matrices (via scipy.optimize.fmin_l_bfgs_g)
-		- **results_fit_Cn** ():
-		  results parameters of the bfgs-fit of the noise covariance
-		  matrices (via scipy.optimize.fmin_l_bfgs_g)
+                  total number of successful bootstrapping runs i.e. variance
+                  decomposition converged
+                - **results_fit_Cg** ():
+                  results parameters of the bfgs-fit of the genetic covariance
+                  matrices (via scipy.optimize.fmin_l_bfgs_g)
+                - **results_fit_Cn** ():
+                  results parameters of the bfgs-fit of the noise covariance
+                  matrices (via scipy.optimize.fmin_l_bfgs_g)
         """
 
         # list to contain trait indices of each bootstrap run
         bootstrap = {}
-        #sample_ID = None
 
         # create np.arrays of dimension PxP for mean and std of each entry in
         # covariance matrix
@@ -546,7 +451,7 @@ class LiMMBo(object):
 
         n = 0
         for vdresult in results:
-            bootstrap[n] = vdresult['bootstrap']
+            bootstrap[n] = self.bootstrap_matrix[vdresult['bsindex'],:]
             process_time_bs.append(vdresult['process_time'])
 
             # store results of each bootstrap as matrix of inflated
@@ -613,31 +518,31 @@ class LiMMBo(object):
                                 bootstrap_indeces, number_of_bs, name):
         r"""
         Fit  bootstrap results of [`S` x `S`] traits and combine all runs to
-	total [`P` x `P`] covariance matrix.
+        total [`P` x `P`] covariance matrix.
 
         Arguments:
             cov_init (array-like):
-		[`P` x `P`] covariance matrix used to initialise fitting
+                [`P` x `P`] covariance matrix used to initialise fitting
             number_of_bs (int):
-		number of successful bootstrapping runs executed for this
-		experiment
+                number of successful bootstrapping runs executed for this
+                experiment
             cov_bootstrap (array-like):
-		[`number_of_bs` x `S` x `S`] bootstrap results
+                [`number_of_bs` x `S` x `S`] bootstrap results
             bootstrap_indeces (array-like):
-		[`number_of_bs` x `S`] matrix of bootstrapping indeces
+                [`number_of_bs` x `S`] matrix of bootstrapping indeces
             name (string):
-		name of covariance matrix
+                name of covariance matrix
 
         Returns:
             (tuple):
-		tuple containing:
+                tuple containing:
 
                 - **C_opt_value** (array-like):
                   [`P` x `P`] covariance matrix if fit successful, else 1x1
-		  matrix containing string 'did not converge'
-		- **results_fit** ():
-		  results parameters of the bfgs-fit of the covariance
-		  matrix (via scipy.optimize.fmin_l_bfgs_g)
+                  matrix containing string 'did not converge'
+                - **results_fit** ():
+                  results parameters of the bfgs-fit of the covariance
+                  matrix (via scipy.optimize.fmin_l_bfgs_g)
 
 
         """
@@ -646,15 +551,12 @@ class LiMMBo(object):
         # bootstraps as initial values
         # make use of Choleski decomposition and get parameters associated with
         # cov_init
-        #C_init = dlimix.CFreeFormCF(self.P)
-        #C_init.setParamsCovariance(cov_init)
         C_init = FreeFormCov(self.P)
         C_init.setCovariance(cov_init)
         params = C_init.getParams()
 
         # initialise free-form covariance matrix C_fit: parameters to be set in
         # optimize function
-        #C_fit = dlimix.CFreeFormCF(self.P)
         C_fit = FreeFormCov(self.P)
 
         # Fit bootstrap results to obtain closest covariance matrix
@@ -670,7 +572,6 @@ class LiMMBo(object):
             iprint=2)
 
         if results_fit[2]['warnflag'] == 0:
-            #C_opt = dlimix.CFreeFormCF(self.P)
             C_opt = FreeFormCov(self.P)
             C_opt.setParams(results_fit[0])
             C_opt_value = C_opt.K()
@@ -686,27 +587,27 @@ class LiMMBo(object):
 
         Arguments:
             params (array-like):
-		of parameters used for initialising estimate C
-		(length: 1/2*`P`*(`P`+1))
+                of parameters used for initialising estimate C
+                (length: 1/2*`P`*(`P`+1))
             C:
-		intialised free-form covariance matrix, to be fitted
+                intialised free-form covariance matrix, to be fitted
             n_bootstrap (int):
-		number of successful bootstrapping runs executed for this
-		experiment
+                number of successful bootstrapping runs executed for this
+                experiment
             index_bootstrap (numpy.array):
-		[`number_of_bs` x `S`] matrix of bootstrapping indeces
+                [`number_of_bs` x `S`] matrix of bootstrapping indeces
             list_C (list):
-		list of n_bootstrap [`S` x `S`] bootstrapped covariance
-		matrices
+                list of n_bootstrap [`S` x `S`] bootstrapped covariance
+                matrices
 
         Returns:
             (tuple):
                 tuple containing:
 
                 - **RSS_res**:
-		  residual sum of squares
+                  residual sum of squares
                 - **RSS_grad_res**:
-		  gradient of residual sum of squares function
+                  gradient of residual sum of squares function
 
         """
 
@@ -721,10 +622,10 @@ class LiMMBo(object):
         # compute residual sum of squares between estimate of P x P Cg and
         # bootstrapped S x S Cgs
         RSS_res, index = self.__RSS_compute(n_bootstrap, C_value, list_C,
-                                          index_bootstrap)
+                                            index_bootstrap)
         # compute gradient (first derivative of rss at each bootstrap)
         RSS_grad_res = self.__RSS_grad_compute(n_bootstrap, n_params, C,
-                                                C_value, list_C, index)
+                                               C_value, list_C, index)
 
         return RSS_res, RSS_grad_res
 
@@ -752,10 +653,10 @@ class LiMMBo(object):
                 tuple containing:
 
                 - **res** (double):
-		  sum of residual sum of squares over all `n_bootstrap` runs
+                  sum of residual sum of squares over all `n_bootstrap` runs
                 - **index** (list) :
-		  [`n_bootstrap` x `S`] list containing trait indeces used in
-		  each bootstrap run; to be passed to gradient computation
+                  [`n_bootstrap` x `S`] list containing trait indeces used in
+                  each bootstrap run; to be passed to gradient computation
 
         """
 
@@ -794,13 +695,12 @@ class LiMMBo(object):
             (numpy.array):
 
                 - **res**:
-		  [`n_params` x 1] sum of gradient over all successful bootstrap
-                  runs for each parameter to be fitted
+                  [`n_params` x 1] sum of gradient over all successful
+                  bootstrap runs for each parameter to be fitted.
 
         """
         res = sp.zeros(n_params)
         for pi in range(n_params):
-            #Cgrad = C.Kgrad_param(pi)
             Cgrad = C.K_grad_i(pi)
             for i in range(n_bootstrap):
                 res[pi] += (2 * Cgrad[index[i]] *
@@ -809,20 +709,23 @@ class LiMMBo(object):
 
     def __VarianceDecomposition(self, phenoSubset, bs=None):
         r"""
-	Compute variance decomposition of phenotypes into genetic and noise
+        Compute variance decomposition of phenotypes into genetic and noise
         covariance
 
         Arguments:
             phenoSubset (array-like):
                 [`N` x `S`] phenotypes for which variance decomposition should
-		be computed
+                be computed
             bs (int):
                 number of subsample
             phenotypes (array-like):
                 [`N` x `P`] original phenotypes
-            relatedness (array-like):
-                [`N` x `N`] kinship/genetic relatedness used in estimation of
-                genetic component
+            U_R (array-like):
+                eigenvectors of[`N` x `N`] kinship/genetic relatedness used 
+                in estimation of genetic component
+            S_R (array-like):
+                eigenvalues of[`N` x `N`] kinship/genetic relatedness used 
+                in estimation of genetic component
             output (string):
                 output directory; needed for caching
 
@@ -831,18 +734,18 @@ class LiMMBo(object):
                 dictionary containing:
 
                 - **Cg** (numpy.array):
-		  [`S` x `S`] genetic variance component
+                  [`S` x `S`] genetic variance component
                 - **Cn** (numpy.array):
-		  [`S` x `S`] noise variance component
+                  [`S` x `S`] noise variance component
                 - **process_time** (double):
-		  cpu time of variance decomposition
+                  cpu time of variance decomposition
                 - **bsindex** (int):
-		  number of subsample
+                  number of subsample
         """
 
         # time variance decomposition
         t0 = time.clock()
-        vd = limix.mtset.MTSet(Y=phenoSubset, R=self.relatedness)
+        vd = limix.mtset.MTSet(Y=phenoSubset, U_R=self.U_R, S_R=self.S_R)
         vd_null_info = vd.fitNull(
             cache=False,
             n_times=self.iterations,
@@ -853,13 +756,13 @@ class LiMMBo(object):
         if vd_null_info['conv']:
             verboseprint(
                 ('Variance decomposition for bootstrap number {} '
-                'converged').format(bs + 1), verbose=self.verbose)
+                 'converged').format(bs + 1), verbose=self.verbose)
             Cg = vd_null_info['Cg']
             Cn = vd_null_info['Cn']
         else:
             verboseprint(
                 ('Variance decomposition for bootstrap number {} '
-                'did not converge').format(bs + 1), verbose=self.verbose)
+                 'did not converge').format(bs + 1), verbose=self.verbose)
             Cg = None
             Cn = None
         return {'Cg': Cg, 'Cn': Cn, 'process_time': processtime, 'bsindex': bs}
