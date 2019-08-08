@@ -380,7 +380,7 @@ def getGWASargs():
 
     version = parser.add_argument_group('Version')
     version.add_argument('--version', action='version',
-                         version='%(prog)s 0.1.4')
+                         version='%(prog)s 0.1.5')
 
     return parser
 
@@ -625,6 +625,6 @@ def getVarianceEstimationArgs():
 
     version = parser.add_argument_group('Version')
     version.add_argument('--version', action='version',
-                         version='%(prog)s 0.1.3')
+                         version='%(prog)s 0.1.5')
 
     return parser
