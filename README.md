@@ -13,7 +13,7 @@ A description of the public interface can be found [here
 
 LiMMBo is available on the [Python Package Index](https://pypi.python.org).
 LiMMBo is dependent on Limix [LIMIX](https://github.com/limix/limix), however
-the latest Limix release does not include multi-variate models (see #2).
+the latest Limix release does not include multi-variate models (see[issue #7](https://github.com/HannahVMeyer/limmbo/issues/7)).
 While waiting for the updated Limix release please install as follows:
 
 Install LIMIX with multi-variate support (v1.0.18):
